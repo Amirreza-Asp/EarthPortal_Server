@@ -1,0 +1,24 @@
+﻿using Application.Models;
+using MediatR;
+
+namespace Application.CQRS.Regulation.Laws
+{
+    public class CreateLawCommand : IRequest<CommandResponse>
+    {
+        public String Title { get; set; }
+        public string AnnouncementNumber { get; set; }
+        public DateTime AnnouncementDate { get; set; }
+        public string NewspaperNumber { get; set; }
+        public DateTime NewspaperDate { get; set; }
+        public String Description { get; set; }
+        public DateTime ApprovalDate { get; set; }
+        public int Type { get; set; }
+        public bool IsOriginal { get; set; }
+
+        public Guid ApprovalTypeId { get; set; }
+        public Guid ApprovalStatusId { get; set; }
+        public Guid ExecutorManagmentId { get; set; }
+        public Guid ApprovalAuthorityId { get; set; }
+        public Guid LawCategoryId { get; set; }
+    }
+}

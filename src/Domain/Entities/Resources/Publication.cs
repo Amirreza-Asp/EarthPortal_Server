@@ -4,13 +4,11 @@ namespace Domain.Entities.Resources
 {
     public class Publication : BaseEntity
     {
-        public Publication(string title, string? description)
+        public Publication(string title)
         {
             Title = title;
-            Description = description;
         }
 
         public String Title { get; set; }
-        public String? Description { get; set; }
     }
 }

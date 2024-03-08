@@ -4,18 +4,11 @@ namespace Domain.Shared
 {
     public abstract class BaseEntity
     {
-        protected BaseEntity(Guid id)
-        {
-            Id = id;
-            CreatedAt = DateTime.UtcNow;
-        }
-
         protected BaseEntity()
         {
-            Id = Guid.NewGuid();
             CreatedAt = DateTime.UtcNow;
+            Id = Guid.NewGuid();
         }
-
 
         [Key]
         public Guid Id { get; private set; }

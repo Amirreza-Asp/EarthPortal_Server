@@ -4,22 +4,26 @@ namespace Domain.Entities.Resources
 {
     public class Article : BaseEntity
     {
-        public Article(string title, string? description, string path, Guid authorId, DateTime publishDate, string source)
+        public Article(string title, string? description, Guid authorId, DateTime publishDate, string file, string shortDescription, string image)
         {
             Title = title;
             Description = description;
-            Path = path;
             AuthorId = authorId;
             PublishDate = publishDate;
-            Source = source;
+            File = file;
+            ShortDescription = shortDescription;
+            Image = image;
         }
+
+        private Article() { }
 
         public String Title { get; set; }
         public String? Description { get; set; }
-        public String Path { get; set; }
-        public Guid AuthorId { get; set; }
         public DateTime PublishDate { get; set; }
-        public String Source { get; set; }
+        public String ShortDescription { get; set; }
+        public String File { get; set; }
+        public String Image { get; set; }
+        public Guid AuthorId { get; set; }
 
 
         public Author? Author { get; set; }

@@ -4,17 +4,13 @@ namespace Domain.Entities.Resources
 {
     public class Author : BaseEntity
     {
-        public Author(string name, string family, string? country)
+        public Author(string fullName)
         {
-            Name = name;
-            Family = family;
-            Country = country;
+            FullName = fullName;
         }
 
         private Author() { }
 
-        public String Name { get; set; }
-        public String Family { get; set; }
-        public String? Country { get; set; }
+        public String FullName { get; set; }
     }
 }

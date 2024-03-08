@@ -9,7 +9,7 @@ namespace Domain.Entities.Contact.Enums
         [Display(Name = "انتقاد")]
         Criticism = 20,
         [Display(Name = "شکایت")]
-        Complaint = 30,
+        ComplaGuid = 30,
         [Display(Name = "گزار")]
         Report = 40
     }

@@ -4,18 +4,15 @@ namespace Domain.Entities.Notices
 {
     public class Link : BaseEntity
     {
-        public Link(string value, Guid newsId)
+        public Link(string value)
         {
-            Id = Guid.NewGuid();
             Value = value;
-            NewsId = newsId;
         }
 
         private Link() { }
 
         public String Value { get; set; }
-        public Guid NewsId { get; set; }
 
-        public News? News { get; set; }
+        public ICollection<NewsLink> NewsLinks { get; set; }
     }
 }

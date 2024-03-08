@@ -1,14 +1,18 @@
-﻿namespace Domain.Entities.Contact
+﻿using Domain.Shared;
+
+namespace Domain.Entities.Contact
 {
-    public class Guide
+    public class Guide : BaseEntity
     {
-        public Guide(string title, string description)
+        public Guide(string title, string content, bool isPort)
         {
             Title = title;
-            Description = description;
+            Content = content;
+            IsPort = isPort;
         }
 
         public String Title { get; set; }
-        public String Description { get; set; }
+        public String Content { get; set; }
+        public bool IsPort { get; set; }
     }
 }

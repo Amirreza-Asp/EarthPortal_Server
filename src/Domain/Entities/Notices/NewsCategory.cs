@@ -6,7 +6,6 @@ namespace Domain.Entities.Notices
     {
         public NewsCategory(string title, string? description)
         {
-            Id = Guid.NewGuid();
             Title = title;
             Description = description;
         }
