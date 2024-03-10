@@ -1,5 +1,6 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Application.Contracts.Persistence.Repositories;
+using Application.CQRS.Resources.Resources;
 using Application.Models;
 using Application.Queries;
 using Domain;
@@ -72,6 +73,26 @@ namespace Endpoint.Controllers.Resources
             return File(fileBytes, "application/force-download", book.Title + extension);
         }
 
+
+
+        [HttpPost]
+        [Route("Create")]
+        public async Task<CommandResponse> Create([FromForm] CreateBookCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
+
+
+
+        [HttpPut]
+        [Route("Update")]
+        public async Task<CommandResponse> Update([FromForm] UpdateBookCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
+
+
+
+        [HttpDelete]
+        [Route("Remove")]
+        public async Task<CommandResponse> Remove([FromQuery] RemoveBookCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
 
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Domain.Dtos.Resources;
+using Domain.Dtos.Shared;
 using Domain.Entities.Resources;
 
 namespace Infrastructure.Profiles
@@ -21,6 +22,18 @@ namespace Infrastructure.Profiles
 
             CreateMap<Article, ArticleSummary>()
                 .ForMember(b => b.Author, d => d.MapFrom(e => e.Author.FullName));
+
+            CreateMap<Author, SelectListItem>()
+                .ForMember(b => b.Text, d => d.MapFrom(e => e.FullName))
+                .ForMember(b => b.Value, d => d.MapFrom(e => e.Id));
+
+            CreateMap<Publication, SelectListItem>()
+                .ForMember(b => b.Text, d => d.MapFrom(e => e.Title))
+                .ForMember(b => b.Value, d => d.MapFrom(e => e.Id));
+
+            CreateMap<Translator, SelectListItem>()
+                .ForMember(b => b.Text, d => d.MapFrom(e => e.FullName))
+                .ForMember(b => b.Value, d => d.MapFrom(e => e.Id));
 
 
 

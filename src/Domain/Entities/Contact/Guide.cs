@@ -13,6 +13,7 @@ namespace Domain.Entities.Contact
 
         public String Title { get; set; }
         public String Content { get; set; }
+        // true is 'درگاه' flase is 'پایش'
         public bool IsPort { get; set; }
     }
 }
