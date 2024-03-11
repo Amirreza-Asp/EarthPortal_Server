@@ -13,6 +13,8 @@
         public String Translator { get; set; }
         public String Publication { get; set; }
         public Guid PublicationId { get; set; }
+        public Guid TranslatorId { get; set; }
+        public Guid AuthorId { get; set; }
         public int Pages { get; set; }
         public int Size { get; set; }
     }

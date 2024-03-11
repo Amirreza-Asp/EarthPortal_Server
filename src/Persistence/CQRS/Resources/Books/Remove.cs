@@ -1,4 +1,4 @@
-﻿using Application.CQRS.Resources.Resources;
+﻿using Application.CQRS.Resources.Books;
 using Application.Models;
 using Domain;
 using MediatR;

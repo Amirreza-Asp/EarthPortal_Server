@@ -1,5 +1,5 @@
 ﻿using Application.Contracts.Infrastructure.Services;
-using Application.CQRS.Resources.Resources;
+using Application.CQRS.Resources.Books;
 using Application.Models;
 using Domain;
 using MediatR;
@@ -36,8 +36,9 @@ namespace Persistence.CQRS.Resources.Books
             if (!Directory.Exists(upload + SD.BookFilePath))
                 Directory.CreateDirectory(upload + SD.BookFilePath);
 
-            var fileName = Guid.NewGuid() + Path.GetExtension(request.File.FileName);
-            var imgName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
+
+
+
             var oldImage = book.Image;
             var oldFile = book.File;
 
@@ -46,31 +47,49 @@ namespace Persistence.CQRS.Resources.Books
             book.ShortDescription = request.ShortDescription;
             book.Description = request.Description;
             book.Title = request.Title;
-            book.File = fileName;
-            book.Image = imgName;
+
             book.PublicationId = request.PublicationId;
             book.Pages = request.Pages;
             book.PublishDate = request.PublishDate;
             book.TranslatorId = request.TranslatorId;
+
+
+            if (request.File != null)
+            {
+                var fileName = Guid.NewGuid() + Path.GetExtension(request.File.FileName);
+                book.File = fileName;
+            }
+
+            if (request.Image != null)
+            {
+                var imgName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
+                book.Image = imgName;
+            }
 
             _context.Book.Update(book);
 
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                if (File.Exists(upload + SD.BookImagePath + oldImage))
-                    File.Delete(upload + SD.BookImagePath + oldImage);
 
-                if (File.Exists(upload + SD.BookFilePath + oldFile))
-                    File.Delete(upload + SD.BookFilePath + oldFile);
-
-
-                using (Stream fileStream = new FileStream(upload + SD.BookFilePath + fileName, FileMode.Create))
+                if (request.Image != null)
                 {
-                    await request.File.CopyToAsync(fileStream);
+                    if (File.Exists(upload + SD.BookImagePath + oldImage))
+                        File.Delete(upload + SD.BookImagePath + oldImage);
+
+                    await _photoManager.SaveAsync(request.Image, upload + SD.BookImagePath + book.Image, cancellationToken);
                 }
 
-                await _photoManager.SaveAsync(request.Image, upload + SD.BookImagePath + imgName, cancellationToken);
+                if (request.File != null)
+                {
+                    if (File.Exists(upload + SD.BookFilePath + oldFile))
+                        File.Delete(upload + SD.BookFilePath + oldFile);
+
+                    using (Stream fileStream = new FileStream(upload + SD.BookFilePath + book.File, FileMode.Create))
+                    {
+                        await request.File.CopyToAsync(fileStream);
+                    }
+                }
 
                 return CommandResponse.Success(new { Id = book.Id, Image = book.Image, File = book.File });
             }

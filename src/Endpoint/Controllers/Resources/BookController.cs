@@ -1,6 +1,6 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Application.Contracts.Persistence.Repositories;
-using Application.CQRS.Resources.Resources;
+using Application.CQRS.Resources.Books;
 using Application.Models;
 using Application.Queries;
 using Domain;

@@ -1,5 +1,5 @@
 ﻿using Application.Contracts.Infrastructure.Services;
-using Application.CQRS.Resources.Resources;
+using Application.CQRS.Resources.Books;
 using Application.Models;
 using Domain;
 using Domain.Entities.Resources;
