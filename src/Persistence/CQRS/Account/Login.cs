@@ -4,6 +4,7 @@ using Application.CQRS.Account;
 using Application.Models;
 using Domain.Entities.Account;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.CQRS.Account
 {
@@ -23,7 +24,7 @@ namespace Persistence.CQRS.Account
         public async Task<CommandResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             var user =
-                await _userRepository.FirstOrDefaultAsync<User>(b => b.UserName == request.UserName);
+                await _userRepository.FirstOrDefaultAsync(b => b.UserName == request.UserName, include: source => source.Include(b => b.Role));
 
             if (user == null)
                 return CommandResponse.Failure(400, "نام کاربری وارد شده در سیستم وجود ندارد");
@@ -34,7 +35,8 @@ namespace Persistence.CQRS.Account
             var setCookiesNotification = new SetAuthCookiesNotification(user.UserName);
             await _mediator.Publish(setCookiesNotification);
 
-            return CommandResponse.Success();
+
+            return CommandResponse.Success(new { userName = user.UserName, name = user.Name + " " + user.Family, role = user.Role?.Title });
         }
     }
 }

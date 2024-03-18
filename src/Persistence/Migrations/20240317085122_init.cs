@@ -1,14 +1,31 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Persistence.Migrations
 {
-    public partial class Init : Migration
+    /// <inheritdoc />
+    public partial class init : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "AboutUs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Video = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AboutUs", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "ApprovalAuthority",
                 columns: table => new
@@ -118,6 +135,19 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Goal",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Goal", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Guide",
                 columns: table => new
                 {
@@ -217,6 +247,21 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RelatedCompany",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Order = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RelatedCompany", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Role",
                 columns: table => new
                 {
@@ -229,6 +274,19 @@ namespace Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Role", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SystemEvaluation",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Score = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SystemEvaluation", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -252,58 +310,11 @@ namespace Persistence.Migrations
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Video = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Thumnail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_VideoContent", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Article",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PublishDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ShortDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    File = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AuthorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Article", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Article_Author_AuthorId",
-                        column: x => x.AuthorId,
-                        principalTable: "Author",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Broadcast",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AuthorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Broadcast", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Broadcast_Author_AuthorId",
-                        column: x => x.AuthorId,
-                        principalTable: "Author",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -457,6 +468,86 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "IntroductionMethod",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    IntroductionMethod = table.Column<int>(type: "int", nullable: false),
+                    SystemEvaluationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IntroductionMethod", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IntroductionMethod_SystemEvaluation_SystemEvaluationId",
+                        column: x => x.SystemEvaluationId,
+                        principalTable: "SystemEvaluation",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SystemEvaluationPage",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Page = table.Column<int>(type: "int", nullable: false),
+                    SystemEvaluationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SystemEvaluationPage", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SystemEvaluationPage_SystemEvaluation_SystemEvaluationId",
+                        column: x => x.SystemEvaluationId,
+                        principalTable: "SystemEvaluation",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Article",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ShortDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    File = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PublishDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Pages = table.Column<int>(type: "int", nullable: false),
+                    AuthorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TranslatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PublicationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Article", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Article_Author_AuthorId",
+                        column: x => x.AuthorId,
+                        principalTable: "Author",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Article_Publication_PublicationId",
+                        column: x => x.PublicationId,
+                        principalTable: "Publication",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Article_Translator_TranslatorId",
+                        column: x => x.TranslatorId,
+                        principalTable: "Translator",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Book",
                 columns: table => new
                 {
@@ -490,6 +581,46 @@ namespace Persistence.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Book_Translator_TranslatorId",
+                        column: x => x.TranslatorId,
+                        principalTable: "Translator",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Broadcast",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ShortDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    File = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PublishDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Pages = table.Column<int>(type: "int", nullable: false),
+                    AuthorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TranslatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PublicationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Broadcast", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Broadcast_Author_AuthorId",
+                        column: x => x.AuthorId,
+                        principalTable: "Author",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Broadcast_Publication_PublicationId",
+                        column: x => x.PublicationId,
+                        principalTable: "Publication",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Broadcast_Translator_TranslatorId",
                         column: x => x.TranslatorId,
                         principalTable: "Translator",
                         principalColumn: "Id",
@@ -569,6 +700,16 @@ namespace Persistence.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Article_PublicationId",
+                table: "Article",
+                column: "PublicationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Article_TranslatorId",
+                table: "Article",
+                column: "TranslatorId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Book_AuthorId",
                 table: "Book",
                 column: "AuthorId");
@@ -589,6 +730,16 @@ namespace Persistence.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Broadcast_PublicationId",
+                table: "Broadcast",
+                column: "PublicationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Broadcast_TranslatorId",
+                table: "Broadcast",
+                column: "TranslatorId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_GalleryPhoto_GalleryId",
                 table: "GalleryPhoto",
                 column: "GalleryId");
@@ -597,6 +748,11 @@ namespace Persistence.Migrations
                 name: "IX_GeoAddress_InfoId",
                 table: "GeoAddress",
                 column: "InfoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IntroductionMethod_SystemEvaluationId",
+                table: "IntroductionMethod",
+                column: "SystemEvaluationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Law_ApprovalAuthorityId",
@@ -644,13 +800,22 @@ namespace Persistence.Migrations
                 column: "NewsId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SystemEvaluationPage_SystemEvaluationId",
+                table: "SystemEvaluationPage",
+                column: "SystemEvaluationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_User_RoleId",
                 table: "User",
                 column: "RoleId");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AboutUs");
+
             migrationBuilder.DropTable(
                 name: "Article");
 
@@ -673,10 +838,16 @@ namespace Persistence.Migrations
                 name: "GeoAddress");
 
             migrationBuilder.DropTable(
+                name: "Goal");
+
+            migrationBuilder.DropTable(
                 name: "Guide");
 
             migrationBuilder.DropTable(
                 name: "Infographic");
+
+            migrationBuilder.DropTable(
+                name: "IntroductionMethod");
 
             migrationBuilder.DropTable(
                 name: "LawImage");
@@ -688,19 +859,25 @@ namespace Persistence.Migrations
                 name: "NewsLink");
 
             migrationBuilder.DropTable(
+                name: "RelatedCompany");
+
+            migrationBuilder.DropTable(
+                name: "SystemEvaluationPage");
+
+            migrationBuilder.DropTable(
                 name: "User");
 
             migrationBuilder.DropTable(
                 name: "VideoContent");
 
             migrationBuilder.DropTable(
+                name: "Author");
+
+            migrationBuilder.DropTable(
                 name: "Publication");
 
             migrationBuilder.DropTable(
                 name: "Translator");
-
-            migrationBuilder.DropTable(
-                name: "Author");
 
             migrationBuilder.DropTable(
                 name: "Gallery");
@@ -716,6 +893,9 @@ namespace Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "News");
+
+            migrationBuilder.DropTable(
+                name: "SystemEvaluation");
 
             migrationBuilder.DropTable(
                 name: "Role");

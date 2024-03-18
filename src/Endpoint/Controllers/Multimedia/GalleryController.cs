@@ -6,6 +6,7 @@ using Application.Queries;
 using Domain;
 using Domain.Dtos.Multimedia;
 using Domain.Entities.Mutimedia;
+using Endpoint.CustomeAttributes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,6 +51,7 @@ namespace Endpoint.Controllers.Multimedia
 
 
         [HttpPost]
+        [AccessControl("Admin")]
         [Route("Create")]
         public async Task<CommandResponse> Create([FromForm] CreateGalleryCommand command, CancellationToken cancellationToken)
         {
@@ -57,11 +59,13 @@ namespace Endpoint.Controllers.Multimedia
         }
 
         [HttpPut]
+        [AccessControl("Admin")]
         [Route("Update")]
         public async Task<CommandResponse> Update([FromForm] UpdateGalleryCommand command, CancellationToken cancellationToken) =>
             await _mediator.Send(command, cancellationToken);
 
         [HttpDelete]
+        [AccessControl("Admin")]
         [Route("Remove")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveGalleryCommand command, CancellationToken cancellationToken) =>
             await _mediator.Send(command, cancellationToken);

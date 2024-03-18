@@ -1,0 +1,57 @@
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Resources.Brodcasts;
+using Application.Models;
+using Domain;
+using Domain.Entities.Resources;
+using MediatR;
+using Microsoft.AspNetCore.Hosting;
+
+namespace Persistence.CQRS.Resources.Broadcasts
+{
+    public class CreateBroadcastCommandHandler : IRequestHandler<CreateBroadcastCommand, CommandResponse>
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly IHostingEnvironment _env;
+        private readonly IPhotoManager _photoManager;
+
+        public CreateBroadcastCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env)
+        {
+            _context = context;
+            _photoManager = photoManager;
+            _env = env;
+        }
+
+        public async Task<CommandResponse> Handle(CreateBroadcastCommand request, CancellationToken cancellationToken)
+        {
+            var upload = _env.WebRootPath;
+
+            if (!Directory.Exists(upload + SD.BroadcastImagePath))
+                Directory.CreateDirectory(upload + SD.BroadcastImagePath);
+
+            if (!Directory.Exists(upload + SD.BroadcastFilePath))
+                Directory.CreateDirectory(upload + SD.BroadcastFilePath);
+
+            var fileName = Guid.NewGuid() + Path.GetExtension(request.File.FileName);
+            var imgName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
+
+
+            var entity = new Broadcast(request.Title, request.Description, fileName, request.PublishDate, request.AuthorId, imgName, request.ShortDescription, request.Pages, request.TranslatorId, request.PublicationId);
+
+            _context.Broadcast.Add(entity);
+
+            if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                using (Stream fileStream = new FileStream(upload + SD.BroadcastFilePath + fileName, FileMode.Create))
+                {
+                    await request.File.CopyToAsync(fileStream);
+                }
+
+                await _photoManager.SaveAsync(request.Image, upload + SD.BroadcastImagePath + imgName, cancellationToken);
+
+                return CommandResponse.Success(new { Id = entity.Id, Image = entity.Image, File = entity.File });
+            }
+
+            return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
+        }
+    }
+}

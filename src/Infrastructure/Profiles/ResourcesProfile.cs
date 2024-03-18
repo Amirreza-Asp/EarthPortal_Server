@@ -17,6 +17,16 @@ namespace Infrastructure.Profiles
                 .ForMember(b => b.Publication, d => d.MapFrom(e => e.Publication.Title))
                 .ForMember(b => b.Translator, d => d.MapFrom(e => e.Translator.FullName));
 
+            CreateMap<Broadcast, BroadcastDetails>()
+                .ForMember(b => b.Author, d => d.MapFrom(e => e.Author.FullName))
+                .ForMember(b => b.Publication, d => d.MapFrom(e => e.Publication.Title))
+                .ForMember(b => b.Translator, d => d.MapFrom(e => e.Translator.FullName));
+
+            CreateMap<Article, ArticleDetails>()
+                .ForMember(b => b.Author, d => d.MapFrom(e => e.Author.FullName))
+                .ForMember(b => b.Publication, d => d.MapFrom(e => e.Publication.Title))
+                .ForMember(b => b.Translator, d => d.MapFrom(e => e.Translator.FullName));
+
             CreateMap<Broadcast, BroadcastSummary>()
                 .ForMember(b => b.Author, d => d.MapFrom(e => e.Author.FullName));
 

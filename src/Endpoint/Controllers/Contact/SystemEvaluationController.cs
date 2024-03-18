@@ -1,7 +1,8 @@
 ﻿using Application.Contracts.Persistence.Repositories;
 using Application.CQRS.Contact.SystemEvaluations;
 using Application.Models;
-using Domain.Entities.Contact;
+using Domain.Dtos.Contact;
+using Endpoint.CustomeAttributes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,14 +12,20 @@ namespace Endpoint.Controllers.Contact
     [ApiController]
     public class SystemEvaluationController : ControllerBase
     {
-        private readonly IRepository<SystemEvaluation> _repo;
+        private readonly ISystemEvaluationRepository _repo;
         private readonly IMediator _mediator;
 
-        public SystemEvaluationController(IRepository<SystemEvaluation> repo, IMediator mediator)
+        public SystemEvaluationController(ISystemEvaluationRepository repo, IMediator mediator)
         {
             _repo = repo;
             _mediator = mediator;
         }
+
+        [HttpGet]
+        [AccessControl("Admin")]
+        public async Task<SystemEvaluationDetails> Get(CancellationToken cancellationToken) =>
+            await _repo.GetAsync(cancellationToken);
+
 
 
         [HttpPost]

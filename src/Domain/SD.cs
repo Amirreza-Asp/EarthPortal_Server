@@ -9,7 +9,9 @@
         public const String BookImagePath = "/resources/book image/";
         public const String BookFilePath = "/resources/book file/";
         public const String BroadcastImagePath = "/resources/broadcast image/";
+        public const String BroadcastFilePath = "/resources/broadcast file/";
         public const String ArticleImagePath = "/resources/article image/";
+        public const String ArticleFilePath = "/resources/article file/";
         public const String RelatedCompanyPath = "/contact/related companies/";
         public const String AboutUsPath = "/contact/aboutUs/";
 

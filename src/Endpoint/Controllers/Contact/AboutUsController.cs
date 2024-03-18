@@ -1,10 +1,12 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Application.Contracts.Persistence.Repositories;
+using Application.CQRS.Contact.About;
 using Application.Models;
 using Application.Queries;
 using Domain;
 using Domain.Dtos.Contact;
 using Domain.Entities.Contact;
+using Endpoint.CustomeAttributes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,7 +34,6 @@ namespace Endpoint.Controllers.Contact
         public async Task<ListActionResult<AboutUsSummary>> PaginationSummary([FromBody] GridQuery query, CancellationToken cancellationToken) =>
             await _aboutUsRepo.GetAllAsync<AboutUsSummary>(query, cancellationToken: cancellationToken);
 
-
         [Route("Image")]
         [HttpGet]
         public async Task<IActionResult> GetImage([FromQuery] ImageQuery query, CancellationToken cancellationToken)
@@ -45,5 +46,22 @@ namespace Endpoint.Controllers.Contact
             return File(image, $"image/{extension.Substring(1)}");
         }
 
+        [Route("Create")]
+        [HttpPost]
+        [AccessControl("Admin")]
+        public async Task<CommandResponse> Create([FromForm] CreateAboutCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
+
+        [Route("Update")]
+        [HttpPut]
+        [AccessControl("Admin")]
+        public async Task<CommandResponse> Update([FromForm] UpdateAboutCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
+
+        [Route("Remove")]
+        [HttpDelete]
+        [AccessControl("Admin")]
+        public async Task<CommandResponse> Remove([FromQuery] RemoveAboutCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
     }
 }

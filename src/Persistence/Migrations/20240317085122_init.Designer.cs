@@ -12,43 +12,18 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240306065722_AddGoalToDatabase")]
-    partial class AddGoalToDatabase
+    [Migration("20240317085122_init")]
+    partial class init
     {
+        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.25")
+                .HasAnnotation("ProductVersion", "8.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
-
-            modelBuilder.Entity("Domain.Dtos.Contact.EducationalVideo", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Video")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("EducationalVideo");
-                });
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Domain.Dtos.Contact.RelatedCompany", b =>
                 {
@@ -160,6 +135,60 @@ namespace Persistence.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Contact.AboutUs", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Video")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AboutUs");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Contact.EducationalVideo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Video")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EducationalVideo");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.FrequentlyAskedQuestions", b =>
@@ -292,6 +321,67 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Info");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Contact.SystemEvaluation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SystemEvaluation");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Contact.SystemEvaluationIntroductionMethod", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IntroductionMethod")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SystemEvaluationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SystemEvaluationId");
+
+                    b.ToTable("IntroductionMethod");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Contact.SystemEvaluationPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Page")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SystemEvaluationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SystemEvaluationId");
+
+                    b.ToTable("SystemEvaluationPage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Mutimedia.Gallery", b =>
@@ -706,6 +796,12 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Pages")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PublicationId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("PublishDate")
                         .HasColumnType("datetime2");
 
@@ -717,9 +813,16 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("TranslatorId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
+
+                    b.HasIndex("PublicationId");
+
+                    b.HasIndex("TranslatorId");
 
                     b.ToTable("Article");
                 });
@@ -808,7 +911,27 @@ namespace Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("File")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Pages")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PublicationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("PublishDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ShortDescription")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -816,9 +939,16 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("TranslatorId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
+
+                    b.HasIndex("PublicationId");
+
+                    b.HasIndex("TranslatorId");
 
                     b.ToTable("Broadcast");
                 });
@@ -861,6 +991,28 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Info");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Contact.SystemEvaluationIntroductionMethod", b =>
+                {
+                    b.HasOne("Domain.Entities.Contact.SystemEvaluation", "SystemEvaluation")
+                        .WithMany()
+                        .HasForeignKey("SystemEvaluationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SystemEvaluation");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Contact.SystemEvaluationPage", b =>
+                {
+                    b.HasOne("Domain.Entities.Contact.SystemEvaluation", "SystemEvaluation")
+                        .WithMany()
+                        .HasForeignKey("SystemEvaluationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SystemEvaluation");
                 });
 
             modelBuilder.Entity("Domain.Entities.Mutimedia.GalleryPhoto", b =>
@@ -1027,7 +1179,23 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.Resources.Publication", "Publication")
+                        .WithMany()
+                        .HasForeignKey("PublicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Dtos.Resources.Translator", "Translator")
+                        .WithMany()
+                        .HasForeignKey("TranslatorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Author");
+
+                    b.Navigation("Publication");
+
+                    b.Navigation("Translator");
                 });
 
             modelBuilder.Entity("Domain.Entities.Resources.Book", b =>
@@ -1065,7 +1233,23 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.Resources.Publication", "Publication")
+                        .WithMany()
+                        .HasForeignKey("PublicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Dtos.Resources.Translator", "Translator")
+                        .WithMany()
+                        .HasForeignKey("TranslatorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Author");
+
+                    b.Navigation("Publication");
+
+                    b.Navigation("Translator");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.Info", b =>

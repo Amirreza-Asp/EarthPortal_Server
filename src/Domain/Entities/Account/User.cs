@@ -14,12 +14,12 @@
             Email = email;
             PhoneNumber = phoneNumber;
         }
-
-        private User() { }
+        public User() { }
 
         public String NationalCode { get; set; }
         public String Name { get; set; }
         public String Family { get; set; }
+        public bool IsActive { get; set; } = true;
         public String UserName { get; set; }
         public String Password { get; set; }
         public String Email { get; set; }

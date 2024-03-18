@@ -15,6 +15,7 @@ namespace Infrastructure
             services.AddScoped<IPhotoManager, PhotoManager>();
             services.AddScoped<IPasswordManager, PasswordManager>();
             services.AddScoped<IFileManager, FileManager>();
+            services.AddScoped<ITokenValidate, TokenValidate>();
 
             return services;
         }

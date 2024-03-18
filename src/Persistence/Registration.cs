@@ -33,6 +33,7 @@ namespace Persistence
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<ILawRepository, LawRepository>();
             services.AddScoped<INewsRepository, NewsRepository>();
+            services.AddScoped<ISystemEvaluationRepository, SystemEvaluationRepository>();
 
             return services;
         }

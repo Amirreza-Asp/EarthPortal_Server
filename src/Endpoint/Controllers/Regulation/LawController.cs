@@ -3,6 +3,7 @@ using Application.CQRS.Regulation.Laws;
 using Application.Models;
 using Application.Queries;
 using Domain.Dtos.Regulation;
+using Endpoint.CustomeAttributes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,18 +40,21 @@ namespace Endpoint.Controllers.Regulation
 
         [Route("Create")]
         [HttpPost]
+        [AccessControl("Admin")]
         public async Task<CommandResponse> Create([FromBody] CreateLawCommand command, CancellationToken cancellationToken) =>
             await _mediator.Send(command, cancellationToken);
 
 
         [Route("Update")]
         [HttpPut]
+        [AccessControl("Admin")]
         public async Task<CommandResponse> Update([FromBody] UpdateLawCommand command, CancellationToken cancellationToken) =>
             await _mediator.Send(command, cancellationToken);
 
 
         [Route("Remove")]
         [HttpDelete]
+        [AccessControl("Admin")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveLawCommand command, CancellationToken cancellationToken) =>
             await _mediator.Send(command, cancellationToken);
     }

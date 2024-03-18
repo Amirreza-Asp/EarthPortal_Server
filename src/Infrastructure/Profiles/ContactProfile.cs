@@ -23,7 +23,6 @@ namespace Infrastructure.Profiles
 
             CreateMap<Goal, Goal>();
 
-
             CreateMap<AboutUs, AboutUsSummary>()
                 .ForMember(b => b.HaveVideo, d => d.MapFrom(e => !String.IsNullOrEmpty(e.Video)));
 

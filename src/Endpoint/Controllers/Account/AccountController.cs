@@ -1,7 +1,12 @@
-﻿using Application.CQRS.Account;
+﻿using Application;
+using Application.Contracts.Persistence.Repositories;
+using Application.CQRS.Account;
 using Application.Models;
+using Domain.Entities.Account;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Endpoint.Controllers.Account
 {
@@ -10,15 +15,36 @@ namespace Endpoint.Controllers.Account
     public class AccountController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IRepository<User> _userRepo;
 
-        public AccountController(IMediator mediator)
+        public AccountController(IMediator mediator, IRepository<User> userRepo)
         {
             _mediator = mediator;
+            _userRepo = userRepo;
         }
 
         [HttpPost]
         [Route("Login")]
         public async Task<CommandResponse> Login([FromBody] LoginCommand command, CancellationToken cancellationToken) =>
             await _mediator.Send(command, cancellationToken);
+
+
+        [HttpGet]
+        [Route("Profile")]
+        [Authorize]
+        public async Task<CommandResponse> Profile(CancellationToken cancellationToken)
+        {
+            var userName = User.Claims.First(b => b.Type == AppClaims.UserName)?.Value;
+
+            if (userName == null)
+                return CommandResponse.Failure(400, "کاربر به سیستم وارد نشده");
+
+            var user = await _userRepo.FirstOrDefaultAsync(b => b.UserName == userName, include: source => source.Include(b => b.Role));
+
+            if (userName == null)
+                return CommandResponse.Failure(400, "کاربر در سیستم وجود ندارد");
+
+            return CommandResponse.Success(new { userName = user.UserName, name = user.Name + " " + user.Family, role = user.Role?.Title });
+        }
     }
 }

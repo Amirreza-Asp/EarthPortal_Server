@@ -40,7 +40,7 @@ namespace Persistence.CQRS.Account
 
             _contextAccessor.HttpContext.Response.Cookies.Append(SD.AuthToken, ProtectorData.Encrypt(token), new CookieOptions()
             {
-                Expires = DateTime.Now.AddMonths(1),
+                Expires = DateTime.Now.AddHours(1),
                 HttpOnly = true,
                 Secure = true,
                 IsEssential = true,

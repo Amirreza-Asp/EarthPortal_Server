@@ -5,6 +5,7 @@ using Application.Models;
 using Application.Queries;
 using Domain;
 using Domain.Entities.Mutimedia;
+using Endpoint.CustomeAttributes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -46,12 +47,14 @@ namespace Endpoint.Controllers.Multimedia
         }
 
         [Route("Create")]
+        [AccessControl("Admin")]
         [HttpPost]
         public async Task<CommandResponse> Create([FromForm] CreateInfographicCommand command, CancellationToken cancellationToken) =>
             await _mediator.Send(command, cancellationToken);
 
 
         [Route("Remove")]
+        [AccessControl("Admin")]
         [HttpDelete]
         public async Task<CommandResponse> Remove([FromQuery] RemoveInfographicCommand command, CancellationToken cancellationToken) =>
             await _mediator.Send(command, cancellationToken);

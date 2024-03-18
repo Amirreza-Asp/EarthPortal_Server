@@ -43,6 +43,22 @@ namespace Application.Utilities
             return ConvertFromUnixTimestamp(ticks);
         }
 
+
+        public static String GetTokenUserName(this ClaimsIdentity claims)
+        {
+            return claims.FindFirst(claim => claim.Type == AppClaims.UserName).Value;
+        }
+
+        public static String GetTokenRole(this ClaimsIdentity claims)
+        {
+            return claims.FindFirst(claim => claim.Type == AppClaims.Role).Value;
+        }
+
+        public static String GetTokenIpAddress(this ClaimsIdentity claims)
+        {
+            return claims.FindFirst(claim => claim.Type == AppClaims.IpAddress).Value;
+        }
+
         private static DateTime ConvertFromUnixTimestamp(long timestamp)
         {
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
