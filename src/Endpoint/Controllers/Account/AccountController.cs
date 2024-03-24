@@ -2,6 +2,7 @@
 using Application.Contracts.Persistence.Repositories;
 using Application.CQRS.Account;
 using Application.Models;
+using Domain;
 using Domain.Entities.Account;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +29,13 @@ namespace Endpoint.Controllers.Account
         public async Task<CommandResponse> Login([FromBody] LoginCommand command, CancellationToken cancellationToken) =>
             await _mediator.Send(command, cancellationToken);
 
+        [HttpGet]
+        [Route("Logout")]
+        public CommandResponse Logout()
+        {
+            HttpContext.Response.Cookies.Delete(SD.AuthToken);
+            return CommandResponse.Success();
+        }
 
         [HttpGet]
         [Route("Profile")]

@@ -45,7 +45,7 @@ builder.Services.AddCors(options =>
         policy
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .WithOrigins("http://localhost:4173/", "http://localhost:5173", "http://172.16.0.2:3000", "http://192.168.142.49:3000", "http://newportal.iraneland.ir", "http://172.33.21.101:3000", "https://localhost:7121", "https://840f-2a09-bac5-41dc-505-00-80-ec.ngrok-free.app/", "http://localhost:5174", "https://earth-portal-client.vercel.app")
+            .WithOrigins("http://localhost:4173", "http://localhost:5173", "http://172.16.0.2:3000", "http://192.168.142.49:3000", "http://newportal.iraneland.ir", "http://172.33.21.101:3000", "https://localhost:7121", "https://840f-2a09-bac5-41dc-505-00-80-ec.ngrok-free.app/", "http://localhost:5174", "https://earth-portal-client.vercel.app")
             .AllowCredentials();
     });
 });
