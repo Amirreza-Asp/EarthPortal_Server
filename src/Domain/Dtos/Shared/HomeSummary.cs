@@ -1,5 +1,4 @@
-﻿using Domain.Dtos.Contact;
-using Domain.Dtos.Notices;
+﻿using Domain.Dtos.Notices;
 using Domain.Entities.Contact;
 
 namespace Domain.Dtos.Shared

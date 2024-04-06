@@ -1,6 +1,5 @@
 ﻿using Application.Contracts.Persistence.Repositories;
 using Application.Queries;
-using Domain.Dtos.Contact;
 using Domain.Dtos.Notices;
 using Domain.Dtos.Shared;
 using Domain.Entities.Contact;

@@ -57,7 +57,7 @@ namespace Endpoint.Controllers.Resources
             var book = await _bookRepo.FirstOrDefaultAsync<BookDetails>(b => b.Id == id, cancellationToken);
 
             var filePath = _hostEnv.WebRootPath + SD.BookFilePath + book.File;
-            book.Size = (int)_fileManager.GetSize(filePath, FileSize.MB);
+            book.Size = Math.Round(_fileManager.GetSize(filePath, FileSize.MB), 2);
             return book;
         }
 

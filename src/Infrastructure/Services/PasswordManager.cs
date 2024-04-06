@@ -1,5 +1,6 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.AspNetCore.Hosting;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
@@ -15,8 +16,9 @@ namespace Infrastructure.Services
         private readonly int _saltLength;
         private readonly int _requestedLength;
         private readonly int _iterCount;
+        private readonly IHostingEnvironment _hostEnv;
 
-        public PasswordManager()
+        public PasswordManager(IHostingEnvironment hostEnv)
         {
             _useAspNetCore = true;
 
@@ -27,6 +29,7 @@ namespace Infrastructure.Services
             _saltLength = 128 / 8;
             _requestedLength = 256 / 8;
             _iterCount = 10000;
+            _hostEnv = hostEnv;
         }
 
         public string HashPassword(string password)
@@ -197,6 +200,45 @@ namespace Infrastructure.Services
             buffer[offset + 1] = (byte)(value >> 16);
             buffer[offset + 2] = (byte)(value >> 8);
             buffer[offset + 3] = (byte)(value >> 0);
+        }
+
+        public (bool Valid, string Error) CheckPasswordStrong(string password)
+        {
+            if (password.Length < 6)
+                return new(false, "رمز عبور باید بیشتر از 6 کاراکتر باشد");
+
+            if (!CheckCommonPassword(password))
+                return new(false, "رمز عبور وارد شده ضعیف است");
+
+            return CheckCharacters(password);
+        }
+
+        public (bool Valid, string Error) CheckCharacters(String password)
+        {
+            for (int i = 0; i < password.Length; i++)
+            {
+                if (
+                    (password[i] >= 'A' && password[i] <= 'Z') ||
+                    (password[i] >= 'a' && password[i] <= 'z') ||
+                    (password[i] >= '0' && password[i] <= '9') ||
+                    password[i] == '@' ||
+                    password[i] == '!' ||
+                    password[i] == '*' ||
+                    password[i] == '#')
+                    continue;
+
+                return new(false, "رمز عبور فقط باید شامل A-Z یا a-z یا کاراکتر های (! , * , @ , #) باشد");
+            }
+
+            return new(true, "");
+        }
+
+        private bool CheckCommonPassword(String password)
+        {
+            var path = _hostEnv.WebRootPath + "/account/commonPasswords.txt";
+            var data = File.ReadAllLines(path);
+
+            return !data.Contains(password);
         }
     }
 }

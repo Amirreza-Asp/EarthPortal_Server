@@ -4,7 +4,7 @@ using Application.CQRS.Contact.RelatedCompanies;
 using Application.Models;
 using Application.Queries;
 using Domain;
-using Domain.Dtos.Contact;
+using Domain.Entities.Contact;
 using Endpoint.CustomeAttributes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

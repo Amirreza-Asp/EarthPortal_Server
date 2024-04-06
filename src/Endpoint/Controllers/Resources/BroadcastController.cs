@@ -58,7 +58,7 @@ namespace Endpoint.Controllers.Resources
             var book = await _broadcastRepo.FirstOrDefaultAsync<BroadcastDetails>(b => b.Id == id, cancellationToken);
 
             var filePath = _hostEnv.WebRootPath + SD.BroadcastFilePath + book.File;
-            book.Size = (int)_fileManager.GetSize(filePath, FileSize.MB);
+            book.Size = Math.Round(_fileManager.GetSize(filePath, FileSize.MB), 2);
             return book;
         }
 

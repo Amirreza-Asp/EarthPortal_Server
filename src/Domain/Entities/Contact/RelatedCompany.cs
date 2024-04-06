@@ -1,6 +1,6 @@
 ﻿using Domain.Shared;
 
-namespace Domain.Dtos.Contact
+namespace Domain.Entities.Contact
 {
     public class RelatedCompany : BaseEntity
     {
@@ -11,8 +11,9 @@ namespace Domain.Dtos.Contact
             Order = order;
         }
 
-        public String Name { get; set; }
-        public String Image { get; set; }
+        public string Name { get; set; }
+        public string Image { get; set; }
         public int Order { get; set; }
+        public string Link { get; set; }
     }
 }

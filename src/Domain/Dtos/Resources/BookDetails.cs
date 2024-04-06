@@ -16,6 +16,6 @@
         public Guid TranslatorId { get; set; }
         public Guid AuthorId { get; set; }
         public int Pages { get; set; }
-        public int Size { get; set; }
+        public double Size { get; set; }
     }
 }

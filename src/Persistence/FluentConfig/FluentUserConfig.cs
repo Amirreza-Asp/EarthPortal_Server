@@ -8,8 +8,8 @@ namespace Persistence.FluentConfig
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.HasKey(b => b.NationalCode);
-            builder.Property(b => b.NationalCode).HasMaxLength(10).IsUnicode(false);
+            builder.HasKey(b => b.UserName);
+            builder.HasQueryFilter(b => b.IsActive);
         }
     }
 }

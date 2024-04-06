@@ -1,0 +1,87 @@
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.Contracts.Persistence.Repositories;
+using Application.CQRS.Contact.RelatedLinks;
+using Application.Models;
+using Application.Queries;
+using Domain;
+using Domain.Entities.Contact;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Endpoint.Controllers.Contact
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class RelatedLinkController : ControllerBase
+    {
+        private readonly IMediator _mediator;
+        private readonly IWebHostEnvironment _hostEnv;
+        private readonly IRepository<RelatedLink> _repo;
+        private readonly IPhotoManager _photoManager;
+
+        public RelatedLinkController(IMediator mediator, IRepository<RelatedLink> repo, IWebHostEnvironment hostEnv, IPhotoManager photoManager)
+        {
+            _mediator = mediator;
+            _repo = repo;
+            _hostEnv = hostEnv;
+            _photoManager = photoManager;
+        }
+
+        [HttpPost]
+        [Route("[action]")]
+        public async Task<ListActionResult<RelatedLink>> PaginationSummary([FromBody] GridQuery query, CancellationToken cancellationToken) =>
+            await _repo.GetAllAsync<RelatedLink>(query, cancellationToken: cancellationToken);
+
+
+        [HttpPost]
+        [Route("[action]")]
+        public async Task<CommandResponse> Create([FromBody] CreateRelatedLinkCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
+
+        [HttpPut]
+        [Route("[action]")]
+        public async Task<CommandResponse> Update([FromBody] UpdateRelatedLinkCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
+
+
+        [HttpDelete]
+        [Route("[action]")]
+        public async Task<CommandResponse> Remove([FromQuery] RemoveRelatedLinkCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
+
+
+        [HttpGet]
+        [Route("[action]")]
+        public async Task<FileResult> FooterImage(CancellationToken cancellationToken)
+        {
+            var upload = _hostEnv.WebRootPath + SD.FooterImagePath;
+            var files = Directory.GetFiles(upload);
+
+            if (!files.Any())
+                throw new Exception("footer image not found");
+
+            var image = await _photoManager.ResizeAsync(files[0], 700, 700, cancellationToken);
+
+            string extension = Path.GetExtension(files[0]);
+            return File(image, $"image/{extension.Substring(1)}");
+        }
+
+        [HttpPost]
+        [Route("[action]")]
+        public async Task<CommandResponse> ReplaceFooterImage([FromForm] IFormFile image, CancellationToken cancellationToken)
+        {
+            if (image == null)
+                return CommandResponse.Failure(400, "عکس را وارد کنید");
+
+            var upload = _hostEnv.WebRootPath + SD.FooterImagePath;
+            var files = Directory.GetFiles(upload);
+
+            foreach (var file in files)
+                System.IO.File.Delete(file);
+
+            await _photoManager.SaveAsync(image, upload + image.FileName, cancellationToken);
+
+            return CommandResponse.Success();
+        }
+    }
+}

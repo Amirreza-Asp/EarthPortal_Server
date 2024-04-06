@@ -2,7 +2,7 @@
 using Application.CQRS.Contact.RelatedCompanies;
 using Application.Models;
 using Domain;
-using Domain.Dtos.Contact;
+using Domain.Entities.Contact;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 
@@ -27,6 +27,7 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
             var imgName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
 
             var relatedCompany = new RelatedCompany(request.Name, imgName, request.Order);
+            relatedCompany.Link = request.Link;
 
             _context.RelatedCompany.Add(relatedCompany);
 

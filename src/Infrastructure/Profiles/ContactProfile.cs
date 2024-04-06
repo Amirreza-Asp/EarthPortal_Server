@@ -21,6 +21,8 @@ namespace Infrastructure.Profiles
 
             CreateMap<RelatedCompany, RelatedCompany>();
 
+            CreateMap<RelatedLink, RelatedLink>();
+
             CreateMap<Goal, Goal>();
 
             CreateMap<AboutUs, AboutUsSummary>()

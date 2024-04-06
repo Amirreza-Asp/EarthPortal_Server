@@ -14,6 +14,7 @@
         public const String ArticleFilePath = "/resources/article file/";
         public const String RelatedCompanyPath = "/contact/related companies/";
         public const String AboutUsPath = "/contact/aboutUs/";
+        public const String FooterImagePath = "/contact/footer/";
 
         public const String AuthToken = "AuthToken";
     }

@@ -1,6 +1,5 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Application.Contracts.Persistence.Utilities;
-using Domain.Dtos.Contact;
 using Domain.Dtos.Resources;
 using Domain.Entities.Account;
 using Domain.Entities.Contact;
@@ -265,7 +264,7 @@ namespace Persistence.Utilities
             if (!_context.RelatedCompany.Any())
             {
                 var items = RelatedCompanies;
-                items.ForEach(item => item.Image = $"comp{item.Image}");
+                items.ForEach(item => { item.Image = $"comp{item.Image}"; item.Link = "#"; });
                 _context.RelatedCompany.AddRange(items);
                 await _context.SaveChangesAsync();
             }
@@ -301,7 +300,7 @@ namespace Persistence.Utilities
             {
                 for (int i = 0; i < 50; i++)
                 {
-                    var se = new SystemEvaluation(rnd.Next(1, 6));
+                    var se = new SystemEvaluation(rnd.Next(1, 6), rnd.Next(1, 5000000).ToString());
                     _context.SystemEvaluation.Add(se);
 
                     var pagesCount = rnd.Next(3, 10);
@@ -325,21 +324,29 @@ namespace Persistence.Utilities
 
                 await _context.SaveChangesAsync();
             }
+
+            if (!_context.RelatedLink.Any())
+            {
+                _context.RelatedLink.AddRange(RelatedLinks);
+                await _context.SaveChangesAsync();
+            }
             #endregion
 
             #region Account
             if (!_context.Role.Any())
             {
                 var role = new Role("Admin", "ادمین", "ادمین کل سیستم");
+                var role2 = new Role("Publisher", "ناشر", "ناشر");
                 _context.Role.Add(role);
+                _context.Role.Add(role2);
                 await _context.SaveChangesAsync();
             }
 
 
             if (!_context.User.Any())
             {
-                var role = await _context.Role.FirstOrDefaultAsync();
-                var user = new User("3360408330", role.Id, "امیررضا", "محمدی", "Admin", _passManager.HashPassword("Admin"), "amirrezamohammadi8102@gmail.com", "09211573936");
+                var role = await _context.Role.FirstOrDefaultAsync(b => b.Title == "Admin");
+                var user = new User(role.Id, "امیررضا", "محمدی", "Admin", _passManager.HashPassword("Admin"), "amirrezamohammadi8102@gmail.com", "09211573936");
 
                 _context.User.Add(user);
                 await _context.SaveChangesAsync();
@@ -607,6 +614,16 @@ namespace Persistence.Utilities
             new RelatedCompany( "دبیرخانه ستاد مبارزه با مفاسد اقتصادی" , "37.png",1),
             };
 
+        public List<RelatedLink> RelatedLinks =>
+            new List<RelatedLink>
+            {
+                new RelatedLink("پایگاه اطلاع رسانی دفتر مقام معظم رهبری" , "#"),
+                new RelatedLink("پایگاه اطلاع رسانی ریاست جمهوری" , "#"),
+                new RelatedLink("پایگاه اطلاع رسانی دولت" , "#"),
+                new RelatedLink("وزارت ارتباطات و فناوری اطلاعات" , "#"),
+                new RelatedLink("سازمان فناوری اطلاعات ایران" , "#"),
+                new RelatedLink("ستاد هماهنگی مبارزه با مفاسد اقتصادی" , "#")
+            };
         #endregion
 
         #region Resources

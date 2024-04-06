@@ -36,7 +36,7 @@ namespace Persistence.CQRS.Account
             await _mediator.Publish(setCookiesNotification);
 
 
-            return CommandResponse.Success(new { userName = user.UserName, name = user.Name + " " + user.Family, role = user.Role?.Title });
+            return CommandResponse.Success(new { userName = user.UserName, name = user.Name + " " + user.Family, role = user.Role?.Title, roleDisplay = user.Role?.Display });
         }
     }
 }

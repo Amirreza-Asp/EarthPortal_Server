@@ -1,5 +1,4 @@
-﻿using Domain.Dtos.Contact;
-using Domain.Dtos.Resources;
+﻿using Domain.Dtos.Resources;
 using Domain.Entities.Account;
 using Domain.Entities.Contact;
 using Domain.Entities.Mutimedia;
@@ -58,6 +57,8 @@ namespace Persistence
         public DbSet<RelatedCompany> RelatedCompany { get; set; }
         public DbSet<Goal> Goal { get; set; }
         public DbSet<AboutUs> AboutUs { get; set; }
+
+        public DbSet<RelatedLink> RelatedLink { get; set; }
 
         public DbSet<SystemEvaluation> SystemEvaluation { get; set; }
         public DbSet<SystemEvaluationIntroductionMethod> IntroductionMethod { get; set; }

@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\contact\aboutUs\" />
+    <Folder Include="wwwroot\contact\footer\" />
     <Folder Include="wwwroot\resources\book image\" />
   </ItemGroup>
 

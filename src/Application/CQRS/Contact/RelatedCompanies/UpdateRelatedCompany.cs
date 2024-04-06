@@ -10,5 +10,6 @@ namespace Application.CQRS.Contact.RelatedCompanies
         public String Name { get; set; }
         public IFormFile? Image { get; set; }
         public int Order { get; set; }
+        public String Link { get; set; }
     }
 }

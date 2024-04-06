@@ -4,6 +4,7 @@ using Application.CQRS.Account;
 using Application.Models;
 using Domain;
 using Domain.Entities.Account;
+using Endpoint.CustomeAttributes;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,11 +18,13 @@ namespace Endpoint.Controllers.Account
     {
         private readonly IMediator _mediator;
         private readonly IRepository<User> _userRepo;
+        private readonly IRepository<Role> _roleRepo;
 
-        public AccountController(IMediator mediator, IRepository<User> userRepo)
+        public AccountController(IMediator mediator, IRepository<User> userRepo, IRepository<Role> roleRepo)
         {
             _mediator = mediator;
             _userRepo = userRepo;
+            _roleRepo = roleRepo;
         }
 
         [HttpPost]
@@ -47,12 +50,18 @@ namespace Endpoint.Controllers.Account
             if (userName == null)
                 return CommandResponse.Failure(400, "کاربر به سیستم وارد نشده");
 
-            var user = await _userRepo.FirstOrDefaultAsync(b => b.UserName == userName, include: source => source.Include(b => b.Role));
+            var user = await _userRepo.FirstOrDefaultAsync(b => b.UserName == userName, include: source => source.Include(b => b.Role), cancellationToken);
 
             if (userName == null)
                 return CommandResponse.Failure(400, "کاربر در سیستم وجود ندارد");
 
-            return CommandResponse.Success(new { userName = user.UserName, name = user.Name + " " + user.Family, role = user.Role?.Title });
+            return CommandResponse.Success(new { userName = user.UserName, name = user.Name + " " + user.Family, role = user.Role?.Title, roleDisplay = user.Role?.Display });
         }
+
+        [HttpGet]
+        [Route("[action]")]
+        [AccessControl("Admin")]
+        public async Task<List<Role>> Roles(CancellationToken cancellationToken) =>
+            await _roleRepo.GetAllAsync<Role>(cancellationToken: cancellationToken);
     }
 }
