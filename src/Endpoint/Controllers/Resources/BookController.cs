@@ -70,7 +70,6 @@ namespace Endpoint.Controllers.Resources
 
             var fileBytes = System.IO.File.ReadAllBytes(path);
 
-            return File(fileBytes, "application/image", file);
             return File(fileBytes, "application/force-download", file);
         }
 
