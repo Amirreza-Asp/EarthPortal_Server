@@ -24,6 +24,7 @@
         public String? PhoneNumber { get; set; }
         public Guid RoleId { get; set; }
         public DateTime CreatedAt { get; set; }
+        public bool EnableContentEdit { get; set; } = true;
 
 
         public Role? Role { get; set; }

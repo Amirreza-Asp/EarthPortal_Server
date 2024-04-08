@@ -66,7 +66,15 @@ namespace Endpoint.Controllers.Notices
                     cancellationToken: cancellationToken);
 
             if (news != null)
+            {
                 news.RelatedNews = await _newsRepository.RelatedNewsAsync(shortLink, cancellationToken: cancellationToken);
+
+                news.NextNews =
+                    await _newsRepository.NextNewsAsync(shortLink, news.DateOfRegisration, cancellationToken: cancellationToken);
+
+                news.PrevNews =
+                    await _newsRepository.PrevNewsAsync(shortLink, news.NextNews != null ? news.NextNews.ShortLink : 0, news.DateOfRegisration, cancellationToken: cancellationToken);
+            }
 
             return news;
         }

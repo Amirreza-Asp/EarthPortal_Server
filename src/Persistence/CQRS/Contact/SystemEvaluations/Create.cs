@@ -34,7 +34,7 @@ namespace Persistence.CQRS.Contact.SystemEvaluations
             var systemEvaluationPages = new List<SystemEvaluationPage>();
             request.Pages.ForEach(page =>
                  {
-                     systemEvaluationPages.Add(new SystemEvaluationPage((Pages)page, systemEvaluation.Id));
+                     systemEvaluationPages.Add(new SystemEvaluationPage((Domain.Entities.Contact.Enums.Pages)page, systemEvaluation.Id));
                  });
 
             _context.SystemEvaluationPage.AddRange(systemEvaluationPages);

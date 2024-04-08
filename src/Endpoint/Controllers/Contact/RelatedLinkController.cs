@@ -66,11 +66,11 @@ namespace Endpoint.Controllers.Contact
             return File(image, $"image/{extension.Substring(1)}");
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("[action]")]
-        public async Task<CommandResponse> ReplaceFooterImage([FromForm] IFormFile image, CancellationToken cancellationToken)
+        public async Task<CommandResponse> ReplaceFooterImage([FromForm] ReplaceFooterImageCommand command, CancellationToken cancellationToken)
         {
-            if (image == null)
+            if (command.Image == null)
                 return CommandResponse.Failure(400, "عکس را وارد کنید");
 
             var upload = _hostEnv.WebRootPath + SD.FooterImagePath;
@@ -79,9 +79,14 @@ namespace Endpoint.Controllers.Contact
             foreach (var file in files)
                 System.IO.File.Delete(file);
 
-            await _photoManager.SaveAsync(image, upload + image.FileName, cancellationToken);
+            await _photoManager.SaveAsync(command.Image, upload + command.Image.FileName, cancellationToken);
 
             return CommandResponse.Success();
         }
+    }
+
+    public class ReplaceFooterImageCommand
+    {
+        public IFormFile Image { get; set; }
     }
 }

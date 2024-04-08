@@ -34,6 +34,7 @@ namespace Persistence
             services.AddScoped<ILawRepository, LawRepository>();
             services.AddScoped<INewsRepository, NewsRepository>();
             services.AddScoped<ISystemEvaluationRepository, SystemEvaluationRepository>();
+            services.AddScoped<IHomePageRepository, HomePageRepository>();
 
             return services;
         }

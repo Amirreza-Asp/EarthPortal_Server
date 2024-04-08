@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence;
 
@@ -11,9 +12,11 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240407110836_AddEnableContentEditToUser")]
+    partial class AddEnableContentEditToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -202,10 +205,6 @@ namespace Persistence.Migrations
                         .HasColumnType("float");
 
                     b.Property<string>("Route")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RouteTitle")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -658,25 +657,6 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("HomePage");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Pages.LawPage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("WarningContent")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("WarningTitle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("LawPage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.ApprovalAuthority", b =>

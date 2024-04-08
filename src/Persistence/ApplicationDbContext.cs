@@ -3,6 +3,7 @@ using Domain.Entities.Account;
 using Domain.Entities.Contact;
 using Domain.Entities.Mutimedia;
 using Domain.Entities.Notices;
+using Domain.Entities.Pages;
 using Domain.Entities.Regulation;
 using Domain.Entities.Resources;
 using Microsoft.EntityFrameworkCore;
@@ -74,6 +75,12 @@ namespace Persistence
         public DbSet<Broadcast> Broadcast { get; set; }
         public DbSet<Article> Article { get; set; }
 
+        #endregion
+
+        #region Pages
+        public DbSet<HomePage> HomePage { get; set; }
+        public DbSet<AboutUsPage> AboutUsPage { get; set; }
+        public DbSet<LawPage> LawPage { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

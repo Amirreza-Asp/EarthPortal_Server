@@ -19,7 +19,7 @@ namespace Persistence.CQRS.Contact.Infos
         {
             var infoId = await _context.Info.Select(b => b.Id).FirstAsync(cancellationToken);
 
-            var geoAddress = new GeoAddress(request.Lat, request.Lon, request.Route, infoId);
+            var geoAddress = new GeoAddress(request.Lat, request.Lon, request.Route, infoId, request.RouteTitle);
             _context.GeoAddress.Add(geoAddress);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

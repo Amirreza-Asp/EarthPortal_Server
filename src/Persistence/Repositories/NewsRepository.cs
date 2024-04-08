@@ -14,6 +14,14 @@ namespace Persistence.Repositories
         {
         }
 
+        public async Task<NewsSummary?> NextNewsAsync(int shortLink, DateTime dateTime, CancellationToken cancellationToken) =>
+            await _context.News
+                    .Where(b => b.ShortLink != shortLink && b.DateOfRegisration >= dateTime)
+                    .OrderBy(b => b.DateOfRegisration)
+                    .ProjectTo<NewsSummary>(_mapper.ConfigurationProvider)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+
         public async Task<List<SelectListItem>> PopularKeywordsAsync(CancellationToken cancellationToken)
         {
             return
@@ -23,6 +31,13 @@ namespace Persistence.Repositories
                    .Select(b => new SelectListItem { Text = b.Value, Value = b.Id.ToString() })
                    .ToListAsync(cancellationToken);
         }
+
+        public async Task<NewsSummary?> PrevNewsAsync(int shortLink, int shortLink2, DateTime dateTime, CancellationToken cancellationToken) =>
+             await _context.News
+                    .Where(b => b.ShortLink != shortLink && b.ShortLink != shortLink2 && b.DateOfRegisration <= dateTime)
+                    .OrderByDescending(b => b.DateOfRegisration)
+                    .ProjectTo<NewsSummary>(_mapper.ConfigurationProvider)
+                    .FirstOrDefaultAsync(cancellationToken);
 
         public async Task<List<NewsSummary>> RelatedNewsAsync(int shortLink, CancellationToken cancellationToken)
         {

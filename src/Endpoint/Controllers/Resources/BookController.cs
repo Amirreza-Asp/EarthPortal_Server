@@ -63,15 +63,15 @@ namespace Endpoint.Controllers.Resources
 
         [Route("DownloadFile")]
         [HttpGet]
-        public async Task<IActionResult> DownloadFile([FromQuery] Guid id, CancellationToken cancellationToken)
+        public FileResult DownloadFile([FromQuery] String file, CancellationToken cancellationToken)
         {
-            var book = await _bookRepo.FirstOrDefaultAsync(b => b.Id == id);
             string upload = _hostEnv.WebRootPath;
-            string path = $"{upload}{SD.BookFilePath}{book.File}";
+            string path = $"{upload}{SD.BookFilePath}{file}";
 
             var fileBytes = System.IO.File.ReadAllBytes(path);
-            string extension = Path.GetExtension(book.File);
-            return File(fileBytes, "application/force-download", book.Title + extension);
+
+            return File(fileBytes, "application/image", file);
+            return File(fileBytes, "application/force-download", file);
         }
 
 

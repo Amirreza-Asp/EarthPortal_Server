@@ -55,8 +55,15 @@ namespace Endpoint.Controllers.Account
             if (userName == null)
                 return CommandResponse.Failure(400, "کاربر در سیستم وجود ندارد");
 
-            return CommandResponse.Success(new { userName = user.UserName, name = user.Name + " " + user.Family, role = user.Role?.Title, roleDisplay = user.Role?.Display });
+            return CommandResponse.Success(new { userName = user.UserName, name = user.Name + " " + user.Family, role = user.Role?.Title, roleDisplay = user.Role?.Display, contentEdit = user.EnableContentEdit });
         }
+
+        [HttpPut]
+        [Authorize]
+        [Route("[action]")]
+        public async Task<CommandResponse> ToggleEditContent(CancellationToken cancellationToken) =>
+            await _mediator.Send(new ToggleEditContentCommand(), cancellationToken);
+
 
         [HttpGet]
         [Route("[action]")]

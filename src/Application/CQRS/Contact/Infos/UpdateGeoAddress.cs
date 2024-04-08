@@ -9,5 +9,7 @@ namespace Application.CQRS.Contact.Infos
         public double Lat { get; set; }
         public double Lon { get; set; }
         public string Route { get; set; }
+        public string RouteTitle { get; set; }
+
     }
 }

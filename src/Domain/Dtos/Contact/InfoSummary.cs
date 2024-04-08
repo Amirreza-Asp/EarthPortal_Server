@@ -20,5 +20,6 @@
         public double Lon { get; set; }
         public List<double> Cordinates { get; set; }
         public string Route { get; set; }
+        public string RouteTitle { get; set; }
     }
 }
