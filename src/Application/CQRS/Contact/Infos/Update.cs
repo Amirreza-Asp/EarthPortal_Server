@@ -11,5 +11,7 @@ namespace Application.CQRS.Contact.CommonicationWays
         public string BaleLink { get; set; }
         public string RubikaLink { get; set; }
         public string EitaaLink { get; set; }
+        public string Gap { get; set; }
+        public string IGap { get; set; }
     }
 }

@@ -13,6 +13,7 @@ namespace Domain.Dtos.Regulation
         public Announcement Announcement { get; set; }
         public Newspaper Newspaper { get; set; }
         public bool IsOriginal { get; set; }
+        public String Pdf { get; set; }
 
         public Guid ApprovalTypeId { get; set; }
         public string ApprovalTypeTitle { get; set; }

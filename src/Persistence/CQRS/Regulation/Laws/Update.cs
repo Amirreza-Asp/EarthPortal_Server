@@ -1,8 +1,11 @@
-﻿using Application.CQRS.Regulation.Laws;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Regulation.Laws;
 using Application.Models;
+using Domain;
 using Domain.Entities.Regulation.Enums;
 using Domain.Entities.Regulation.ValueObjects;
 using MediatR;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.CQRS.Regulation.Laws
@@ -10,18 +13,38 @@ namespace Persistence.CQRS.Regulation.Laws
     public class UpdateLawCommandHandler : IRequestHandler<UpdateLawCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHostingEnvironment _env;
+        private readonly IFileManager _fileManager;
 
-        public UpdateLawCommandHandler(ApplicationDbContext context)
+        public UpdateLawCommandHandler(ApplicationDbContext context, IFileManager fileManager, IHostingEnvironment env)
         {
             _context = context;
+            _fileManager = fileManager;
+            _env = env;
         }
 
         public async Task<CommandResponse> Handle(UpdateLawCommand request, CancellationToken cancellationToken)
         {
             var law = await _context.Law.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
 
+            var upload = _env.WebRootPath;
+
             if (law == null)
                 return CommandResponse.Failure(400, "قانون انتخاب شده در سیستم وجود ندارد");
+
+            if (!Directory.Exists(upload))
+                Directory.CreateDirectory(upload);
+
+            String oldFileName = "";
+            String newFileName = "";
+
+            if (request.Pdf != null)
+            {
+                newFileName = Guid.NewGuid() + Path.GetExtension(request.Pdf.FileName);
+                oldFileName = law.Pdf;
+
+                law.Pdf = newFileName;
+            }
 
             law.ApprovalDate = request.ApprovalDate;
             law.ApprovalStatusId = request.ApprovalStatusId;
@@ -39,7 +62,17 @@ namespace Persistence.CQRS.Regulation.Laws
             _context.Law.Update(law);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                if (request.Pdf != null)
+                {
+                    if (File.Exists(upload + SD.LawPdfPath + oldFileName))
+                        File.Delete(upload + SD.LawPdfPath + oldFileName);
+
+                    await _fileManager.SaveFileAsync(request.Pdf, upload + SD.LawPdfPath + newFileName);
+                }
+
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

@@ -6,7 +6,7 @@ namespace Domain.Entities.Regulation
 {
     public class Law : BaseEntity
     {
-        public Law(string title, Announcement announcement, Newspaper newspaper, string description, DateTime approvalDate, LawType type, bool isOriginal, Guid approvalTypeId, Guid approvalStatusId, Guid executorManagmentId, Guid approvalAuthorityId, Guid lawCategoryId)
+        public Law(string title, Announcement announcement, Newspaper newspaper, string description, DateTime approvalDate, LawType type, bool isOriginal, Guid approvalTypeId, Guid approvalStatusId, Guid executorManagmentId, Guid approvalAuthorityId, Guid lawCategoryId, string pdf)
         {
             Title = title;
             Announcement = announcement;
@@ -20,6 +20,7 @@ namespace Domain.Entities.Regulation
             ExecutorManagmentId = executorManagmentId;
             ApprovalAuthorityId = approvalAuthorityId;
             LawCategoryId = lawCategoryId;
+            Pdf = pdf;
         }
 
         private Law() { }
@@ -31,6 +32,7 @@ namespace Domain.Entities.Regulation
         public DateTime ApprovalDate { get; set; }
         public LawType Type { get; set; }
         public bool IsOriginal { get; set; } = true;
+        public String Pdf { get; set; }
 
         public Guid ApprovalTypeId { get; set; }
         public Guid ApprovalStatusId { get; set; }

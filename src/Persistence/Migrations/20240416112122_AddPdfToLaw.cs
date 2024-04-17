@@ -5,14 +5,14 @@
 namespace Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class AddLinkToRelayedcompany : Migration
+    public partial class AddPdfToLaw : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "Link",
-                table: "RelatedCompany",
+                name: "Pdf",
+                table: "Law",
                 type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "");
@@ -22,8 +22,8 @@ namespace Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Link",
-                table: "RelatedCompany");
+                name: "Pdf",
+                table: "Law");
         }
     }
 }

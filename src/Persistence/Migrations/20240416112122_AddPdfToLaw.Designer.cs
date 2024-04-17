@@ -12,8 +12,8 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240403210538_AddRelatedLinkTable")]
-    partial class AddRelatedLinkTable
+    [Migration("20240416112122_AddPdfToLaw")]
+    partial class AddPdfToLaw
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,31 +24,6 @@ namespace Persistence.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Domain.Dtos.Contact.RelatedCompany", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Image")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RelatedCompany");
-                });
 
             modelBuilder.Entity("Domain.Dtos.Resources.Translator", b =>
                 {
@@ -95,17 +70,17 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Account.User", b =>
                 {
-                    b.Property<string>("NationalCode")
-                        .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)");
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("EnableContentEdit")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Family")
                         .IsRequired()
@@ -123,17 +98,12 @@ namespace Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("NationalCode");
+                    b.HasKey("UserName");
 
                     b.HasIndex("RoleId");
 
@@ -238,6 +208,10 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RouteTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("InfoId");
@@ -313,6 +287,14 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("GapLink")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IGapLink")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -324,6 +306,35 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Info");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Contact.RelatedCompany", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Link")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RelatedCompany");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.RelatedLink", b =>
@@ -356,6 +367,10 @@ namespace Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Ip")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Score")
                         .HasColumnType("int");
@@ -623,6 +638,58 @@ namespace Persistence.Migrations
                     b.ToTable("NewsLink");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Pages.AboutUsPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Footer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AboutUsPage");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.HomePage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HomePage");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.LawPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WarningContent")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WarningTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LawPage");
+                });
+
             modelBuilder.Entity("Domain.Entities.Regulation.ApprovalAuthority", b =>
                 {
                     b.Property<Guid>("Id")
@@ -728,6 +795,10 @@ namespace Persistence.Migrations
 
                     b.Property<Guid>("LawCategoryId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Pdf")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -1090,6 +1161,79 @@ namespace Persistence.Migrations
                     b.Navigation("Link");
 
                     b.Navigation("News");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.HomePage", b =>
+                {
+                    b.OwnsOne("Domain.Entities.Pages.HomeHeader", "Header", b1 =>
+                        {
+                            b1.Property<Guid>("HomePageId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<bool>("AppBtnEnable")
+                                .HasColumnType("bit")
+                                .HasColumnName("HeaderAppBtnEnable");
+
+                            b1.Property<string>("Content")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("HeaderContent");
+
+                            b1.Property<bool>("PortBtnEnable")
+                                .HasColumnType("bit")
+                                .HasColumnName("HeaderPortBtnEnable");
+
+                            b1.Property<string>("Title")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("HeaderTitle");
+
+                            b1.HasKey("HomePageId");
+
+                            b1.ToTable("HomePage");
+
+                            b1.WithOwner()
+                                .HasForeignKey("HomePageId");
+                        });
+
+                    b.OwnsOne("Domain.Entities.Pages.HomeWork", "Work", b1 =>
+                        {
+                            b1.Property<Guid>("HomePageId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("App")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("WorkApp");
+
+                            b1.Property<string>("Content")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("WorkContent");
+
+                            b1.Property<string>("Port")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("WorkPort");
+
+                            b1.Property<string>("Title")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("WorkTitle");
+
+                            b1.HasKey("HomePageId");
+
+                            b1.ToTable("HomePage");
+
+                            b1.WithOwner()
+                                .HasForeignKey("HomePageId");
+                        });
+
+                    b.Navigation("Header")
+                        .IsRequired();
+
+                    b.Navigation("Work")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.Law", b =>

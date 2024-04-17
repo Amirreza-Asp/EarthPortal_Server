@@ -73,16 +73,16 @@ namespace Endpoint.Controllers.Resources
             return File(fileBytes, "application/force-download", file);
         }
 
-        [Route("ShowFile")]
+        [Route("[action]")]
         [HttpGet]
-        public FileResult ShowFile([FromQuery] String file, CancellationToken cancellationToken)
+        public String DownloadFileBase64([FromQuery] String file, CancellationToken cancellationToken)
         {
             string upload = _hostEnv.WebRootPath;
             string path = $"{upload}{SD.BookFilePath}{file}";
 
             var fileBytes = System.IO.File.ReadAllBytes(path);
 
-            return File(fileBytes, "application/pdf", file);
+            return Convert.ToBase64String(fileBytes);
         }
 
 

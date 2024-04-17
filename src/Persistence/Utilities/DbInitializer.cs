@@ -29,7 +29,7 @@ namespace Persistence.Utilities
 
         public async Task Execute()
         {
-            await _context.Database.EnsureDeletedAsync();
+            //await _context.Database.EnsureDeletedAsync();
 
             try
             {
@@ -232,7 +232,7 @@ namespace Persistence.Utilities
 
             if (!_context.Info.Any())
             {
-                var info = new Info("1649", "iraneland@ito.gov.ir", "#", "#", "#", "#");
+                var info = new Info("1649", "iraneland@ito.gov.ir", "#", "#", "#", "#", "#", "#");
                 _context.Info.Add(info);
                 await _context.SaveChangesAsync();
             }
@@ -572,17 +572,17 @@ namespace Persistence.Utilities
             new List<Law>
             {
                 new Law("آیین نامه اجرایی قانون اصلاح قانون حفظ کاربری اراضی زراعی و باغها" , new Announcement("44545" , DateTime.Now.AddDays(-20)), new Newspaper("58653" , DateTime.Now.AddDays(-53)) ,
-                        lorem , DateTime.Now.AddDays(-5) , LawType.Regulation , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty),
+                        lorem , DateTime.Now.AddDays(-5) , LawType.Regulation , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty , "test.pdf"),
                 new Law("اختصاص اعتبار به وزارت نيرو به منظور تثبيت و ايمن سازي آبراهه هاي مشرف به محدوده سد امير كبير و لايروبي و رسوب برداري رودخانه پايين دست و جبران خسارات ناشي از بارندگي شديد و سيلاب مورخ 1402/03/18 در محور كرج - چالوس حد فاصل تونل هاي (2- الف) و (2-ب)" , new Announcement("44545" , DateTime.Now.AddDays(-27)), new Newspaper("58653" , DateTime.Now.AddDays(-43)) ,
-                        lorem , DateTime.Now.AddDays(-23) , LawType.Rule , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty),
+                        lorem , DateTime.Now.AddDays(-23) , LawType.Rule , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
                 new Law(" آيين نامه شناسايي و صيانت از وسيله هاي نقليه تاريخي" , new Announcement("44545" , DateTime.Now.AddDays(-73)), new Newspaper("58653" , DateTime.Now.AddYears(-86)) ,
-                        lorem , DateTime.Now.AddMonths(-2) , LawType.Regulation , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty),
+                        lorem , DateTime.Now.AddMonths(-2) , LawType.Regulation , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
                 new Law("همتراز شدن دبيركل كميسيون ملي يونسكو با مقامات موضوع بند (هـ) ماده (71) قانون مديريت خدمات كشوري" , new Announcement("44545" , DateTime.Now.AddDays(-55)), new Newspaper("58653" , DateTime.Now.AddDays(-120)) ,
-                        lorem , DateTime.Now.AddDays(-125) , LawType.Rule , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty),
+                        lorem , DateTime.Now.AddDays(-125) , LawType.Rule , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
                 new Law("تخصيص اعتبار به مبلغ سيصد ميليارد (300/000/000/000) ريال براي تامين مواد مصرفي آزمايشگاهي به منظور خريد تجهيزات براي شناسايي و تشخيص هويت متوفيان ناشي از وقوع حوادث غيرمترقبه در اختيار سازمان پزشكي قانوني كشور" , new Announcement("44545" , DateTime.Now.AddDays(-2)), new Newspaper("58653" , DateTime.Now.AddDays(-155)) ,
-                        lorem , DateTime.Now.AddDays(-50) , LawType.Rule , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty),
+                        lorem , DateTime.Now.AddDays(-50) , LawType.Rule , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
                 new Law(" \tتعيين صفر درصد سود بازرگاني قطعات گوشت مرغ ا" , new Announcement("44545" , DateTime.Now.AddDays(-23)), new Newspaper("58653" , DateTime.Now.AddDays(-17)) ,
-                        lorem , DateTime.Now.AddDays(-20) , LawType.Regulation , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty),
+                        lorem , DateTime.Now.AddDays(-20) , LawType.Regulation , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
             };
         #endregion
 
@@ -644,7 +644,7 @@ namespace Persistence.Utilities
             new RelatedCompany( "سازمان اداری و استخدامی کشور" , "14.png",0),
             new RelatedCompany( "سازمان ملی زمین و مسکن" , "15.png",0),
             new RelatedCompany( "شرکت ملی مخابرات ایران" , "16.png",0),
-            new RelatedCompany( "شرکت اتباطات و زیرساخت" , "17.png",0),
+            new RelatedCompany( "ارتباطات زیرساخت" , "17.png",0),
             new RelatedCompany( "وزارت ارتباطات و فناوری اطلاعات" , "18.png",0),
             new RelatedCompany( "وزارت نفت" , "19.png",0),
             new RelatedCompany( "سازمان ثبت احوال کشور" , "20.png",0),

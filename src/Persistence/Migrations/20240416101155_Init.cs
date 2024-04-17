@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,6 +25,20 @@ namespace Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AboutUs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AboutUsPage",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Footer = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AboutUsPage", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -163,6 +178,25 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "HomePage",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    HeaderTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HeaderContent = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HeaderPortBtnEnable = table.Column<bool>(type: "bit", nullable: false),
+                    HeaderAppBtnEnable = table.Column<bool>(type: "bit", nullable: false),
+                    WorkTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WorkContent = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WorkPort = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WorkApp = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HomePage", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Info",
                 columns: table => new
                 {
@@ -173,6 +207,8 @@ namespace Persistence.Migrations
                     BaleLink = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RubikaLink = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EitaaLink = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    GapLink = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IGapLink = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -204,6 +240,19 @@ namespace Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_LawCategory", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LawPage",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    WarningTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WarningContent = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LawPage", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -254,11 +303,26 @@ namespace Persistence.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Order = table.Column<int>(type: "int", nullable: false),
+                    Link = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_RelatedCompany", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RelatedLink",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Link = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RelatedLink", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -282,6 +346,7 @@ namespace Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Score = table.Column<int>(type: "int", nullable: false),
+                    Ip = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -345,6 +410,7 @@ namespace Persistence.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Lat = table.Column<double>(type: "float", nullable: false),
                     Lon = table.Column<double>(type: "float", nullable: false),
+                    RouteTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Route = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     InfoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -446,19 +512,20 @@ namespace Persistence.Migrations
                 name: "User",
                 columns: table => new
                 {
-                    NationalCode = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Family = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EnableContentEdit = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_User", x => x.NationalCode);
+                    table.PrimaryKey("PK_User", x => x.UserName);
                     table.ForeignKey(
                         name: "FK_User_Role_RoleId",
                         column: x => x.RoleId,
@@ -817,6 +884,9 @@ namespace Persistence.Migrations
                 name: "AboutUs");
 
             migrationBuilder.DropTable(
+                name: "AboutUsPage");
+
+            migrationBuilder.DropTable(
                 name: "Article");
 
             migrationBuilder.DropTable(
@@ -844,6 +914,9 @@ namespace Persistence.Migrations
                 name: "Guide");
 
             migrationBuilder.DropTable(
+                name: "HomePage");
+
+            migrationBuilder.DropTable(
                 name: "Infographic");
 
             migrationBuilder.DropTable(
@@ -853,6 +926,9 @@ namespace Persistence.Migrations
                 name: "LawImage");
 
             migrationBuilder.DropTable(
+                name: "LawPage");
+
+            migrationBuilder.DropTable(
                 name: "NewsImage");
 
             migrationBuilder.DropTable(
@@ -860,6 +936,9 @@ namespace Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "RelatedCompany");
+
+            migrationBuilder.DropTable(
+                name: "RelatedLink");
 
             migrationBuilder.DropTable(
                 name: "SystemEvaluationPage");

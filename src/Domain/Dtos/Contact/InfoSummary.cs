@@ -9,6 +9,8 @@
         public string BaleLink { get; set; }
         public string RubikaLink { get; set; }
         public string EitaaLink { get; set; }
+        public string GapLink { get; set; }
+        public string IGapLink { get; set; }
 
         public ICollection<GeoAddressSummary> GeoAddresses { get; set; }
     }
