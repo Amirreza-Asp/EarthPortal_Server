@@ -658,6 +658,94 @@ namespace Persistence.Migrations
                     b.ToTable("AboutUsPage");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Pages.EnglishCard", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Color")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("EnglishPageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Line")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("Order")
+                        .HasColumnType("tinyint");
+
+                    b.Property<Guid?>("SiblingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnglishPageId");
+
+                    b.ToTable("EnglishCard");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.EnglishPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EnglishPage");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.EnglishProblem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("EnglishPageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnglishPageId");
+
+                    b.ToTable("EnglishPageProblem");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.EnglishSolution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("EnglishPageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnglishPageId");
+
+                    b.ToTable("EnglishPageSolution");
+                });
+
             modelBuilder.Entity("Domain.Entities.Pages.HomePage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1160,6 +1248,161 @@ namespace Persistence.Migrations
                     b.Navigation("News");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Pages.EnglishCard", b =>
+                {
+                    b.HasOne("Domain.Entities.Pages.EnglishPage", "EnglishPage")
+                        .WithMany("Cards")
+                        .HasForeignKey("EnglishPageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EnglishPage");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.EnglishPage", b =>
+                {
+                    b.OwnsOne("Domain.Entities.Pages.EnglishCurrentSituation", "CurrentSituation", b1 =>
+                        {
+                            b1.Property<Guid>("EnglishPageId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Content")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("CurrentSituationContent");
+
+                            b1.Property<string>("Image")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("CurrentSituationImage");
+
+                            b1.Property<string>("Title")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("CurrentSituationTitle");
+
+                            b1.HasKey("EnglishPageId");
+
+                            b1.ToTable("EnglishPage");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EnglishPageId");
+                        });
+
+                    b.OwnsOne("Domain.Entities.Pages.EnglishIntro", "Intro", b1 =>
+                        {
+                            b1.Property<Guid>("EnglishPageId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Content")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("IntroContent");
+
+                            b1.Property<string>("Title")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("IntroTitle");
+
+                            b1.HasKey("EnglishPageId");
+
+                            b1.ToTable("EnglishPage");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EnglishPageId");
+                        });
+
+                    b.OwnsOne("Domain.Entities.Pages.EnglishMainIdea", "MainIdea", b1 =>
+                        {
+                            b1.Property<Guid>("EnglishPageId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Bold")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("MainIdeaBold");
+
+                            b1.Property<string>("Content1")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("MainIdeaContent1");
+
+                            b1.Property<string>("Content2")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("MainIdeaContent2");
+
+                            b1.Property<string>("Title")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("MainIdeaTitle");
+
+                            b1.HasKey("EnglishPageId");
+
+                            b1.ToTable("EnglishPage");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EnglishPageId");
+                        });
+
+                    b.OwnsOne("Domain.Entities.Pages.EnglishVision", "Vision", b1 =>
+                        {
+                            b1.Property<Guid>("EnglishPageId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Content")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("VisionContent");
+
+                            b1.Property<string>("Title")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("VisionTitle");
+
+                            b1.HasKey("EnglishPageId");
+
+                            b1.ToTable("EnglishPage");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EnglishPageId");
+                        });
+
+                    b.Navigation("CurrentSituation")
+                        .IsRequired();
+
+                    b.Navigation("Intro")
+                        .IsRequired();
+
+                    b.Navigation("MainIdea")
+                        .IsRequired();
+
+                    b.Navigation("Vision")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.EnglishProblem", b =>
+                {
+                    b.HasOne("Domain.Entities.Pages.EnglishPage", "EnglishPage")
+                        .WithMany("Problems")
+                        .HasForeignKey("EnglishPageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EnglishPage");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.EnglishSolution", b =>
+                {
+                    b.HasOne("Domain.Entities.Pages.EnglishPage", "EnglishPage")
+                        .WithMany("Solutions")
+                        .HasForeignKey("EnglishPageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EnglishPage");
+                });
+
             modelBuilder.Entity("Domain.Entities.Pages.HomePage", b =>
                 {
                     b.OwnsOne("Domain.Entities.Pages.HomeHeader", "Header", b1 =>
@@ -1438,6 +1681,15 @@ namespace Persistence.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("Links");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.EnglishPage", b =>
+                {
+                    b.Navigation("Cards");
+
+                    b.Navigation("Problems");
+
+                    b.Navigation("Solutions");
                 });
 #pragma warning restore 612, 618
         }

@@ -109,6 +109,28 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "EnglishPage",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    IntroTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IntroContent = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MainIdeaTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MainIdeaContent1 = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MainIdeaBold = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MainIdeaContent2 = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CurrentSituationTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CurrentSituationContent = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CurrentSituationImage = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    VisionTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    VisionContent = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EnglishPage", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ExecutorManagment",
                 columns: table => new
                 {
@@ -383,6 +405,69 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "EnglishCard",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Color = table.Column<int>(type: "int", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Line = table.Column<bool>(type: "bit", nullable: false),
+                    Order = table.Column<byte>(type: "tinyint", nullable: false),
+                    SiblingId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    EnglishPageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EnglishCard", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EnglishCard_EnglishPage_EnglishPageId",
+                        column: x => x.EnglishPageId,
+                        principalTable: "EnglishPage",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EnglishPageProblem",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EnglishPageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EnglishPageProblem", x => new { x.EnglishPageId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_EnglishPageProblem_EnglishPage_EnglishPageId",
+                        column: x => x.EnglishPageId,
+                        principalTable: "EnglishPage",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EnglishPageSolution",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EnglishPageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EnglishPageSolution", x => new { x.EnglishPageId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_EnglishPageSolution_EnglishPage_EnglishPageId",
+                        column: x => x.EnglishPageId,
+                        principalTable: "EnglishPage",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "GalleryPhoto",
                 columns: table => new
                 {
@@ -440,6 +525,7 @@ namespace Persistence.Migrations
                     ApprovalDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
                     IsOriginal = table.Column<bool>(type: "bit", nullable: false),
+                    Pdf = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ApprovalTypeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ApprovalStatusId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ExecutorManagmentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -807,6 +893,11 @@ namespace Persistence.Migrations
                 column: "TranslatorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_EnglishCard_EnglishPageId",
+                table: "EnglishCard",
+                column: "EnglishPageId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_GalleryPhoto_GalleryId",
                 table: "GalleryPhoto",
                 column: "GalleryId");
@@ -899,6 +990,15 @@ namespace Persistence.Migrations
                 name: "EducationalVideo");
 
             migrationBuilder.DropTable(
+                name: "EnglishCard");
+
+            migrationBuilder.DropTable(
+                name: "EnglishPageProblem");
+
+            migrationBuilder.DropTable(
+                name: "EnglishPageSolution");
+
+            migrationBuilder.DropTable(
                 name: "FrequentlyAskedQuestions");
 
             migrationBuilder.DropTable(
@@ -957,6 +1057,9 @@ namespace Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "Translator");
+
+            migrationBuilder.DropTable(
+                name: "EnglishPage");
 
             migrationBuilder.DropTable(
                 name: "Gallery");

@@ -16,6 +16,7 @@
         public const String AboutUsPath = "/contact/aboutUs/";
         public const String FooterImagePath = "/contact/footer/";
         public const String LawPdfPath = "/regulation/law/";
+        public const String EnglishPageCurrentSituationImage = "/pages/english/";
 
         public const String AuthToken = "AuthToken";
     }

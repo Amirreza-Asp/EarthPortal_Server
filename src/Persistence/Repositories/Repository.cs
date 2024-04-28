@@ -60,7 +60,6 @@ namespace Persistence.Repositories
             //filter
             if (query.Filters != null && query.Filters.Any())
             {
-                // var filterExpression = QueryUtility.FilterExpression<T>(args.Filtered[0].column, args.Filtered[0].value);
                 for (int i = 0; i < query.Filters.Count; i++)
                 {
                     var filterExpression = QueryUtility.FilterExpression<TEntity>(query.Filters[i].column, query.Filters[i].value);
@@ -160,6 +159,6 @@ namespace Persistence.Repositories
             return await query.AnyAsync();
         }
 
-       
+
     }
 }

@@ -81,6 +81,10 @@ namespace Persistence
         public DbSet<HomePage> HomePage { get; set; }
         public DbSet<AboutUsPage> AboutUsPage { get; set; }
         public DbSet<LawPage> LawPage { get; set; }
+        public DbSet<EnglishPage> EnglishPage { get; set; }
+        public DbSet<EnglishProblem> EnglishPageProblem { get; set; }
+        public DbSet<EnglishSolution> EnglishPageSolution { get; set; }
+        public DbSet<EnglishCard> EnglishCard { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
