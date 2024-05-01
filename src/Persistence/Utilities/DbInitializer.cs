@@ -481,8 +481,8 @@ namespace Persistence.Utilities
                 _context.User.Add(user);
 
 
-                var motorchi = new User(Guid.NewGuid(), "", "موتورچی", "Motorchi", _passManager.HashPassword("Motorchi1234"), null, null);
-                var keshavarz = new User(Guid.NewGuid(), "علی", "کشاورز", "Keshavarz", _passManager.HashPassword("Keshavarz1234"), null, null);
+                var motorchi = new User(role.Id, "", "موتورچی", "Motorchi", _passManager.HashPassword("Motorchi1234"), null, null);
+                var keshavarz = new User(role.Id, "علی", "کشاورز", "Keshavarz", _passManager.HashPassword("Keshavarz1234"), null, null);
 
                 _context.User.Add(motorchi);
                 _context.User.Add(keshavarz);
