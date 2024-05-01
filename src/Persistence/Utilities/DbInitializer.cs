@@ -247,11 +247,14 @@ namespace Persistence.Utilities
 
                 var categoryId = _context.NewsCategory.Where(b => b.Title == "نامشخص").Select(b => b.Id).First();
 
-                var files = Directory.GetFiles(_env.WebRootPath + SD.NewsImagePath);
-                foreach (var file in files)
+                if (Directory.Exists(_env.WebRootPath + SD.NewsImagePath))
                 {
-                    var fileName = Path.GetFileName(file);
-                    File.Delete(_env.WebRootPath + SD.NewsImagePath + fileName);
+                    var files = Directory.GetFiles(_env.WebRootPath + SD.NewsImagePath);
+                    foreach (var file in files)
+                    {
+                        var fileName = Path.GetFileName(file);
+                        File.Delete(_env.WebRootPath + SD.NewsImagePath + fileName);
+                    }
                 }
 
                 foreach (var item in data)
