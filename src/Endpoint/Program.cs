@@ -107,11 +107,11 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-app.Lifetime.ApplicationStarted.Register(async () =>
+app.Lifetime.ApplicationStarted.Register(() =>
 {
     var scope = app.Services.CreateScope();
     var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-    await initializer.Execute();
+    initializer.Execute();
 });
 
 app.UseSwagger();

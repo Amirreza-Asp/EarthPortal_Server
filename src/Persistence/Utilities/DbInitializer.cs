@@ -1,5 +1,6 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Application.Contracts.Persistence.Utilities;
+using Domain;
 using Domain.Dtos.Resources;
 using Domain.Entities.Account;
 using Domain.Entities.Contact;
@@ -11,7 +12,11 @@ using Domain.Entities.Regulation;
 using Domain.Entities.Regulation.Enums;
 using Domain.Entities.Regulation.ValueObjects;
 using Domain.Entities.Resources;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 namespace Persistence.Utilities
 {
@@ -20,15 +25,88 @@ namespace Persistence.Utilities
         private readonly ApplicationDbContext _context;
         private readonly Random rnd;
         private readonly IPasswordManager _passManager;
-        public DbInitializer(ApplicationDbContext context, IPasswordManager passManager)
+        private readonly IHostingEnvironment _env;
+        private readonly IPhotoManager _photoManager;
+
+        public DbInitializer(ApplicationDbContext context, IPasswordManager passManager, IHostingEnvironment env, IPhotoManager photoManager)
         {
             _context = context;
             rnd = new Random();
             _passManager = passManager;
+            _env = env;
+            _photoManager = photoManager;
+        }
+
+        string Decode(string cryptKey, string iv, string secretData)
+        {
+            using (var aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(cryptKey);
+                aes.IV = Encoding.UTF8.GetBytes(iv);
+                var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+                byte[] data = Convert.FromBase64String(secretData);
+
+                using (var msDecrypt = new System.IO.MemoryStream(data))
+                {
+                    using (var csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (var srDecrypt = new System.IO.StreamReader(csDecrypt))
+                        {
+                            return srDecrypt.ReadToEnd();
+                        }
+                    }
+                }
+            }
+        }
+
+        string Encode(string cryptKey, string iv, string clearData)
+        {
+            using (var aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(cryptKey);
+                aes.IV = Encoding.UTF8.GetBytes(iv);
+                var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+                byte[] data = Encoding.UTF8.GetBytes(clearData);
+
+                using (var msEncrypt = new System.IO.MemoryStream())
+                {
+                    using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                    {
+                        csEncrypt.Write(data, 0, data.Length);
+                        csEncrypt.FlushFinalBlock();
+                        return Convert.ToBase64String(msEncrypt.ToArray());
+                    }
+                }
+            }
         }
 
         public async Task Execute()
         {
+
+
+            //var date = $"{DateTime.Now.Year}{DateTime.Now.Month}{DateTime.Now.Day}{DateTime.Now.Hour}1994";
+            //var dateNumber = Convert.ToInt64(date) * 11;
+
+            //string secretKey = "Kcv2$5%^Hew#Er@1"; // Replace this with your actual secret key
+            //string iv = "1234567890000000"; // Replace this with your actual initialization vector
+
+            //string enc = Encode(secretKey, iv, dateNumber.ToString());
+
+            ////string dec = Decode(secretKey, iv, dateNumber.ToString());
+
+            //var client = new HttpClient();
+            //var response = await client.GetAsync($"https://iraneland.ir/ow/service/ow/portalStatisticService/portal/{enc}");
+
+            //if (response.IsSuccessStatusCode)
+            //{
+            //    var jsonData = response.Content.ReadAsStringAsync();
+            //}
+
+            //return;
+
+
             await _context.Database.EnsureDeletedAsync();
 
             try
@@ -41,7 +119,6 @@ namespace Persistence.Utilities
             catch (Exception ex)
             {
             }
-
 
             #region Regulation
             if (!_context.ApprovalAuthority.Any())
@@ -154,17 +231,64 @@ namespace Persistence.Utilities
             {
                 _context.NewsCategory.AddRange(NewsCategories);
                 await _context.SaveChangesAsync();
+
+                var category = new NewsCategory("نامشخص", null);
+                _context.NewsCategory.Add(category);
+                await _context.SaveChangesAsync();
             }
+
 
             if (!_context.News.Any())
             {
-                var categoriesId = _context.NewsCategory.Select(b => b.Id).ToList();
-                for (int i = 0; i < 43; i++)
+                var path = _env.WebRootPath + "/notices/news.json";
+
+                var jsonData = await File.ReadAllTextAsync(path);
+                var data = JsonSerializer.Deserialize<List<NewsData>>(jsonData);
+
+                var categoryId = _context.NewsCategory.Where(b => b.Title == "نامشخص").Select(b => b.Id).First();
+
+                Directory.Delete(_env.WebRootPath + SD.NewsImagePath);
+
+                foreach (var item in data)
                 {
-                    var shortLink = rnd.Next(Convert.ToInt32(Math.Pow(10, 7)), Convert.ToInt32(Math.Pow(10, 8)));
-                    var news = new News(News.Title + i, News.Description, News.Headline, News.Source, News.DateOfRegisration, News.NewsCategoryId, shortLink);
-                    news.NewsCategoryId = categoriesId[rnd.Next(categoriesId.Count)];
-                    _context.News.Add(news);
+
+                    while (true)
+                    {
+                        var shortLink = rnd.Next(Convert.ToInt32(Math.Pow(10, 7)), Convert.ToInt32(Math.Pow(10, 8)));
+
+                        if (!_context.News.Where(b => b.ShortLink == shortLink).Any())
+                        {
+                            var news = new News(
+                                item.title,
+                                item.description,
+                                item.newsText,
+                                source: "#",
+                                item.newsDateO,
+                                categoryId,
+                                shortLink);
+
+                            _context.News.Add(news);
+
+
+                            var imageName = Guid.NewGuid() + Path.GetExtension(item.newsImage.name);
+
+                            var upload = _env.WebRootPath + SD.NewsImagePath + imageName;
+
+                            if (!Directory.Exists(_env.WebRootPath + SD.NewsImagePath))
+                                Directory.CreateDirectory(_env.WebRootPath + SD.NewsImagePath);
+
+
+
+                            var image = new NewsImage(imageName, news.Id, 0);
+
+
+
+                            await _photoManager.SaveFromBase64Async(item.newsImage.value, upload);
+                            _context.NewsImage.Add(image);
+
+                            break;
+                        }
+                    }
                 }
 
                 _context.SaveChanges();
@@ -350,6 +474,14 @@ namespace Persistence.Utilities
                 var user = new User(role.Id, "امیررضا", "محمدی", "Admin", _passManager.HashPassword("Admin"), "amirrezamohammadi8102@gmail.com", "09211573936");
 
                 _context.User.Add(user);
+
+
+                var motorchi = new User(Guid.NewGuid(), "", "موتورچی", "Motorchi", _passManager.HashPassword("Motorchi1234"), null, null);
+                var keshavarz = new User(Guid.NewGuid(), "علی", "کشاورز", "Keshavarz", _passManager.HashPassword("Keshavarz1234"), null, null);
+
+                _context.User.Add(motorchi);
+                _context.User.Add(keshavarz);
+
                 await _context.SaveChangesAsync();
             }
             #endregion
@@ -428,7 +560,6 @@ namespace Persistence.Utilities
             #endregion
 
             #region Pages
-
             if (!_context.HomePage.Any())
             {
                 var homePage = new HomePage()
@@ -707,8 +838,8 @@ namespace Persistence.Utilities
                             Order = 14,
                             SiblingId = Guid.Parse("e64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
                             Content =  "1. A good practice thatexists in the country andmany advanced countrieshave also experienced itis to use a single servicewindow to consolidateservices and access themall through one channel.</br></br>2. Eliminating parallelsystems, not needing togo in person and makingthe request for a permitelectronically, will leadto a major reduction intime and financial costs,which will lead to thesatisfaction of citizens."
-                        #endregion
                     },
+                        
                         #endregion
 
                         #region End           
@@ -779,9 +910,12 @@ namespace Persistence.Utilities
 
                 _context.EnglishPageSolution.AddRange(solutions);
 
-
                 await _context.SaveChangesAsync();
+
             }
+
+            #endregion
+
         }
 
         #region Regulation
@@ -992,5 +1126,31 @@ namespace Persistence.Utilities
 
         private String lorem = "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.";
         private String video = "<div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe</br>                            src=\"https://www.aparat.com/video/video/embed/videohash/jq0lh/vt/frame\" allowFullScreen=\"true\"</br>                            webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>";
+    }
+
+
+    class NewsData
+    {
+        public String title { get; set; }
+        public String _id { get; set; }
+
+        public String newsText { get; set; }
+        public NewsDataImage newsImage { get; set; }
+
+        public DateTime _createDate { get; set; }
+        public String newsDate { get; set; }
+        public DateTime newsDateO { get; set; }
+
+        public String description { get; set; }
+
+    }
+
+    class NewsDataImage
+    {
+        public String name { get; set; }
+        public int size { get; set; }
+        public String type { get; set; }
+        public String value { get; set; }
+
     }
 }
