@@ -107,7 +107,7 @@ namespace Persistence.Utilities
             //return;
 
 
-            await _context.Database.EnsureDeletedAsync();
+            //await _context.Database.EnsureDeletedAsync();
 
             try
             {
