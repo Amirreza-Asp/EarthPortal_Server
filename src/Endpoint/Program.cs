@@ -4,26 +4,32 @@ using Application.Contracts.Persistence.Utilities;
 using Application.Utilities;
 using AspNetCoreRateLimit;
 using Domain;
+using Endpoint.Filters;
+using Endpoint.Middlewares;
 using Infrastructure;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddMvc(opt =>
+{
+    opt.Filters.Add(new RemoveServerInfoFilter());
+});
 
 
-//var logger = new LoggerConfiguration()
-//  .ReadFrom.Configuration(builder.Configuration)
-//  .Enrich.FromLogContext()
-//  .CreateLogger();
 
-//builder.Logging.ClearProviders();
-//builder.Logging.AddSerilog(logger);
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
+
 
 
 builder.Services.AddDistributedMemoryCache();
@@ -138,10 +144,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseStaticFiles();
+app.UseCustomExceptionHandler();
+app.UseCustomHeaderHandler();
 
 var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
 app.Use(async (context, next) =>
 {
+
     if (context.Request.Method.ToLower() != "get")
     {
         if (context.Request.Path.Value.StartsWith("/"))
@@ -157,40 +166,16 @@ app.Use(async (context, next) =>
                 SameSite = SameSiteMode.Strict,
             });
         }
-
-        #region Security headers
-
-        context.Response.Headers.Remove("X-Powered-By");
-        context.Response.Headers.Remove("Server");
-        context.Response.Headers.Remove("X-AspNet-Version");
-        context.Response.Headers.Remove("X-AspNetMvc-Version");
-        context.Response.Headers.Remove("X-Frame-Options");
-        context.Response.Headers.Append("Content-Security-Policy", "default-src 'self';base-uri 'self';font-src 'self';form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"); context.Response.Headers.Append("Cross-Origin-Embedder-Policy", "require-corp");
-        context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin");
-        context.Response.Headers.Append("Cross-Origin-Resource-Policy", "same-origin");
-        context.Response.Headers.Append("Referrer-Policy", "no-referrer");
-        context.Response.Headers.Append("Strict-Transport-Security", "max-age=63072000; includeSubDomains perload");
-        context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-        context.Response.Headers.Append("Origin-Agent-Cluster", "?1");
-        context.Response.Headers.Append("X-DNS-Prefetch-Control", "off");
-        context.Response.Headers.Append("X-Download-Options", "noopen");
-        context.Response.Headers.Append("X-Permitted-Cross-Domain-Policies", "none");
-        context.Response.Headers.Append("X-Frame-Options", "DENY");
-        context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
-
-        #endregion
-
     }
+
+
+
     await next();
 });
-
-
 
 app.MapControllers();
 
 app.Run();
-
-
 
 
 

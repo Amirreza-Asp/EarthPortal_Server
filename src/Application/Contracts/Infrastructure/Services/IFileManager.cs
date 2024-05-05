@@ -7,6 +7,8 @@ namespace Application.Contracts.Infrastructure.Services
         double GetSize(String path, FileSize fileSize);
 
         Task SaveFileAsync(IFormFile file, string path);
+
+        void ConvertHtmlToPdf(string htmlContent, string outputPath);
     }
 
 

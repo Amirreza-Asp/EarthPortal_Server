@@ -3,6 +3,7 @@ using Application.Models;
 using Application.Queries;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Persistence.Utilities;
@@ -26,12 +27,16 @@ namespace Persistence.Repositories
 
         public async Task<TDto?> FirstOrDefaultAsync<TDto>(Expression<Func<TEntity, bool>>? filters = null, CancellationToken cancellationToken = default) where TDto : class
         {
-            return
+            var data =
                 await _dbSet
                     .Where(filters)
                     .ProjectTo<TDto>(_mapper.ConfigurationProvider)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(cancellationToken);
+
+            NotFoundException.ThrowIfNull(data);
+
+            return data;
         }
 
 
@@ -48,7 +53,11 @@ namespace Persistence.Repositories
             if (!isTracking)
                 query = query.AsNoTracking();
 
-            return await query.FirstOrDefaultAsync();
+            var data = await query.FirstOrDefaultAsync();
+
+            NotFoundException.ThrowIfNull(data);
+
+            return data;
         }
 
         public virtual async Task<ListActionResult<TDto>> GetAllAsync<TDto>(GridQuery query, Expression<Func<TEntity, bool>>? filter = null, CancellationToken cancellationToken = default) where TDto : class
