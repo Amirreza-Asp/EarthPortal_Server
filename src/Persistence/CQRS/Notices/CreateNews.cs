@@ -26,9 +26,6 @@ namespace Persistence.CQRS.Notices
 
         public async Task<CommandResponse> Handle(CreateNewsCommand request, CancellationToken cancellationToken)
         {
-            if (request.Links == null || request.Links.Count == 0)
-                return CommandResponse.Failure(400, "کلیدواژه ها را وارد کنید");
-
             var shortLink = CreateRandomLink();
 
             while (await _context.News.AnyAsync(b => b.ShortLink == shortLink))
@@ -38,9 +35,10 @@ namespace Persistence.CQRS.Notices
 
             _context.News.Add(news);
 
-            var links = request.Links.Select(link => new Link(link));
+            var links = request.Links?.Select(link => new Link(link));
 
-            await _mediator.Send(new UpsertNewsLinkCommand(request.Links, news.Id));
+            if (request.Links != null && request.Links.Any())
+                await _mediator.Send(new UpsertNewsLinkCommand(request.Links, news.Id));
 
 
             var image = new NewsImage(Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName), news.Id, 0);

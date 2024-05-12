@@ -40,6 +40,7 @@ namespace Persistence
             services.AddScoped<ISystemEvaluationRepository, SystemEvaluationRepository>();
             services.AddScoped<IHomePageRepository, HomePageRepository>();
             services.AddScoped<IEnglishPageRepository, EnglishPageRepository>();
+            services.AddScoped<IUserCounterService, UserCounterService>();
 
             return services;
         }

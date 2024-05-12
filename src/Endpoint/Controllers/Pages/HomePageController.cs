@@ -25,7 +25,7 @@ namespace Endpoint.Controllers.Pages
         [HttpPost]
         [AccessControl("Admin")]
         [Route("[action]")]
-        public async Task<CommandResponse> ChangeHeader([FromBody] HomeHeader header, CancellationToken cancellationToken) =>
+        public async Task<CommandResponse> ChangeHeader([FromBody] HomeHeaderDto header, CancellationToken cancellationToken) =>
             await _repo.ChangeHeaderAsync(header, cancellationToken);
 
         [HttpPost]

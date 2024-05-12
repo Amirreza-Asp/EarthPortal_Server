@@ -18,11 +18,14 @@ namespace Persistence.Repositories
             _iranelandService = iranelandService;
         }
 
-        public async Task<CommandResponse> ChangeHeaderAsync(HomeHeader header, CancellationToken cancellationToken)
+        public async Task<CommandResponse> ChangeHeaderAsync(HomeHeaderDto header, CancellationToken cancellationToken)
         {
             var page = await _context.HomePage.FirstAsync(cancellationToken);
 
-            page.Header = header;
+            page.Header.Title = header.Title;
+            page.Header.Content = header.Content;
+            page.Header.AppBtnEnable = header.AppBtnEnable;
+            page.Header.PortBtnEnable = header.PortBtnEnable;
 
             _context.HomePage.Update(page);
 
@@ -59,15 +62,18 @@ namespace Persistence.Repositories
             if (homePage == null)
                 return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
 
-            homePage.Header.ReqCount = model.reqCount;
-            homePage.Header.AreaProtectedLandsCount = model.areaProtectedLandsCount;
-            homePage.Header.UserCount = model.userCount;
+            if (model != null)
+            {
+                homePage.Header.ReqCount = model.reqCount;
+                homePage.Header.AreaProtectedLandsCount = model.areaProtectedLandsCount;
+                homePage.Header.UserCount = model.userCount;
 
-            _context.HomePage.Update(homePage);
+                _context.HomePage.Update(homePage);
 
-            if (await _context.SaveChangesAsync() > 0)
-                return CommandResponse.Success();
+                if (await _context.SaveChangesAsync() > 0)
+                    return CommandResponse.Success();
 
+            }
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }
     }

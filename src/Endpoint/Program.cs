@@ -6,8 +6,8 @@ using AspNetCoreRateLimit;
 using Domain;
 using Endpoint.BackgroundServices;
 using Endpoint.Filters;
-using Endpoint.Hubs;
 using Endpoint.Middlewares;
+using Endpoint.Workers;
 using Infrastructure;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -61,6 +61,7 @@ builder.Services
     .AddInfrastructureRegistrations();
 
 builder.Services.AddHostedService<CasesAndUsersWorker>();
+builder.Services.AddHostedService<SeenWorker>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -205,7 +206,7 @@ app.Use(async (context, next) =>
 });
 
 app.MapControllers();
-app.MapHub<OnlineHub>("/Online");
+//app.MapHub<OnlineHub>("/Online");
 app.Run();
 
 

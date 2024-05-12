@@ -20,7 +20,7 @@ namespace Application.CQRS.Notices
 
         public Guid NewsCategoryId { get; set; }
 
-        public List<String> Links { get; set; }
+        public List<String>? Links { get; set; }
 
         public IFormFile? Image { get; set; }
     }

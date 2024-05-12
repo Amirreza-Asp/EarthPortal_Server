@@ -45,7 +45,7 @@ namespace Persistence.Utilities
 
         public async Task Execute()
         {
-            await _context.Database.EnsureDeletedAsync();
+            //await _context.Database.EnsureDeletedAsync();
 
             try
             {
@@ -332,33 +332,6 @@ namespace Persistence.Utilities
                 await _context.SaveChangesAsync();
             }
 
-            if (!_context.Link.Any())
-            {
-                for (int i = 1; i <= 10; i++)
-                {
-                    var link = new Link($"کلید واژه {i}");
-                    _context.Link.Add(link);
-                }
-                await _context.SaveChangesAsync();
-            }
-
-            if (!_context.NewsLink.Any())
-            {
-                var newsIds = await _context.News.Select(b => b.Id).ToListAsync();
-                var linksIds = await _context.Link.Select(b => b.Id).ToListAsync();
-
-                foreach (var newsId in newsIds)
-                {
-                    var links = linksIds.Skip(rnd.Next(0, linksIds.Count - 5)).Take(rnd.Next(1, 6)).ToList();
-                    links.ForEach(linkId =>
-                    {
-                        var newsLink = new NewsLink(newsId, linkId);
-                        _context.NewsLink.Add(newsLink);
-                    });
-                }
-
-                await _context.SaveChangesAsync();
-            }
             #endregion
 
             #region Contact

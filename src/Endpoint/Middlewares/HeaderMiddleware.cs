@@ -32,7 +32,8 @@
                 context.Response.Headers.Remove("X-AspNet-Version");
                 context.Response.Headers.Remove("X-AspNetMvc-Version");
                 context.Response.Headers.Remove("X-Frame-Options");
-                context.Response.Headers.Append("Content-Security-Policy", "default-src 'self';base-uri 'self';font-src 'self';form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"); context.Response.Headers.Append("Cross-Origin-Embedder-Policy", "require-corp");
+                context.Response.Headers.Append("Content-Security-Policy", "default-src 'self';base-uri 'self';font-src 'self';form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests");
+                context.Response.Headers.Append("Cross-Origin-Embedder-Policy", "require-corp");
                 context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin");
                 context.Response.Headers.Append("Cross-Origin-Resource-Policy", "same-origin");
                 context.Response.Headers.Append("Referrer-Policy", "no-referrer");
