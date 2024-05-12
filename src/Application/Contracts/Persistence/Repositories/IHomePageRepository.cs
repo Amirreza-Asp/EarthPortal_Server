@@ -1,4 +1,5 @@
 ﻿using Application.Models;
+using Domain.Dtos.ExternalAPI;
 using Domain.Entities.Pages;
 
 namespace Application.Contracts.Persistence.Repositories
@@ -9,5 +10,6 @@ namespace Application.Contracts.Persistence.Repositories
 
         Task<CommandResponse> ChangeHeaderAsync(HomeHeader header, CancellationToken cancellationToken);
         Task<CommandResponse> ChangeWorkAsync(HomeWork work, CancellationToken cancellationToken);
+        Task<CommandResponse> UpdateCasesAndUsersAsync(CasesAndUsersResponse model);
     }
 }

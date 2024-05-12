@@ -19,5 +19,10 @@
         public const String EnglishPageCurrentSituationImage = "/pages/english/";
 
         public const String AuthToken = "AuthToken";
+
+
+
+        public const String IranelandSecretKey = "Kcv2$5%^Hew#Er@1";
+        public const String IranelandIV = "1234567890000000";
     }
 }

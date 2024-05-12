@@ -38,6 +38,7 @@ namespace Endpoint.Controllers.Notices
         [Route("PagenationSummary")]
         public async Task<ListActionResult<NewsSummary>> PagenationSummary([FromBody] GridQuery query, CancellationToken cancellationToken)
         {
+            query.Sorted = new SortModel[] { new SortModel { column = "dateOfRegisration", desc = true } };
             return await _newsRepository.GetAllAsync<NewsSummary>(query, cancellationToken: cancellationToken);
         }
 
@@ -48,7 +49,7 @@ namespace Endpoint.Controllers.Notices
         {
             return
                 await _newsRepository.GetAllAsync<NewsSummary>(
-                    new GridQuery { Page = query.Page, Size = query.Size },
+                    new GridQuery { Page = query.Page, Size = query.Size, Sorted = new SortModel[] { new SortModel { column = "dateOfRegisration", desc = true } } },
                     b => (!query.LinksId.Any() || b.Links.Where(b => query.LinksId.Contains(b.LinkId)).Any()) &&
                          (String.IsNullOrEmpty(query.Title) || b.Title.Contains(query.Title)),
                     cancellationToken);

@@ -16,8 +16,8 @@ namespace Persistence.Repositories
 
         public async Task<NewsSummary?> NextNewsAsync(int shortLink, DateTime dateTime, CancellationToken cancellationToken) =>
             await _context.News
-                    .Where(b => b.ShortLink != shortLink && b.DateOfRegisration >= dateTime)
-                    .OrderBy(b => b.DateOfRegisration)
+                    .Where(b => b.ShortLink != shortLink && b.DateOfRegisration.Date > dateTime.Date)
+                    .OrderBy(b => b.DateOfRegisration.Date)
                     .ProjectTo<NewsSummary>(_mapper.ConfigurationProvider)
                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -34,8 +34,8 @@ namespace Persistence.Repositories
 
         public async Task<NewsSummary?> PrevNewsAsync(int shortLink, int shortLink2, DateTime dateTime, CancellationToken cancellationToken) =>
              await _context.News
-                    .Where(b => b.ShortLink != shortLink && b.ShortLink != shortLink2 && b.DateOfRegisration <= dateTime)
-                    .OrderByDescending(b => b.DateOfRegisration)
+                    .Where(b => b.ShortLink != shortLink && b.ShortLink != shortLink2 && b.DateOfRegisration.Date < dateTime.Date)
+                    .OrderByDescending(b => b.DateOfRegisration.Date)
                     .ProjectTo<NewsSummary>(_mapper.ConfigurationProvider)
                     .FirstOrDefaultAsync(cancellationToken);
 

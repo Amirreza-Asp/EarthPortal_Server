@@ -8,5 +8,6 @@ namespace Application.CQRS.Contact.RelatedLinks
         public Guid Id { get; set; }
         public String Title { get; set; }
         public String Link { get; set; }
+        public int Order { get; set; }
     }
 }

@@ -4,11 +4,15 @@ using Application.Contracts.Persistence.Utilities;
 using Application.Utilities;
 using AspNetCoreRateLimit;
 using Domain;
+using Endpoint.BackgroundServices;
 using Endpoint.Filters;
+using Endpoint.Hubs;
 using Endpoint.Middlewares;
 using Infrastructure;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
 using Serilog;
@@ -25,10 +29,13 @@ builder.Services.AddMvc(opt =>
 
 
 
+builder.Host.UseSerilog((ctx, lc) => lc
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateLogger();
+    .WriteTo.Console());
+
+//.WriteTo.File("logs/myapp.txt", rollingInterval: RollingInterval.Day)
+
+//.ReadFrom.Configuration(ctx.Configuration));
 
 
 
@@ -53,6 +60,8 @@ builder.Services
     .AddPersistencsRegistrations(builder.Configuration)
     .AddInfrastructureRegistrations();
 
+builder.Services.AddHostedService<CasesAndUsersWorker>();
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddCors(options =>
@@ -76,6 +85,8 @@ builder.Services.AddSession(options =>
 
 
 builder.Services.AddAntiforgery(o => { o.Cookie.Name = "X-XSRF"; o.HeaderName = "X-XCSRF"; o.SuppressXFrameOptionsHeader = false; });
+
+builder.Services.AddSignalR();
 
 #region JWT
 builder.Services.AddAuthentication(options =>
@@ -131,6 +142,26 @@ app.Lifetime.ApplicationStarted.Register(() =>
     initializer.Execute();
 });
 
+app.Lifetime.ApplicationStopped.Register(async () =>
+{
+    var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var memoryCache = scope.ServiceProvider.GetRequiredService<IMemoryCache>();
+
+    var footer = await context.FooterPage.FirstAsync();
+
+    footer.OnlineUsers = memoryCache.Get<int>("onlineUsers");
+    footer.TodaySeen = memoryCache.Get<int>("todaySeen");
+    footer.TotalSeen = memoryCache.Get<int>("totalSeen");
+    footer.LastUpdate = memoryCache.Get<DateTime>("lastUpdate");
+
+    context.FooterPage.Update(footer);
+
+    await context.SaveChangesAsync();
+});
+
+
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
@@ -174,7 +205,7 @@ app.Use(async (context, next) =>
 });
 
 app.MapControllers();
-
+app.MapHub<OnlineHub>("/Online");
 app.Run();
 
 

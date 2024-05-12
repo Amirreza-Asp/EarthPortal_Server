@@ -15,10 +15,9 @@ using Domain.Entities.Resources;
 using Domain.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 
 namespace Persistence.Utilities
@@ -31,8 +30,9 @@ namespace Persistence.Utilities
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
         private readonly IFileManager _fileManager;
+        private readonly IMemoryCache _memoryCache;
 
-        public DbInitializer(ApplicationDbContext context, IPasswordManager passManager, IHostingEnvironment env, IPhotoManager photoManager, IFileManager fileManager)
+        public DbInitializer(ApplicationDbContext context, IPasswordManager passManager, IHostingEnvironment env, IPhotoManager photoManager, IFileManager fileManager, IMemoryCache memoryCache)
         {
             _context = context;
             rnd = new Random();
@@ -40,77 +40,12 @@ namespace Persistence.Utilities
             _env = env;
             _photoManager = photoManager;
             _fileManager = fileManager;
-        }
-
-        string Decode(string cryptKey, string iv, string secretData)
-        {
-            using (var aes = Aes.Create())
-            {
-                aes.Key = Encoding.UTF8.GetBytes(cryptKey);
-                aes.IV = Encoding.UTF8.GetBytes(iv);
-                var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-
-                byte[] data = Convert.FromBase64String(secretData);
-
-                using (var msDecrypt = new System.IO.MemoryStream(data))
-                {
-                    using (var csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
-                    {
-                        using (var srDecrypt = new System.IO.StreamReader(csDecrypt))
-                        {
-                            return srDecrypt.ReadToEnd();
-                        }
-                    }
-                }
-            }
-        }
-
-        string Encode(string cryptKey, string iv, string clearData)
-        {
-            using (var aes = Aes.Create())
-            {
-                aes.Key = Encoding.UTF8.GetBytes(cryptKey);
-                aes.IV = Encoding.UTF8.GetBytes(iv);
-                var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-
-                byte[] data = Encoding.UTF8.GetBytes(clearData);
-
-                using (var msEncrypt = new System.IO.MemoryStream())
-                {
-                    using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                    {
-                        csEncrypt.Write(data, 0, data.Length);
-                        csEncrypt.FlushFinalBlock();
-                        return Convert.ToBase64String(msEncrypt.ToArray());
-                    }
-                }
-            }
+            _memoryCache = memoryCache;
         }
 
         public async Task Execute()
         {
-            //var date = $"{DateTime.Now.Year}{DateTime.Now.Month}{DateTime.Now.Day}{DateTime.Now.Hour}1994";
-            //var dateNumber = Convert.ToInt64(date) * 11;
-
-            //string secretKey = "Kcv2$5%^Hew#Er@1"; // Replace this with your actual secret key
-            //string iv = "1234567890000000"; // Replace this with your actual initialization vector
-
-            //string enc = Encode(secretKey, iv, dateNumber.ToString());
-
-            ////string dec = Decode(secretKey, iv, dateNumber.ToString());
-
-            //var client = new HttpClient();
-            //var response = await client.GetAsync($"https://iraneland.ir/ow/service/ow/portalStatisticService/portal/{enc}");
-
-            //if (response.IsSuccessStatusCode)
-            //{
-            //    var jsonData = response.Content.ReadAsStringAsync();
-            //}
-
-            //return;
-
-
-            //await _context.Database.EnsureDeletedAsync();
+            await _context.Database.EnsureDeletedAsync();
 
             try
             {
@@ -260,480 +195,482 @@ namespace Persistence.Utilities
                 {
                     Console.WriteLine(ex);
                 }
+            }
+            #endregion
 
-
-
-                #endregion
-
-                #region Multimedia
-                if (!_context.Gallery.Any())
+            #region Multimedia
+            if (!_context.Gallery.Any())
+            {
+                for (int i = 1; i <= 60; i++)
                 {
-                    for (int i = 1; i <= 60; i++)
+                    var imageGallery = new Gallery($"عنوان {i}", lorem.Substring(50));
+                    _context.Gallery.Add(imageGallery);
+                }
+
+                _context.SaveChanges();
+
+
+                var galleriesId = await _context.Gallery.Select(b => b.Id).ToListAsync();
+
+                foreach (var id in galleriesId)
+                {
+                    foreach (var image in Images)
                     {
-                        var imageGallery = new Gallery($"عنوان {i}", lorem.Substring(50));
-                        _context.Gallery.Add(imageGallery);
+                        image.GalleryId = id;
+                        _context.GalleryPhoto.Add(image);
                     }
+                }
 
-                    _context.SaveChanges();
+
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.VideoContent.Any())
+            {
+                for (int i = 1; i < 53; i++)
+                {
+                    var videoContent = new VideoContent($"عنوان {i}", lorem.Substring(50), video);
+                    _context.VideoContent.Add(videoContent);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Infographic.Any())
+            {
+                for (int i = 1; i < 48; i++)
+                {
+                    var infographic = new Infographic($"{rnd.Next(1, 4)}.jpg");
+                    _context.Infographic.Add(infographic);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            #endregion
+
+            #region Notices
+            if (!_context.NewsCategory.Any())
+            {
+                _context.NewsCategory.AddRange(NewsCategories);
+                await _context.SaveChangesAsync();
+
+                var category = new NewsCategory("نامشخص", null);
+                _context.NewsCategory.Add(category);
+                await _context.SaveChangesAsync();
+            }
 
 
-                    var galleriesId = await _context.Gallery.Select(b => b.Id).ToListAsync();
+            if (!_context.News.Any())
+            {
+                var path = _env.WebRootPath + "/notices/news.json";
 
-                    foreach (var id in galleriesId)
+                var jsonData = await File.ReadAllTextAsync(path);
+                var data = System.Text.Json.JsonSerializer.Deserialize<List<NewsData>>(jsonData);
+
+                var categoryId = _context.NewsCategory.Where(b => b.Title == "نامشخص").Select(b => b.Id).First();
+
+                if (Directory.Exists(_env.WebRootPath + SD.NewsImagePath))
+                {
+                    var files = Directory.GetFiles(_env.WebRootPath + SD.NewsImagePath);
+                    foreach (var file in files)
                     {
-                        foreach (var image in Images)
+                        var fileName = Path.GetFileName(file);
+                        File.Delete(_env.WebRootPath + SD.NewsImagePath + fileName);
+                    }
+                }
+
+                foreach (var item in data)
+                {
+
+                    while (true)
+                    {
+                        var shortLink = rnd.Next(Convert.ToInt32(Math.Pow(10, 7)), Convert.ToInt32(Math.Pow(10, 8)));
+
+                        if (!_context.News.Where(b => b.ShortLink == shortLink).Any())
                         {
-                            image.GalleryId = id;
-                            _context.GalleryPhoto.Add(image);
+                            var news = new News(
+                                item.title,
+                                item.description,
+                                item.newsText,
+                                source: "#",
+                                item.newsDateO,
+                                categoryId,
+                                shortLink);
+
+                            _context.News.Add(news);
+
+
+                            var imageName = Guid.NewGuid() + Path.GetExtension(item.newsImage.name);
+
+                            var upload = _env.WebRootPath + SD.NewsImagePath + imageName;
+
+                            if (!Directory.Exists(_env.WebRootPath + SD.NewsImagePath))
+                                Directory.CreateDirectory(_env.WebRootPath + SD.NewsImagePath);
+
+                            var image = new NewsImage(imageName, news.Id, 0);
+
+                            await _photoManager.SaveFromBase64Async(item.newsImage.value, upload);
+                            _context.NewsImage.Add(image);
+
+                            break;
                         }
                     }
-
-
-                    await _context.SaveChangesAsync();
                 }
 
-                if (!_context.VideoContent.Any())
+                _context.SaveChanges();
+            }
+
+            if (!_context.NewsImage.Any())
+            {
+                var newsIds = _context.News.Select(b => b.Id).ToList();
+                foreach (var newsId in newsIds)
                 {
-                    for (int i = 1; i < 53; i++)
+                    var newsImage = new NewsImage($"{rnd.Next(1, 6)}.jpg", newsId, 0);
+                    _context.NewsImage.Add(newsImage);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Link.Any())
+            {
+                for (int i = 1; i <= 10; i++)
+                {
+                    var link = new Link($"کلید واژه {i}");
+                    _context.Link.Add(link);
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.NewsLink.Any())
+            {
+                var newsIds = await _context.News.Select(b => b.Id).ToListAsync();
+                var linksIds = await _context.Link.Select(b => b.Id).ToListAsync();
+
+                foreach (var newsId in newsIds)
+                {
+                    var links = linksIds.Skip(rnd.Next(0, linksIds.Count - 5)).Take(rnd.Next(1, 6)).ToList();
+                    links.ForEach(linkId =>
                     {
-                        var videoContent = new VideoContent($"عنوان {i}", lorem.Substring(50), video);
-                        _context.VideoContent.Add(videoContent);
+                        var newsLink = new NewsLink(newsId, linkId);
+                        _context.NewsLink.Add(newsLink);
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            #endregion
+
+            #region Contact
+            if (!_context.FrequentlyAskedQuestions.Any())
+            {
+                for (int i = 0; i < 6; i++)
+                    _context.FrequentlyAskedQuestions.Add(FrequentlyAskedQuestions);
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Guide.Any())
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    var guide = Guide;
+                    guide.IsPort = i < 5;
+                    _context.Guide.Add(guide);
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Info.Any())
+            {
+                var info = new Info("1649", "iraneland@ito.gov.ir", "#", "#", "#", "#", "#", "#");
+                _context.Info.Add(info);
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.GeoAddress.Any())
+            {
+                var infoId = await _context.Info.Select(b => b.Id).FirstOrDefaultAsync();
+                var geoAddress1 = new GeoAddress(35.690732000445955, 51.38562655309216, $"تهران ، خیابان نواب صفوی ، کوچه شهید صفوی ، ساختمان 2", infoId, "آدرس 1");
+                var geoAddress2 = new GeoAddress(35.680832000445955, 51.37562655309216, $"تهران ، خیابان نواب صفوی ، کوچه شهید صفوی ، ساختمان 2", infoId, "آدرس 2");
+
+                _context.GeoAddress.Add(geoAddress1);
+                _context.GeoAddress.Add(geoAddress2);
+
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.EducationalVideo.Any())
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    var video = new EducationalVideo($"عنوان ${i + 1}", "درگاه متقاضیان خدمات زمین با هدف کاهش سردرگمی در فرآیندهای دریافت خدمات حوزه زمین و کاهش هزینه و زمان ارائه این خدمات، ثبت و پیگیری درخواست متقاضیان از طریق درگاه ارتباطی متقاضیان خدمات زمین را فراهم می‌کند",
+                        "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: calc(57% + 65px)\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/tL4gz/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>");
+
+                    _context.EducationalVideo.Add(video);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.RelatedCompany.Any())
+            {
+                var items = RelatedCompanies;
+                items.ForEach(item => { item.Image = $"comp{item.Image}"; item.Link = "#"; });
+                _context.RelatedCompany.AddRange(items);
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Goal.Any())
+            {
+                for (int i = 1; i <= 30; i++)
+                {
+                    var goal = new Goal($"جلوگیری از تخریب محیط زیست کشور {i}");
+                    _context.Goal.Add(goal);
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.AboutUs.Any())
+            {
+                for (int i = 1; i < 6; i++)
+                {
+                    var aboutUs = new AboutUs("لورم ایپسوم متن", "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع.", null, null);
+
+                    if (i % 2 == 0)
+                        aboutUs.Image = "1.jpg";
+                    else
+                        aboutUs.Video = "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/QUrRF/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>";
+
+                    _context.AboutUs.Add(aboutUs);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.SystemEvaluation.Any())
+            {
+                for (int i = 0; i < 50; i++)
+                {
+                    var se = new SystemEvaluation(rnd.Next(1, 6), rnd.Next(1, 5000000).ToString());
+                    _context.SystemEvaluation.Add(se);
+
+                    var pagesCount = rnd.Next(3, 10);
+                    for (int j = 0; j < pagesCount; j++)
+                    {
+                        var page = rnd.Next(1, 8);
+                        var sePage = new SystemEvaluationPage((Pages)(page * 10), se.Id);
+
+                        _context.SystemEvaluationPage.Add(sePage);
                     }
 
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.Infographic.Any())
-                {
-                    for (int i = 1; i < 48; i++)
+                    var methodsCount = rnd.Next(3, 10);
+                    for (int j = 0; j < methodsCount; j++)
                     {
-                        var infographic = new Infographic($"{rnd.Next(1, 4)}.jpg");
-                        _context.Infographic.Add(infographic);
+                        var methods = rnd.Next(1, 6);
+                        var seMethod = new SystemEvaluationIntroductionMethod((IntroductionMethod)(methods * 10), se);
+
+                        _context.IntroductionMethod.Add(seMethod);
                     }
-
-                    await _context.SaveChangesAsync();
-                }
-                #endregion
-
-                #region Notices
-                if (!_context.NewsCategory.Any())
-                {
-                    _context.NewsCategory.AddRange(NewsCategories);
-                    await _context.SaveChangesAsync();
-
-                    var category = new NewsCategory("نامشخص", null);
-                    _context.NewsCategory.Add(category);
-                    await _context.SaveChangesAsync();
                 }
 
+                await _context.SaveChangesAsync();
+            }
 
-                if (!_context.News.Any())
+            var rLinks = _context.RelatedLink.ToList();
+            _context.RelatedLink.RemoveRange(rLinks);
+            _context.SaveChanges();
+
+            if (!_context.RelatedLink.Any())
+            {
+                _context.RelatedLink.AddRange(RelatedLinks);
+                await _context.SaveChangesAsync();
+            }
+            #endregion
+
+            #region Account
+            if (!_context.Role.Any())
+            {
+                var role = new Role("Admin", "ادمین", "ادمین کل سیستم");
+                var role2 = new Role("Publisher", "ناشر", "ناشر");
+                _context.Role.Add(role);
+                _context.Role.Add(role2);
+                await _context.SaveChangesAsync();
+            }
+
+
+            if (!_context.User.Any())
+            {
+                var role = await _context.Role.FirstOrDefaultAsync(b => b.Title == "Admin");
+                var user = new User(role.Id, "امیررضا", "محمدی", "Admin", _passManager.HashPassword("Admin"), "amirrezamohammadi8102@gmail.com", "09211573936");
+
+                _context.User.Add(user);
+
+
+                var motorchi = new User(role.Id, "", "موتورچی", "Motorchi", _passManager.HashPassword("Motorchi1234"), null, null);
+                var keshavarz = new User(role.Id, "علی", "کشاورز", "Keshavarz", _passManager.HashPassword("Keshavarz1234"), null, null);
+
+                _context.User.Add(motorchi);
+                _context.User.Add(keshavarz);
+
+                await _context.SaveChangesAsync();
+            }
+            #endregion
+
+            #region Resources
+            if (!_context.Author.Any())
+            {
+                _context.Author.AddRange(Authors);
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Translator.Any())
+            {
+                var translator = new Translator("مهدی امینی");
+                _context.Translator.Add(translator);
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Publication.Any())
+            {
+                var publication = new Publication("انتشارات کتابسرای تندیس");
+                _context.Publication.Add(publication);
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Book.Any())
+            {
+                var authorId = _context.Author.First().Id;
+                var translatorId = _context.Translator.First().Id;
+                var publicationId = _context.Publication.First().Id;
+                for (int i = 1; i <= 25; i++)
                 {
-                    var path = _env.WebRootPath + "/notices/news.json";
+                    String image = $"{i % 5 + 1}.png";
+                    var book = new Book($"کتاب سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
+                        publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
 
-                    var jsonData = await File.ReadAllTextAsync(path);
-                    var data = System.Text.Json.JsonSerializer.Deserialize<List<NewsData>>(jsonData);
-
-                    var categoryId = _context.NewsCategory.Where(b => b.Title == "نامشخص").Select(b => b.Id).First();
-
-                    if (Directory.Exists(_env.WebRootPath + SD.NewsImagePath))
-                    {
-                        var files = Directory.GetFiles(_env.WebRootPath + SD.NewsImagePath);
-                        foreach (var file in files)
-                        {
-                            var fileName = Path.GetFileName(file);
-                            File.Delete(_env.WebRootPath + SD.NewsImagePath + fileName);
-                        }
-                    }
-
-                    foreach (var item in data)
-                    {
-
-                        while (true)
-                        {
-                            var shortLink = rnd.Next(Convert.ToInt32(Math.Pow(10, 7)), Convert.ToInt32(Math.Pow(10, 8)));
-
-                            if (!_context.News.Where(b => b.ShortLink == shortLink).Any())
-                            {
-                                var news = new News(
-                                    item.title,
-                                    item.description,
-                                    item.newsText,
-                                    source: "#",
-                                    item.newsDateO,
-                                    categoryId,
-                                    shortLink);
-
-                                _context.News.Add(news);
-
-
-                                var imageName = Guid.NewGuid() + Path.GetExtension(item.newsImage.name);
-
-                                var upload = _env.WebRootPath + SD.NewsImagePath + imageName;
-
-                                if (!Directory.Exists(_env.WebRootPath + SD.NewsImagePath))
-                                    Directory.CreateDirectory(_env.WebRootPath + SD.NewsImagePath);
-
-                                var image = new NewsImage(imageName, news.Id, 0);
-
-                                await _photoManager.SaveFromBase64Async(item.newsImage.value, upload);
-                                _context.NewsImage.Add(image);
-
-                                break;
-                            }
-                        }
-                    }
-
-                    _context.SaveChanges();
+                    _context.Book.Add(book);
                 }
 
-                if (!_context.NewsImage.Any())
-                {
-                    var newsIds = _context.News.Select(b => b.Id).ToList();
-                    foreach (var newsId in newsIds)
-                    {
-                        var newsImage = new NewsImage($"{rnd.Next(1, 6)}.jpg", newsId, 0);
-                        _context.NewsImage.Add(newsImage);
-                    }
+                await _context.SaveChangesAsync();
+            }
 
-                    await _context.SaveChangesAsync();
+            if (!_context.Broadcast.Any())
+            {
+                var authorId = _context.Author.First().Id;
+                var translatorId = _context.Translator.First().Id;
+                var publicationId = _context.Publication.First().Id;
+                for (int i = 1; i <= 25; i++)
+                {
+                    String image = $"{i % 5 + 1}.png";
+                    var broadcast = new Broadcast($"نشریه سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
+                        publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
+
+                    _context.Broadcast.Add(broadcast);
                 }
 
-                if (!_context.Link.Any())
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Article.Any())
+            {
+                var authorId = _context.Author.First().Id;
+                for (int i = 1; i <= 25; i++)
                 {
-                    for (int i = 1; i <= 10; i++)
-                    {
-                        var link = new Link($"کلید واژه {i}");
-                        _context.Link.Add(link);
-                    }
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.NewsLink.Any())
-                {
-                    var newsIds = await _context.News.Select(b => b.Id).ToListAsync();
-                    var linksIds = await _context.Link.Select(b => b.Id).ToListAsync();
-
-                    foreach (var newsId in newsIds)
-                    {
-                        var links = linksIds.Skip(rnd.Next(0, linksIds.Count - 5)).Take(rnd.Next(1, 6)).ToList();
-                        links.ForEach(linkId =>
-                        {
-                            var newsLink = new NewsLink(newsId, linkId);
-                            _context.NewsLink.Add(newsLink);
-                        });
-                    }
-
-                    await _context.SaveChangesAsync();
-                }
-                #endregion
-
-                #region Contact
-                if (!_context.FrequentlyAskedQuestions.Any())
-                {
-                    for (int i = 0; i < 6; i++)
-                        _context.FrequentlyAskedQuestions.Add(FrequentlyAskedQuestions);
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.Guide.Any())
-                {
-                    for (int i = 0; i < 10; i++)
-                    {
-                        var guide = Guide;
-                        guide.IsPort = i < 5;
-                        _context.Guide.Add(guide);
-                    }
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.Info.Any())
-                {
-                    var info = new Info("1649", "iraneland@ito.gov.ir", "#", "#", "#", "#", "#", "#");
-                    _context.Info.Add(info);
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.GeoAddress.Any())
-                {
-                    var infoId = await _context.Info.Select(b => b.Id).FirstOrDefaultAsync();
-                    var geoAddress1 = new GeoAddress(35.690732000445955, 51.38562655309216, $"تهران ، خیابان نواب صفوی ، کوچه شهید صفوی ، ساختمان 2", infoId, "آدرس 1");
-                    var geoAddress2 = new GeoAddress(35.680832000445955, 51.37562655309216, $"تهران ، خیابان نواب صفوی ، کوچه شهید صفوی ، ساختمان 2", infoId, "آدرس 2");
-
-                    _context.GeoAddress.Add(geoAddress1);
-                    _context.GeoAddress.Add(geoAddress2);
-
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.EducationalVideo.Any())
-                {
-                    for (int i = 0; i < 10; i++)
-                    {
-                        var video = new EducationalVideo($"عنوان ${i + 1}", "درگاه متقاضیان خدمات زمین با هدف کاهش سردرگمی در فرآیندهای دریافت خدمات حوزه زمین و کاهش هزینه و زمان ارائه این خدمات، ثبت و پیگیری درخواست متقاضیان از طریق درگاه ارتباطی متقاضیان خدمات زمین را فراهم می‌کند",
-                            "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: calc(57% + 65px)\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/tL4gz/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>");
-
-                        _context.EducationalVideo.Add(video);
-                    }
-
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.RelatedCompany.Any())
-                {
-                    var items = RelatedCompanies;
-                    items.ForEach(item => { item.Image = $"comp{item.Image}"; item.Link = "#"; });
-                    _context.RelatedCompany.AddRange(items);
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.Goal.Any())
-                {
-                    for (int i = 1; i <= 30; i++)
-                    {
-                        var goal = new Goal($"جلوگیری از تخریب محیط زیست کشور {i}");
-                        _context.Goal.Add(goal);
-                    }
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.AboutUs.Any())
-                {
-                    for (int i = 1; i < 6; i++)
-                    {
-                        var aboutUs = new AboutUs("لورم ایپسوم متن", "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع.", null, null);
-
-                        if (i % 2 == 0)
-                            aboutUs.Image = "1.jpg";
-                        else
-                            aboutUs.Video = "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/QUrRF/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>";
-
-                        _context.AboutUs.Add(aboutUs);
-                    }
-
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.SystemEvaluation.Any())
-                {
-                    for (int i = 0; i < 50; i++)
-                    {
-                        var se = new SystemEvaluation(rnd.Next(1, 6), rnd.Next(1, 5000000).ToString());
-                        _context.SystemEvaluation.Add(se);
-
-                        var pagesCount = rnd.Next(3, 10);
-                        for (int j = 0; j < pagesCount; j++)
-                        {
-                            var page = rnd.Next(1, 8);
-                            var sePage = new SystemEvaluationPage((Pages)(page * 10), se.Id);
-
-                            _context.SystemEvaluationPage.Add(sePage);
-                        }
-
-                        var methodsCount = rnd.Next(3, 10);
-                        for (int j = 0; j < methodsCount; j++)
-                        {
-                            var methods = rnd.Next(1, 6);
-                            var seMethod = new SystemEvaluationIntroductionMethod((IntroductionMethod)(methods * 10), se);
-
-                            _context.IntroductionMethod.Add(seMethod);
-                        }
-                    }
-
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.RelatedLink.Any())
-                {
-                    _context.RelatedLink.AddRange(RelatedLinks);
-                    await _context.SaveChangesAsync();
-                }
-                #endregion
-
-                #region Account
-                if (!_context.Role.Any())
-                {
-                    var role = new Role("Admin", "ادمین", "ادمین کل سیستم");
-                    var role2 = new Role("Publisher", "ناشر", "ناشر");
-                    _context.Role.Add(role);
-                    _context.Role.Add(role2);
-                    await _context.SaveChangesAsync();
-                }
-
-
-                if (!_context.User.Any())
-                {
-                    var role = await _context.Role.FirstOrDefaultAsync(b => b.Title == "Admin");
-                    var user = new User(role.Id, "امیررضا", "محمدی", "Admin", _passManager.HashPassword("Admin"), "amirrezamohammadi8102@gmail.com", "09211573936");
-
-                    _context.User.Add(user);
-
-
-                    var motorchi = new User(role.Id, "", "موتورچی", "Motorchi", _passManager.HashPassword("Motorchi1234"), null, null);
-                    var keshavarz = new User(role.Id, "علی", "کشاورز", "Keshavarz", _passManager.HashPassword("Keshavarz1234"), null, null);
-
-                    _context.User.Add(motorchi);
-                    _context.User.Add(keshavarz);
-
-                    await _context.SaveChangesAsync();
-                }
-                #endregion
-
-                #region Resources
-                if (!_context.Author.Any())
-                {
-                    _context.Author.AddRange(Authors);
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.Translator.Any())
-                {
-                    var translator = new Translator("مهدی امینی");
-                    _context.Translator.Add(translator);
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.Publication.Any())
-                {
-                    var publication = new Publication("انتشارات کتابسرای تندیس");
-                    _context.Publication.Add(publication);
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.Book.Any())
-                {
-                    var authorId = _context.Author.First().Id;
+                    String image = $"{i % 5 + 1}.png";
                     var translatorId = _context.Translator.First().Id;
                     var publicationId = _context.Publication.First().Id;
-                    for (int i = 1; i <= 25; i++)
-                    {
-                        String image = $"{i % 5 + 1}.png";
-                        var book = new Book($"کتاب سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
-                            publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
+                    var article = new Article($"مقاله سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
+                        publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
 
-                        _context.Book.Add(book);
-                    }
-
-                    await _context.SaveChangesAsync();
+                    _context.Article.Add(article);
                 }
 
-                if (!_context.Broadcast.Any())
+                await _context.SaveChangesAsync();
+            }
+            #endregion
+
+            #region Pages
+            if (!_context.HomePage.Any())
+            {
+                var homePage = new HomePage()
                 {
-                    var authorId = _context.Author.First().Id;
-                    var translatorId = _context.Translator.First().Id;
-                    var publicationId = _context.Publication.First().Id;
-                    for (int i = 1; i <= 25; i++)
-                    {
-                        String image = $"{i % 5 + 1}.png";
-                        var broadcast = new Broadcast($"نشریه سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
-                            publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
-
-                        _context.Broadcast.Add(broadcast);
-                    }
-
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.Article.Any())
-                {
-                    var authorId = _context.Author.First().Id;
-                    for (int i = 1; i <= 25; i++)
-                    {
-                        String image = $"{i % 5 + 1}.png";
-                        var translatorId = _context.Translator.First().Id;
-                        var publicationId = _context.Publication.First().Id;
-                        var article = new Article($"مقاله سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
-                            publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
-
-                        _context.Article.Add(article);
-                    }
-
-                    await _context.SaveChangesAsync();
-                }
-                #endregion
-
-                #region Pages
-                if (!_context.HomePage.Any())
-                {
-                    var homePage = new HomePage()
-                    {
-                        Header =
-                            new HomeHeader
-                            {
-                                AppBtnEnable = true,
-                                PortBtnEnable = true,
-                                Title = "سامانه پنجره واحد مدیریت زمین",
-                                Content = "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان. "
-                            },
-                        Work =
-                            new HomeWork
-                            {
-                                Title = "کار ما چیست؟",
-                                Content = "سامانه پنجره واحد مدیریت زمین به عنوان یکی از 23 پروژه اولویت‌دار دولت الکترونیک و با دو هدف کلی پیشگیری از مفاسد زمین‌خواری و ساماندهی نحوه ارائه خدمات حوزه زمین و ساختمان راه‌اندازی شده است. ",
-                                App = "همچنین یکی از مهم‌ترین اهداف ترسیم شده پروژه، در میان‌مدت شامل تسهیل و ساماندهی خدمات حوزه زمین با ابزارهای دولت الکترونیک و در بلندمدت شامل هدایت مناسب سرمایه‌گذاران و متقاضیان به بهره‌برداری از اراضی کشور بر مبنای ضوابط و اصول آمایش سرزمین می‌گردد. تحقق زیرساخت‌های لازم جهت جاری‌سازی اصول آمایش سرزمین بر بهره‌برداری اراضی کشور به عنوان مهمترین افق توسعه پایدار و بهره‌برداری کارآمد از اراضی کشور محسوب می‌گردد که با ابزارهای مکان‌محور و مدیریت سیستمی شاخص‌های آمایشی فراهم می‌گردد. ",
-                                Port = "این سامانه از یک‌سو قابلیت شناسایی تخلفات زمین‌خواری و ساخت‌وسازهای غیرمجاز در اراضی حساس کشور را با استفاده از تصاویر ماهواره‌ای فراهم نموده که به عنوان بستری برای معرفی موارد زمین‌خواری و نظارت بر عملکرد دستگاه‌های اجرایی ذی‌ربط قابل استفاده می‌باشد. از سوی دیگر سامانه با فراهم نمودن زیرساخت‌های الکترونیکی مدیریت هوشمندانه و سیستمی فرایندهای بین دستگاهی جهت ارائه مجوزها و استعلامات حوزه زمین و ساختمان، سازوکارهای مناسبی را جهت پیشگیری از بروز مفاسد و مشکلاتی نظیر جعل استعلامات و مجوزها ، تبانی و ارتشا توسط زمین‌خواران، تداخل وظایف بین‌دستگاهی و عدم شفافیت در تصمیم‌گیری‌های کمیسیون‌ها و شوراها فراهمی‌نماید."
-                            }
-
-                    };
-
-                    _context.HomePage.Add(homePage);
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.AboutUsPage.Any())
-                {
-                    var aboutUsPage = new AboutUsPage(
-                        " سامانه پنجره واحد مدیریت زمین به عنوان یکی از 23 پروژه اولویت‌دار دولت الکترونیک و با دو هدف کلی پیشگیری از مفاسد زمین‌خواری و ساماندهی نحوه ارائه خدمات حوزه زمین و ساختمان راه‌اندازی شده است.",
-                        "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع.",
-                        "برای مردم ایران زمین");
-
-                    _context.AboutUsPage.Add(aboutUsPage);
-
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.LawPage.Any())
-                {
-                    var lawPage = new LawPage(
-                        "متقاضی گرامی!",
-                        "خدمات حوزه اراضی و املاک، یکی از حوزه‌هایی است که از نظر قوانین و مقررات دارای پیچیدگی بالایی می‌باشد. در این سامانه بخشی از این قوانین و مقررات جهت اطلاع و مطالعه عمومی جمع‌آوری و ارائه گردیده است ."); ;
-
-                    _context.LawPage.Add(lawPage);
-
-                    await _context.SaveChangesAsync();
-                }
-
-                if (!_context.EnglishPage.Any())
-                {
-                    var englishPage = new EnglishPage
-                    {
-                        Id = Guid.Parse("62CF6284-C415-4009-93EF-2B79EE90A113"),
-                        Intro = new EnglishIntro
+                    Header =
+                        new HomeHeader
                         {
-                            Title = "Intro",
-                            Content = "IranEland is asingle-window platform equipped with emerging technologies, ArtificialIntelligence (AI) in particular, to ensure the legal use of land, providecitizens with high-quality service and information on land and constructionpermits and support the government on the best practices to achieve sustainableland management and protection. IranEland has provided a software environmentfor the electronic delivery of land and building permits, allowing citizens tosubmit and track their requests without visiting multiple organizations. " +
-                             "<br/><br/><br/>Byutilizing high-quality images obtained from the Iranian satellite Khayyam, thissystem prevents any unauthorized changes in land use. Additionally, it providescontinuous monitoring of land status for the government, leading to moreprecise management and planning across various sectors in the country.IranEland wasestablished in 2020 by the ITO Information Technology Organization of Iran andoperated officially at the beginning of 2022. IranEland also pursuing the ideaof “Government as a Platform” compatible with iternational frameworks andstandards to enable offering all the land-related services in one place. ",
+                            AppBtnEnable = true,
+                            PortBtnEnable = true,
+                            Title = "سامانه پنجره واحد مدیریت زمین",
+                            Content = "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان. "
                         },
-                        MainIdea = new EnglishMainIdea
+                    Work =
+                        new HomeWork
                         {
-                            Title = "Main Idea",
-                            Content1 = "IranEland intelligentlyprocesses high-quality images from the Iranian Khayam satellite via AI tools,and shares the information and services between government organizations. As aresult, the problem of land grabbing is solved, and the possibility ofobtaining land permits quickly and cheaply is provided, leading to greatersatisfaction among the public. ",
-                            Bold = "Common Ground & Problems To Solve",
-                            Content2 = "Citizens, especially realinvestors, face complex, time-consuming, and sometimes opaque processes to obtain land usage permits. On the other hand, individuals engage in corruptpractices within these processes, contributing to land grabbing. It is nowpossible to intelligently monitor changes in the land through high-qualityimages from the Iranian Khayyam satellite and by sharing information andservices from various relevant organizations. These challenges can be addressedby creating an intelligent land management single window. "
-                        },
+                            Title = "کار ما چیست؟",
+                            Content = "سامانه پنجره واحد مدیریت زمین به عنوان یکی از 23 پروژه اولویت‌دار دولت الکترونیک و با دو هدف کلی پیشگیری از مفاسد زمین‌خواری و ساماندهی نحوه ارائه خدمات حوزه زمین و ساختمان راه‌اندازی شده است. ",
+                            App = "همچنین یکی از مهم‌ترین اهداف ترسیم شده پروژه، در میان‌مدت شامل تسهیل و ساماندهی خدمات حوزه زمین با ابزارهای دولت الکترونیک و در بلندمدت شامل هدایت مناسب سرمایه‌گذاران و متقاضیان به بهره‌برداری از اراضی کشور بر مبنای ضوابط و اصول آمایش سرزمین می‌گردد. تحقق زیرساخت‌های لازم جهت جاری‌سازی اصول آمایش سرزمین بر بهره‌برداری اراضی کشور به عنوان مهمترین افق توسعه پایدار و بهره‌برداری کارآمد از اراضی کشور محسوب می‌گردد که با ابزارهای مکان‌محور و مدیریت سیستمی شاخص‌های آمایشی فراهم می‌گردد. ",
+                            Port = "این سامانه از یک‌سو قابلیت شناسایی تخلفات زمین‌خواری و ساخت‌وسازهای غیرمجاز در اراضی حساس کشور را با استفاده از تصاویر ماهواره‌ای فراهم نموده که به عنوان بستری برای معرفی موارد زمین‌خواری و نظارت بر عملکرد دستگاه‌های اجرایی ذی‌ربط قابل استفاده می‌باشد. از سوی دیگر سامانه با فراهم نمودن زیرساخت‌های الکترونیکی مدیریت هوشمندانه و سیستمی فرایندهای بین دستگاهی جهت ارائه مجوزها و استعلامات حوزه زمین و ساختمان، سازوکارهای مناسبی را جهت پیشگیری از بروز مفاسد و مشکلاتی نظیر جعل استعلامات و مجوزها ، تبانی و ارتشا توسط زمین‌خواران، تداخل وظایف بین‌دستگاهی و عدم شفافیت در تصمیم‌گیری‌های کمیسیون‌ها و شوراها فراهمی‌نماید."
+                        }
 
-                        CurrentSituation = new EnglishCurrentSituation
-                        {
-                            Title = "Current Situation",
-                            Content = " By utilizing the IranEland system, the expenses of citizens' visits andpaper usage are significantly reduced. Currently, the system receives anaverage of 1,000 acceptance requests per day in its first year of operation,with each request requiring an average of 10 inquiries.</br></br>Considering the average cost of commuting, paperwork, and ancillaryexpenses for responding to an inquiry to be around $25, IranEland has costsreduced by about $250,000 and prevented the cutting down of 5 large treesdaily, based on the average paper required for files and inquiry responses.With the widespread use of the system across the country and the increase inland-based services, these numbers can increase up to 20 times the currentcapacity. It means that IranEland has the potential to save more than 1.8billion dollars and to prevent the cutting down of more than 1800 large treesper year.</br></br>In addition, an average of 200hectares of land are identified as suspicious environmental destruction casesdaily, and this is only a small part of Iran's land that is monitoredcurrently. These statistics only highlight a few specific aspects of thesystem, and its capacity for positive impact is significant and evident ineconomic, social (significantly increasing social justice following decisiontransparency), and environmental fields. ",
-                            Image = "currentSituation.png"
-                        },
-                        Vision = new EnglishVision
-                        {
-                            Title = "Vision",
-                            Content = "This particular project can be regarded as the most extensivesingle-window service project in the country regarding the number ofresponsible organizations (over 45) and associated services and processes (over200). The system's goal is to monitor the entire land of Iran intelligently.This requires the use of fast and intelligent processing algorithms. Inconclusion, this system is highly complex in technical, operational, andmanagement aspects. This level of complexity is rare among other methods. Fortunately,these issues are controlled to some extent, and the project is on track toultimate success. These features make IranEland a single window for thecountry's land management, which means it is a continuous project."
-                        },
-                        Cards = new List<EnglishCard>
+                };
+
+                _context.HomePage.Add(homePage);
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.AboutUsPage.Any())
+            {
+                var aboutUsPage = new AboutUsPage(
+                    " سامانه پنجره واحد مدیریت زمین به عنوان یکی از 23 پروژه اولویت‌دار دولت الکترونیک و با دو هدف کلی پیشگیری از مفاسد زمین‌خواری و ساماندهی نحوه ارائه خدمات حوزه زمین و ساختمان راه‌اندازی شده است.",
+                    "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع.",
+                    "برای مردم ایران زمین");
+
+                _context.AboutUsPage.Add(aboutUsPage);
+
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.LawPage.Any())
+            {
+                var lawPage = new LawPage(
+                    "متقاضی گرامی!",
+                    "خدمات حوزه اراضی و املاک، یکی از حوزه‌هایی است که از نظر قوانین و مقررات دارای پیچیدگی بالایی می‌باشد. در این سامانه بخشی از این قوانین و مقررات جهت اطلاع و مطالعه عمومی جمع‌آوری و ارائه گردیده است ."); ;
+
+                _context.LawPage.Add(lawPage);
+
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.EnglishPage.Any())
+            {
+                var englishPage = new EnglishPage
+                {
+                    Id = Guid.Parse("62CF6284-C415-4009-93EF-2B79EE90A113"),
+                    Intro = new EnglishIntro
+                    {
+                        Title = "Intro",
+                        Content = "IranEland is asingle-window platform equipped with emerging technologies, ArtificialIntelligence (AI) in particular, to ensure the legal use of land, providecitizens with high-quality service and information on land and constructionpermits and support the government on the best practices to achieve sustainableland management and protection. IranEland has provided a software environmentfor the electronic delivery of land and building permits, allowing citizens tosubmit and track their requests without visiting multiple organizations. " +
+                         "<br/><br/><br/>Byutilizing high-quality images obtained from the Iranian satellite Khayyam, thissystem prevents any unauthorized changes in land use. Additionally, it providescontinuous monitoring of land status for the government, leading to moreprecise management and planning across various sectors in the country.IranEland wasestablished in 2020 by the ITO Information Technology Organization of Iran andoperated officially at the beginning of 2022. IranEland also pursuing the ideaof “Government as a Platform” compatible with iternational frameworks andstandards to enable offering all the land-related services in one place. ",
+                    },
+                    MainIdea = new EnglishMainIdea
+                    {
+                        Title = "Main Idea",
+                        Content1 = "IranEland intelligentlyprocesses high-quality images from the Iranian Khayam satellite via AI tools,and shares the information and services between government organizations. As aresult, the problem of land grabbing is solved, and the possibility ofobtaining land permits quickly and cheaply is provided, leading to greatersatisfaction among the public. ",
+                        Bold = "Common Ground & Problems To Solve",
+                        Content2 = "Citizens, especially realinvestors, face complex, time-consuming, and sometimes opaque processes to obtain land usage permits. On the other hand, individuals engage in corruptpractices within these processes, contributing to land grabbing. It is nowpossible to intelligently monitor changes in the land through high-qualityimages from the Iranian Khayyam satellite and by sharing information andservices from various relevant organizations. These challenges can be addressedby creating an intelligent land management single window. "
+                    },
+
+                    CurrentSituation = new EnglishCurrentSituation
+                    {
+                        Title = "Current Situation",
+                        Content = " By utilizing the IranEland system, the expenses of citizens' visits andpaper usage are significantly reduced. Currently, the system receives anaverage of 1,000 acceptance requests per day in its first year of operation,with each request requiring an average of 10 inquiries.</br></br>Considering the average cost of commuting, paperwork, and ancillaryexpenses for responding to an inquiry to be around $25, IranEland has costsreduced by about $250,000 and prevented the cutting down of 5 large treesdaily, based on the average paper required for files and inquiry responses.With the widespread use of the system across the country and the increase inland-based services, these numbers can increase up to 20 times the currentcapacity. It means that IranEland has the potential to save more than 1.8billion dollars and to prevent the cutting down of more than 1800 large treesper year.</br></br>In addition, an average of 200hectares of land are identified as suspicious environmental destruction casesdaily, and this is only a small part of Iran's land that is monitoredcurrently. These statistics only highlight a few specific aspects of thesystem, and its capacity for positive impact is significant and evident ineconomic, social (significantly increasing social justice following decisiontransparency), and environmental fields. ",
+                        Image = "currentSituation.png"
+                    },
+                    Vision = new EnglishVision
+                    {
+                        Title = "Vision",
+                        Content = "This particular project can be regarded as the most extensivesingle-window service project in the country regarding the number ofresponsible organizations (over 45) and associated services and processes (over200). The system's goal is to monitor the entire land of Iran intelligently.This requires the use of fast and intelligent processing algorithms. Inconclusion, this system is highly complex in technical, operational, andmanagement aspects. This level of complexity is rare among other methods. Fortunately,these issues are controlled to some extent, and the project is on track toultimate success. These features make IranEland a single window for thecountry's land management, which means it is a continuous project."
+                    },
+                    Cards = new List<EnglishCard>
                     {
                         #region Beggining
                         new EnglishCard
@@ -970,15 +907,15 @@ namespace Persistence.Utilities
                         },
                         #endregion
                     }
-                    };
+                };
 
-                    _context.EnglishPage.Add(englishPage);
+                _context.EnglishPage.Add(englishPage);
 
-                    _context.SaveChanges();
+                _context.SaveChanges();
 
-                    var englishPageId = await _context.EnglishPage.Select(b => b.Id).FirstAsync();
+                var englishPageId = await _context.EnglishPage.Select(b => b.Id).FirstAsync();
 
-                    var problems = new List<EnglishProblem>
+                var problems = new List<EnglishProblem>
                 {
                         new EnglishProblem("People may need help to be able to use the system conveniently." ,englishPageId),
                         new EnglishProblem("The existence ofnumerous beneficiaries in the country poses a significant challenge due to their need for coordination and alignment.", englishPageId),
@@ -987,10 +924,10 @@ namespace Persistence.Utilities
                         new EnglishProblem("Artificialintelligence techniques, especially in image processing, may exhibitunacceptable accuracy.", englishPageId),
                 };
 
-                    _context.EnglishPageProblem.AddRange(problems);
+                _context.EnglishPageProblem.AddRange(problems);
 
 
-                    var solutions = new List<EnglishSolution>
+                var solutions = new List<EnglishSolution>
                 {
                         new EnglishSolution("The system has a user-friendly interface, and also allowing people to seek assistance from knowledgeableagents electronically.", englishPageId),
                         new EnglishSolution("Clear and enforceable laws and regulations should be formulated.", englishPageId),
@@ -1001,16 +938,22 @@ namespace Persistence.Utilities
                         new EnglishSolution("Following international frameworks and standards in this regard.", englishPageId),
                 };
 
-                    _context.EnglishPageSolution.AddRange(solutions);
+                _context.EnglishPageSolution.AddRange(solutions);
 
-                    await _context.SaveChangesAsync();
-
-                }
-
-                #endregion
+                await _context.SaveChangesAsync();
 
             }
+
+            if (!_context.FooterPage.Any())
+            {
+                var footer = new FooterPage();
+                _context.FooterPage.Add(footer);
+                await _context.SaveChangesAsync();
+            }
+            #endregion
+
         }
+
 
         #region Regulation
         private List<ApprovalAuthority> ApprovalAuthorities =>
@@ -1155,7 +1098,6 @@ namespace Persistence.Utilities
         public Guide Guide =>
             new Guide("لورم ایپسوم متن ساختگی با تولید", "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/Dqev1/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div></br><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی.</p></br><h3 class='font-dana mt-40'>لورم ایپسوم متن ساختگی با تولید</h3></br><p class='mt-20'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p></br><img class='mt-40' src='/banner.jpg'/></br><p class='mt-20'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود</p></br>", true);
 
-
         public List<RelatedCompany> RelatedCompanies =>
             new List<RelatedCompany>
         {
@@ -1201,12 +1143,12 @@ namespace Persistence.Utilities
         public List<RelatedLink> RelatedLinks =>
             new List<RelatedLink>
             {
-                new RelatedLink("پایگاه اطلاع رسانی دفتر مقام معظم رهبری" , "#"),
-                new RelatedLink("پایگاه اطلاع رسانی ریاست جمهوری" , "#"),
-                new RelatedLink("پایگاه اطلاع رسانی دولت" , "#"),
-                new RelatedLink("وزارت ارتباطات و فناوری اطلاعات" , "#"),
-                new RelatedLink("سازمان فناوری اطلاعات ایران" , "#"),
-                new RelatedLink("ستاد هماهنگی مبارزه با مفاسد اقتصادی" , "#")
+                new RelatedLink("پایگاه اطلاع رسانی دفتر مقام معظم رهبری" , "#" , 0),
+                new RelatedLink("پایگاه اطلاع رسانی ریاست جمهوری" , "#" , 1),
+                new RelatedLink("پایگاه اطلاع رسانی دولت" , "#",2),
+                new RelatedLink("وزارت ارتباطات و فناوری اطلاعات" , "#",3),
+                new RelatedLink("سازمان فناوری اطلاعات ایران" , "#",4),
+                new RelatedLink("ستاد هماهنگی مبارزه با مفاسد اقتصادی" , "#",5)
             };
         #endregion
 
@@ -1221,7 +1163,6 @@ namespace Persistence.Utilities
         private String lorem = "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.";
         private String video = "<div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe</br>                            src=\"https://www.aparat.com/video/video/embed/videohash/jq0lh/vt/frame\" allowFullScreen=\"true\"</br>                            webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>";
     }
-
 
     class NewsData
     {
@@ -1247,7 +1188,6 @@ namespace Persistence.Utilities
         public String value { get; set; }
 
     }
-
 
     class LawData
     {
@@ -1319,3 +1259,4 @@ namespace Persistence.Utilities
         public static readonly ParseStringConverter Singleton = new ParseStringConverter();
     }
 }
+

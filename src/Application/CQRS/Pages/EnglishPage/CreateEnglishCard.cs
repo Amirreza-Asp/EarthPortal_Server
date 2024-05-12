@@ -6,6 +6,11 @@ namespace Application.CQRS.Pages.EnglishPage
 {
     public class CreateEnglishCardCommand : IRequest<CommandResponse>
     {
+        public List<CreateEnglishCardData> Cards { get; set; }
+    }
+
+    public class CreateEnglishCardData
+    {
         public Guid Id { get; set; }
         public String Title { get; set; }
         public EnglishCardColor Color { get; set; }

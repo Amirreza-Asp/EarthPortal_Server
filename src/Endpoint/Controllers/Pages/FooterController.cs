@@ -2,6 +2,7 @@
 using Domain.Dtos.Pages;
 using Domain.Entities.Pages;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Endpoint.Controllers.Pages
 {
@@ -9,25 +10,34 @@ namespace Endpoint.Controllers.Pages
     [ApiController]
     public class FooterController : ControllerBase
     {
-        private readonly IRepository<FooterPage> _footer;
+        private readonly IRepository<FooterPage> _footerRepo;
+        private readonly IMemoryCache _memoryCache;
 
-        public FooterController(IRepository<FooterPage> footer)
+        public FooterController(IRepository<FooterPage> footerRepo, IMemoryCache memoryCache)
         {
-            _footer = footer;
+            _footerRepo = footerRepo;
+            _memoryCache = memoryCache;
         }
-
 
         [Route("[action]")]
         [HttpGet]
-        public async Task<FooterSummary> Get(CancellationToken cancellationToken) =>
-            new FooterSummary
+        public async Task<FooterSummary> Get(CancellationToken cancellationToken)
+        {
+            var footer = await _footerRepo.FirstOrDefaultAsync(b => true, cancellationToken: cancellationToken);
+
+            var onlineUsers = 0;
+            _memoryCache.TryGetValue<int>("onlineUsers", out onlineUsers);
+
+            return new FooterSummary
             {
-                TodaySeen = 2133,
-                TodayTotalSeen = 2133,
-                TotalSeen = 2133,
-                OnlineUsers = 57,
-                UpdateAt = DateTime.UtcNow,
-                Ip = HttpContext.Connection.RemoteIpAddress.ToString()
+                TodaySeen = Math.Max(footer.TodaySeen, 1),
+                TodayTotalSeen = 0,
+                TotalSeen = Math.Max(footer.TotalSeen, 1),
+                UpdateAt = footer.LastUpdate,
+                Ip = HttpContext.Connection.RemoteIpAddress.ToString(),
+                OnlineUsers = Math.Max(onlineUsers, 1)
             };
+        }
+
     }
 }

@@ -4,12 +4,15 @@ namespace Domain.Entities.Pages
 {
     public class FooterPage
     {
-        public FooterPage(int todaySeen, long totalSeen, int todayTotalSeen)
+        public FooterPage()
         {
             Id = Guid.NewGuid();
-            TodaySeen = todaySeen;
-            TotalSeen = totalSeen;
-            TodayTotalSeen = todayTotalSeen;
+            TodaySeen = 1;
+            TotalSeen = 1;
+            TodayTotalSeen = 1;
+            LastUpdate = DateTime.Now;
+            OnlineUsers = 1;
+            Today = DateTime.Now;
         }
 
         [Key]
@@ -18,5 +21,8 @@ namespace Domain.Entities.Pages
         public int TodaySeen { get; set; }
         public long TotalSeen { get; set; }
         public int TodayTotalSeen { get; set; }
+        public int OnlineUsers { get; set; }
+        public DateTime Today { get; set; }
+        public DateTime LastUpdate { get; set; }
     }
 }

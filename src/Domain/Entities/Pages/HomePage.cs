@@ -12,12 +12,17 @@
         public HomeWork Work { get; set; }
     }
 
+
+
     public class HomeHeader
     {
         public String Title { get; set; }
         public String Content { get; set; }
         public bool PortBtnEnable { get; set; }
         public bool AppBtnEnable { get; set; }
+        public int ReqCount { get; set; }
+        public int AreaProtectedLandsCount { get; set; }
+        public int UserCount { get; set; }
     }
 
     public class HomeWork

@@ -16,7 +16,7 @@ namespace Persistence.CQRS.Contact.RelatedLinks
 
         public async Task<CommandResponse> Handle(CreateRelatedLinkCommand request, CancellationToken cancellationToken)
         {
-            var entity = new RelatedLink(request.Title, request.Link);
+            var entity = new RelatedLink(request.Title, request.Link, request.Order);
 
             _context.RelatedLink.Add(entity);
 

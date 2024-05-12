@@ -347,6 +347,9 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -744,6 +747,35 @@ namespace Persistence.Migrations
                     b.HasIndex("EnglishPageId");
 
                     b.ToTable("EnglishPageSolution");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Pages.FooterPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastUpdate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OnlineUsers")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Today")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TodaySeen")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TodayTotalSeen")
+                        .HasColumnType("int");
+
+                    b.Property<long>("TotalSeen")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FooterPage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Pages.HomePage", b =>
@@ -1414,6 +1446,10 @@ namespace Persistence.Migrations
                                 .HasColumnType("bit")
                                 .HasColumnName("HeaderAppBtnEnable");
 
+                            b1.Property<int>("AreaProtectedLandsCount")
+                                .HasColumnType("int")
+                                .HasColumnName("HeaderAreaProtectedLandsCount");
+
                             b1.Property<string>("Content")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)")
@@ -1423,10 +1459,18 @@ namespace Persistence.Migrations
                                 .HasColumnType("bit")
                                 .HasColumnName("HeaderPortBtnEnable");
 
+                            b1.Property<int>("ReqCount")
+                                .HasColumnType("int")
+                                .HasColumnName("HeaderReqCount");
+
                             b1.Property<string>("Title")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)")
                                 .HasColumnName("HeaderTitle");
+
+                            b1.Property<int>("UserCount")
+                                .HasColumnType("int")
+                                .HasColumnName("HeaderUserCount");
 
                             b1.HasKey("HomePageId");
 

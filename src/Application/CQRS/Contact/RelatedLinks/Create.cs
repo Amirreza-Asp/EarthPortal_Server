@@ -11,5 +11,8 @@ namespace Application.CQRS.Contact.RelatedLinks
 
         [Required]
         public String Link { get; set; }
+
+        [Required]
+        public int Order { get; set; }
     }
 }

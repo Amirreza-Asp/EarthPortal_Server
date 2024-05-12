@@ -7,14 +7,17 @@ using Domain.Entities.Pages;
 using Domain.Entities.Regulation;
 using Domain.Entities.Resources;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Reflection;
 
 namespace Persistence
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions options) : base(options)
+        private readonly IMemoryCache _memoryCache;
+        public ApplicationDbContext(DbContextOptions options, IMemoryCache memoryCache) : base(options)
         {
+            _memoryCache = memoryCache;
         }
 
         #region Account
@@ -85,6 +88,7 @@ namespace Persistence
         public DbSet<EnglishProblem> EnglishPageProblem { get; set; }
         public DbSet<EnglishSolution> EnglishPageSolution { get; set; }
         public DbSet<EnglishCard> EnglishCard { get; set; }
+        public DbSet<FooterPage> FooterPage { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -95,5 +99,21 @@ namespace Persistence
             modelBuilder.Entity<News>().Property(b => b.Id).ValueGeneratedNever();
             modelBuilder.Entity<Link>().Property(b => b.Id).ValueGeneratedNever();
         }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var footer = await this.FooterPage.FirstOrDefaultAsync(cancellationToken);
+
+            if (footer == null)
+                this.FooterPage.Add(new FooterPage());
+            else
+            {
+                footer.LastUpdate = DateTime.Now;
+                this.FooterPage.Update(footer);
+            }
+
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
     }
 }

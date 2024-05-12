@@ -1,10 +1,12 @@
 ﻿using Application.Contracts.Persistence.Repositories;
+using Application.Contracts.Persistence.Services;
 using Application.Contracts.Persistence.Utilities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Repositories;
+using Persistence.Services;
 using Persistence.Utilities;
 using System.Reflection;
 
@@ -28,6 +30,8 @@ namespace Persistence
             // MediatR
             services.AddMediatR(Assembly.GetExecutingAssembly());
 
+            // Services
+            services.AddScoped<IIranelandService, IranelandService>();
 
             // Repositories
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

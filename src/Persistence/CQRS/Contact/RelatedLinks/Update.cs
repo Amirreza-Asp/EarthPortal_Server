@@ -23,6 +23,7 @@ namespace Persistence.CQRS.Contact.RelatedLinks
 
             entity.Title = request.Title;
             entity.Link = request.Link;
+            entity.Order = request.Order;
 
             _context.RelatedLink.Update(entity);
 

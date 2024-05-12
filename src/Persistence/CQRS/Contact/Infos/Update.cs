@@ -27,8 +27,8 @@ namespace Persistence.CQRS.Contact.Infos
             info.RubikaLink = request.RubikaLink;
             info.Email = request.Email;
             info.EitaaLink = request.EitaaLink;
-            info.GapLink = request.Gap;
-            info.IGapLink = request.IGap;
+            info.GapLink = request.GapLink;
+            info.IGapLink = request.IGapLink;
 
             _context.Info.Update(info);
 

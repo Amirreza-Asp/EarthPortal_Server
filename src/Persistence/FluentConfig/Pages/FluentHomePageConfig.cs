@@ -17,6 +17,9 @@ namespace Persistence.FluentConfig.Pages
                 d.Property(e => e.Title).HasColumnName("HeaderTitle").IsRequired();
                 d.Property(e => e.PortBtnEnable).HasColumnName("HeaderPortBtnEnable").IsRequired();
                 d.Property(e => e.AppBtnEnable).HasColumnName("HeaderAppBtnEnable").IsRequired();
+                d.Property(e => e.AreaProtectedLandsCount).HasColumnName("HeaderAreaProtectedLandsCount").IsRequired();
+                d.Property(e => e.ReqCount).HasColumnName("HeaderReqCount").IsRequired();
+                d.Property(e => e.UserCount).HasColumnName("HeaderUserCount").IsRequired();
             });
 
             builder.OwnsOne(b => b.Work, d =>
