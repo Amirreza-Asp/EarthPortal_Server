@@ -27,6 +27,8 @@ namespace Persistence.CQRS.Multimedia.Gallery
 
             _context.Gallery.Add(gallery);
 
+            var images = new List<GalleryPhoto>();
+
             foreach (var img in request.Images)
             {
                 var upload = _env.WebRootPath + SD.GalleryPath;
@@ -38,11 +40,12 @@ namespace Persistence.CQRS.Multimedia.Gallery
                 await _photoManager.SaveAsync(img, upload + imgName, cancellationToken);
 
                 var galleryImage = new GalleryPhoto(imgName, 0, gallery.Id);
+                images.Add(galleryImage);
                 _context.GalleryPhoto.Add(galleryImage);
             }
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
-                return CommandResponse.Success(gallery.Id);
+                return CommandResponse.Success(new { Id = gallery.Id, Images = images.Select(s => new { Id = s.Id, Name = s.Name }) });
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

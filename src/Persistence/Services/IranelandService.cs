@@ -44,7 +44,7 @@ namespace Persistence.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                    Console.WriteLine(responseString);
+
                     var jsonData = IranelandEncryptionUtil.Decode(cryptKey, iv, responseString);
 
                     data = JsonSerializer.Deserialize<CasesAndUsersResponse>(jsonData);

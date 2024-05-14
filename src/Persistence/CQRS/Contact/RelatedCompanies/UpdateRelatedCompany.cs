@@ -31,7 +31,7 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
 
             relatedCompany.Name = request.Name;
             relatedCompany.Order = request.Order;
-            request.Link = request.Link;
+            relatedCompany.Link = request.Link;
 
 
             if (!Directory.Exists(upload))

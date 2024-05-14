@@ -45,7 +45,7 @@ namespace Persistence.Utilities
 
         public async Task Execute()
         {
-            //await _context.Database.EnsureDeletedAsync();
+            await _context.Database.EnsureDeletedAsync();
 
             try
             {
@@ -152,7 +152,7 @@ namespace Persistence.Utilities
                                      executorManagmentId: String.IsNullOrEmpty(b.Presenter) ? executorManagment.First(s => s.Name == "نامشخص").Id : executorManagment.First(s => s.Name == b.Presenter).Id,
                                      approvalAuthorityId: String.IsNullOrEmpty(b.Reference) ? approvalAuthority.First(s => s.Name == "نامشخص").Id : approvalAuthority.First(s => s.Name == b.Reference).Id,
                                      lawCategoryId: categories.First(s => s.Title == "نامشخص").Id,
-                                     pdf: Guid.NewGuid() + ".pdf"
+                                     pdf: b.LawsId + ".pdf"
                                  );
 
                             laws.Add(entity);
@@ -170,19 +170,13 @@ namespace Persistence.Utilities
                         if (!Directory.Exists(_env.WebRootPath + SD.LawPdfPath))
                             Directory.CreateDirectory(_env.WebRootPath + SD.LawPdfPath);
 
-                        var files = Directory.GetFiles(_env.WebRootPath + SD.LawPdfPath);
-                        foreach (var file in files)
-                        {
-                            var fileName = Path.GetFileName(file);
-                            File.Delete(_env.WebRootPath + SD.LawPdfPath + fileName);
-                        }
-
 
                         foreach (var item in laws)
                         {
                             try
                             {
-                                _fileManager.ConvertHtmlToPdf(item.Description, _env.WebRootPath + SD.LawPdfPath + item.Pdf);
+                                if (!File.Exists(_env.WebRootPath + SD.LawPdfPath + item.Pdf))
+                                    _fileManager.ConvertHtmlToPdf(item.Description, _env.WebRootPath + SD.LawPdfPath + item.Pdf);
                             }
                             catch (Exception ex)
                             {
@@ -269,16 +263,6 @@ namespace Persistence.Utilities
 
                 var categoryId = _context.NewsCategory.Where(b => b.Title == "نامشخص").Select(b => b.Id).First();
 
-                if (Directory.Exists(_env.WebRootPath + SD.NewsImagePath))
-                {
-                    var files = Directory.GetFiles(_env.WebRootPath + SD.NewsImagePath);
-                    foreach (var file in files)
-                    {
-                        var fileName = Path.GetFileName(file);
-                        File.Delete(_env.WebRootPath + SD.NewsImagePath + fileName);
-                    }
-                }
-
                 foreach (var item in data)
                 {
 
@@ -299,8 +283,7 @@ namespace Persistence.Utilities
 
                             _context.News.Add(news);
 
-
-                            var imageName = Guid.NewGuid() + Path.GetExtension(item.newsImage.name);
+                            var imageName = item._id + Path.GetExtension(item.newsImage.name);
 
                             var upload = _env.WebRootPath + SD.NewsImagePath + imageName;
 
@@ -308,9 +291,13 @@ namespace Persistence.Utilities
                                 Directory.CreateDirectory(_env.WebRootPath + SD.NewsImagePath);
 
                             var image = new NewsImage(imageName, news.Id, 0);
-
-                            await _photoManager.SaveFromBase64Async(item.newsImage.value, upload);
                             _context.NewsImage.Add(image);
+                            if (!File.Exists(upload))
+                            {
+
+                                await _photoManager.SaveFromBase64Async(item.newsImage.value, upload);
+
+                            }
 
                             break;
                         }
@@ -318,18 +305,6 @@ namespace Persistence.Utilities
                 }
 
                 _context.SaveChanges();
-            }
-
-            if (!_context.NewsImage.Any())
-            {
-                var newsIds = _context.News.Select(b => b.Id).ToList();
-                foreach (var newsId in newsIds)
-                {
-                    var newsImage = new NewsImage($"{rnd.Next(1, 6)}.jpg", newsId, 0);
-                    _context.NewsImage.Add(newsImage);
-                }
-
-                await _context.SaveChangesAsync();
             }
 
             #endregion
@@ -474,7 +449,7 @@ namespace Persistence.Utilities
             if (!_context.User.Any())
             {
                 var role = await _context.Role.FirstOrDefaultAsync(b => b.Title == "Admin");
-                var user = new User(role.Id, "امیررضا", "محمدی", "Admin", _passManager.HashPassword("Admin"), "amirrezamohammadi8102@gmail.com", "09211573936");
+                var user = new User(role.Id, "امیررضا", "محمدی", "Admin", _passManager.HashPassword("Admin2002"), "amirrezamohammadi8102@gmail.com", "09211573936");
 
                 _context.User.Add(user);
 

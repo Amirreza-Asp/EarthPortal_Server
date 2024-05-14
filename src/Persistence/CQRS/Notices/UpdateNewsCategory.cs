@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.CQRS.Notices
 {
-    public class UpdateNewsCategoryCommandHandler : IRequestHandler<UpdateNewsCommand, CommandResponse>
+    public class UpdateNewsCategoryCommandHandler : IRequestHandler<UpdateNewsCategoryCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
 
@@ -14,7 +14,7 @@ namespace Persistence.CQRS.Notices
             _context = context;
         }
 
-        public async Task<CommandResponse> Handle(UpdateNewsCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(UpdateNewsCategoryCommand request, CancellationToken cancellationToken)
         {
             var category = await _context.NewsCategory.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
 

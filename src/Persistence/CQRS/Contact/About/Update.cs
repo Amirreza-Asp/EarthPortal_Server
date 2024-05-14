@@ -26,7 +26,7 @@ namespace Persistence.CQRS.Contact.About
             if (request.IsVideo && String.IsNullOrEmpty(request.Video))
                 return CommandResponse.Failure(400, "ویدیو را وارد کنید");
 
-            if (request.IsVideo && !request.Video.Contains("<iframe>"))
+            if (request.IsVideo && !request.Video.Contains("iframe"))
                 return CommandResponse.Failure(400, "فرمت ویدیو وارد شده صحیح نمی باشد");
 
 

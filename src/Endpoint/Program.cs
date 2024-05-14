@@ -11,8 +11,6 @@ using Endpoint.Workers;
 using Infrastructure;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
 using Serilog;
@@ -142,25 +140,6 @@ app.Lifetime.ApplicationStarted.Register(() =>
     var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
     initializer.Execute();
 });
-
-app.Lifetime.ApplicationStopped.Register(async () =>
-{
-    var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var memoryCache = scope.ServiceProvider.GetRequiredService<IMemoryCache>();
-
-    var footer = await context.FooterPage.FirstAsync();
-
-    footer.OnlineUsers = memoryCache.Get<int>("onlineUsers");
-    footer.TodaySeen = memoryCache.Get<int>("todaySeen");
-    footer.TotalSeen = memoryCache.Get<int>("totalSeen");
-    footer.LastUpdate = memoryCache.Get<DateTime>("lastUpdate");
-
-    context.FooterPage.Update(footer);
-
-    await context.SaveChangesAsync();
-});
-
 
 
 app.UseSwagger();

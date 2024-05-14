@@ -108,7 +108,7 @@ namespace Persistence
                 this.FooterPage.Add(new FooterPage());
             else
             {
-                footer.LastUpdate = DateTime.Now;
+                footer.LastUpdate = DateTime.Now.AddHours(-1);
                 this.FooterPage.Update(footer);
             }
 

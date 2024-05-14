@@ -53,7 +53,7 @@ namespace Persistence.CQRS.Notices
 
                 await _photoManager.SaveAsync(request.Image, upload + image.Name, cancellationToken);
 
-                return CommandResponse.Success(new { Id = news.Id, Image = news.Images.First().Name });
+                return CommandResponse.Success(new { Id = news.Id, Image = news.Images.First().Name, ShortLink = news.ShortLink });
             }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
