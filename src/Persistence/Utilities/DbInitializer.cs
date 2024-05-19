@@ -45,7 +45,7 @@ namespace Persistence.Utilities
 
         public async Task Execute()
         {
-            await _context.Database.EnsureDeletedAsync();
+            //await _context.Database.EnsureDeletedAsync();
 
             try
             {
@@ -232,7 +232,7 @@ namespace Persistence.Utilities
 
             if (!_context.Infographic.Any())
             {
-                for (int i = 1; i < 48; i++)
+                for (int i = 1; i < 2; i++)
                 {
                     var infographic = new Infographic($"{rnd.Next(1, 4)}.jpg");
                     _context.Infographic.Add(infographic);
@@ -319,7 +319,7 @@ namespace Persistence.Utilities
 
             if (!_context.Guide.Any())
             {
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 0; i++)
                 {
                     var guide = Guide;
                     guide.IsPort = i < 5;

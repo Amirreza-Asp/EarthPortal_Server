@@ -40,16 +40,12 @@ namespace Persistence.CQRS.Notices
             news.NewsCategoryId = request.NewsCategoryId;
             _context.News.Update(news);
 
-            if (request.Links != null && request.Links.Count > 0)
-            {
-                var upsertNewsLink = new UpsertNewsLinkCommand(request.Links, request.Id);
-                var response = await _mediator.Send(upsertNewsLink, cancellationToken);
+            var upsertNewsLink = new UpsertNewsLinkCommand(request.Links == null ? new List<string>() : request.Links, request.Id);
+            var response = await _mediator.Send(upsertNewsLink, cancellationToken);
 
 
-                if (response.Status != 200)
-                    return response;
-            }
-
+            if (response.Status != 200)
+                return response;
             await _context.SaveChangesAsync();
 
             var image = await _context.NewsImage.Where(b => b.NewsId == request.Id).FirstAsync(cancellationToken);

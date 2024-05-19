@@ -23,6 +23,9 @@ namespace Persistence.CQRS.Account
 
         public async Task<CommandResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
+            if (!await _userRepository.AnyAsync(b => b.UserName == request.UserName))
+                return CommandResponse.Failure(400, "نام کاربری وارد شده در سیستم وجود ندارد");
+
             var user =
                 await _userRepository.FirstOrDefaultAsync(b => b.UserName == request.UserName, include: source => source.Include(b => b.Role));
 

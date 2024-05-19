@@ -17,8 +17,6 @@ namespace Persistence.CQRS.Notices
 
         public async Task<CommandResponse> Handle(UpsertNewsLinkCommand request, CancellationToken cancellationToken)
         {
-            request.Links = request.Links[0].Split(',').ToList();
-
             // حذف کلید واژه هایی که به هیچ خبری مرتبط نیستند
             var emptyLinks = await _context.Link.Where(b => b.NewsLinks.Count == 0).ToListAsync(cancellationToken);
             _context.Link.RemoveRange(emptyLinks);

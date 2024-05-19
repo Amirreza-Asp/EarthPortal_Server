@@ -1,6 +1,8 @@
 ﻿using Application.Contracts.Persistence.Services;
+using Application.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Concurrent;
 
 namespace Persistence.Services
 {
@@ -9,6 +11,7 @@ namespace Persistence.Services
         private readonly IHttpContextAccessor _accessor;
         private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _connectionLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
         public UserCounterService(IHttpContextAccessor accessor, ApplicationDbContext context, IMemoryCache memoryCache)
         {
@@ -19,57 +22,41 @@ namespace Persistence.Services
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            var ip = _accessor.HttpContext.Connection.RemoteIpAddress?.ToString();
-            if (string.IsNullOrEmpty(ip))
-                ip = _accessor.HttpContext.Request.Headers["X-Forwarded-For"];
+            var connectionId = _accessor.HttpContext.Connection.Id;
+            var semaphore = _connectionLocks.GetOrAdd(connectionId, new SemaphoreSlim(1, 1));
 
-
-            bool updated = false;
-
-            var ipsList = _memoryCache.Get<List<(String ip, DateTime connectedAt)>>("ips");
-            ipsList = ipsList?.Where(b => b.ip != "::1").ToList();
-
-            if (ipsList == null || !ipsList.Any())
+            await semaphore.WaitAsync(cancellationToken);
+            try
             {
-                ipsList = new List<(string ip, DateTime connectedAt)>
+                _memoryCache.TryGetValue<List<OnlineUserData>>("onlineUsers", out List<OnlineUserData>? onlineUsers);
+
+                if (onlineUsers == null)
+                    onlineUsers = new List<OnlineUserData>();
+
+                var exist = onlineUsers.Any(x => x.IsValid && x.Id == connectionId);
+
+                onlineUsers = onlineUsers.Where(b => b.IsValid && b.Id != connectionId).ToList();
+                onlineUsers.Add(new OnlineUserData(connectionId));
+                _memoryCache.Set<List<OnlineUserData>>("onlineUsers", onlineUsers, DateTimeOffset.MaxValue);
+
+                if (!exist)
                 {
-                    (ip , DateTime.Now)
-                };
-                _memoryCache.Set<List<(String ip, DateTime connectedAt)>>("ips", ipsList);
+                    _memoryCache.TryGetValue<int>("todaySeen", out int todaySeen);
+                    _memoryCache.TryGetValue<int>("totalSeen", out int totalSeen);
 
-                int todaySeen = 0;
-                int totalSeen = 0;
-
-                _memoryCache.TryGetValue("todaySeen", out todaySeen);
-                _memoryCache.TryGetValue("totalSeen", out totalSeen);
-
-                _memoryCache.Set("todaySeen", todaySeen + 1, new DateTimeOffset(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59, 0, TimeSpan.Zero));
-                _memoryCache.Set("totalSeen", totalSeen + 1, DateTimeOffset.MaxValue);
-            }
-            else
-            {
-                ipsList = ipsList.Where(b => b.connectedAt.AddMinutes(15) > DateTime.Now).ToList();
-
-                if (!ipsList.Any(b => b.ip == ip))
-                {
-                    updated = true;
-                    ipsList.Add((ip, DateTime.Now));
-
-                    int todaySeen = 0;
-                    int totalSeen = 0;
-
-                    _memoryCache.TryGetValue("todaySeen", out todaySeen);
-                    _memoryCache.TryGetValue("totalSeen", out totalSeen);
-
-                    _memoryCache.Set("todaySeen", todaySeen + 1, new DateTimeOffset(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59, 0, TimeSpan.Zero));
-                    _memoryCache.Set("totalSeen", totalSeen + 1, DateTimeOffset.MaxValue);
+                    _memoryCache.Set<int>("todaySeen", todaySeen + 1, new DateTimeOffset(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59, TimeSpan.Zero));
+                    _memoryCache.Set<int>("totalSeen", totalSeen + 1, DateTimeOffset.MaxValue);
                 }
-
-                _memoryCache.Set<List<(String ip, DateTime connectedAt)>>("ips", ipsList, DateTimeOffset.MaxValue);
             }
-
-
-            _memoryCache.Set<int>("onlineUsers", ipsList.Count, DateTimeOffset.MaxValue);
+            finally
+            {
+                semaphore.Release();
+                // Clean up the semaphore if it's no longer needed
+                if (_connectionLocks.TryRemove(connectionId, out var existingSemaphore))
+                {
+                    existingSemaphore.Dispose();
+                }
+            }
 
         }
     }

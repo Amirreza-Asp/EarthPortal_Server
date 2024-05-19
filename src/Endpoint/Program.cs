@@ -1,5 +1,6 @@
 using Application;
 using Application.Contracts.Infrastructure.Services;
+using Application.Contracts.Persistence.Services;
 using Application.Contracts.Persistence.Utilities;
 using Application.Utilities;
 using AspNetCoreRateLimit;
@@ -77,7 +78,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.IdleTimeout = TimeSpan.FromMinutes(15);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
@@ -121,6 +122,9 @@ builder.Services.AddAuthentication(options =>
             },
             OnMessageReceived = context =>
             {
+                var userCounterService = context.HttpContext.RequestServices.GetRequiredService<IUserCounterService>();
+                userCounterService.ExecuteAsync(default);
+
                 var token = context.Request.Cookies[SD.AuthToken];
                 if (token != null)
                 {
@@ -134,11 +138,13 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
+app.UseSession();
+
 app.Lifetime.ApplicationStarted.Register(() =>
 {
     var scope = app.Services.CreateScope();
     var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-    initializer.Execute();
+    //initializer.Execute();
 });
 
 
@@ -157,6 +163,7 @@ app.UseAuthorization();
 app.UseStaticFiles();
 app.UseCustomExceptionHandler();
 app.UseCustomHeaderHandler();
+
 
 var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
 app.Use(async (context, next) =>

@@ -1,5 +1,6 @@
 ﻿using Application.Contracts.Persistence.Repositories;
 using Application.Contracts.Persistence.Services;
+using Application.Models;
 using Domain.Dtos.Pages;
 using Domain.Entities.Pages;
 using Microsoft.AspNetCore.Mvc;
@@ -26,30 +27,27 @@ namespace Endpoint.Controllers.Pages
         [HttpGet]
         public async Task<FooterSummary> Get(CancellationToken cancellationToken)
         {
-            await _userCounterService.ExecuteAsync(default);
-
             var footer = await _footerRepo.FirstOrDefaultAsync(b => true, cancellationToken: cancellationToken);
 
-            var todatSeen = 1;
+            var todaySeen = 1;
             var totalSeen = 1;
-            var onlineUsers = 1;
+            List<OnlineUserData> onlineUsers;
 
-            _memoryCache.TryGetValue<int>("todaySeen", out todatSeen);
+            _memoryCache.TryGetValue<int>("todaySeen", out todaySeen);
             _memoryCache.TryGetValue<int>("totalSeen", out totalSeen);
-            _memoryCache.TryGetValue<int>("onlineUsers", out onlineUsers);
+            _memoryCache.TryGetValue<List<OnlineUserData>>("onlineUsers", out onlineUsers);
 
-            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
-            if (string.IsNullOrEmpty(ip))
-                ip = HttpContext.Request.Headers["X-Forwarded-For"];
+
+            var ip = HttpContext.Request.Headers["X-Forwarded-For"];
 
             return new FooterSummary
             {
-                TodaySeen = todatSeen,
+                TodaySeen = todaySeen,
                 TodayTotalSeen = 0,
                 TotalSeen = totalSeen,
                 UpdateAt = footer.LastUpdate,
                 Ip = ip,
-                OnlineUsers = onlineUsers
+                OnlineUsers = onlineUsers == null ? 1 : onlineUsers.Count
             };
         }
 
