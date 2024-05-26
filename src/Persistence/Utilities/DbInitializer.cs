@@ -47,6 +47,15 @@ namespace Persistence.Utilities
         {
             //await _context.Database.EnsureDeletedAsync();
 
+            //var newsList = _context.News.ToList();
+            //newsList.ForEach(item =>
+            //{
+            //    item.Headline = item.Description.Split(".")[0];
+            //});
+            //_context.News.UpdateRange(newsList);
+
+            //return;
+
             try
             {
                 if (_context.Database.GetPendingMigrations().Any())
@@ -423,10 +432,6 @@ namespace Persistence.Utilities
 
                 await _context.SaveChangesAsync();
             }
-
-            var rLinks = _context.RelatedLink.ToList();
-            _context.RelatedLink.RemoveRange(rLinks);
-            _context.SaveChanges();
 
             if (!_context.RelatedLink.Any())
             {

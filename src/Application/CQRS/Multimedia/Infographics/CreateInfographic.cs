@@ -7,5 +7,6 @@ namespace Application.CQRS.Multimedia.Infographics
     public class CreateInfographicCommand : IRequest<CommandResponse>
     {
         public IFormFile Image { get; set; }
+        public bool IsLandscape { get; set; }
     }
 }

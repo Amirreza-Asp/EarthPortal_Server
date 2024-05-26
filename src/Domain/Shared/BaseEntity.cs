@@ -13,6 +13,6 @@ namespace Domain.Shared
         [Key]
         public Guid Id { get; private set; }
 
-        public DateTime CreatedAt { get; private set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

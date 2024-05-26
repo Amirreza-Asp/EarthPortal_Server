@@ -10,5 +10,6 @@ namespace Domain.Entities.Mutimedia
         }
 
         public String Name { get; set; }
+        public bool IsLandscape { get; set; }
     }
 }

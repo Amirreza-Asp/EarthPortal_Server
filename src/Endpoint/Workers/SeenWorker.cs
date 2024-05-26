@@ -21,7 +21,7 @@ namespace Endpoint.Workers
 
             while (true)
             {
-                await Task.Delay(1000 * 60 * 5);
+                await Task.Delay(TimeSpan.FromMinutes(5));
                 var footer = await context.FooterPage.FirstOrDefaultAsync();
 
                 if (footer == null)

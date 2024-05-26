@@ -38,7 +38,7 @@ namespace Endpoint.Controllers.Pages
             _memoryCache.TryGetValue<List<OnlineUserData>>("onlineUsers", out onlineUsers);
 
 
-            var ip = HttpContext.Request.Headers["X-Forwarded-For"];
+            var ip = HttpContext.Request.Headers["X-Forwarded-For"].ToString().Split(",")[0];
 
             return new FooterSummary
             {

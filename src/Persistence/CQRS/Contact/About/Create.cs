@@ -43,6 +43,7 @@ namespace Persistence.CQRS.Contact.About
                 await _photoManager.SaveAsync(request.Image, upload + imgName, cancellationToken);
 
                 var about = new AboutUs(request.Title, request.Description, null, imgName);
+                about.CreatedAt = request.CreatedAt;
                 _context.AboutUs.Add(about);
 
 
