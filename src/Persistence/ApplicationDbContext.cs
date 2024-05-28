@@ -102,6 +102,9 @@ namespace Persistence
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
+
+
+
             var footer = await this.FooterPage.FirstOrDefaultAsync(cancellationToken);
 
             if (footer == null)

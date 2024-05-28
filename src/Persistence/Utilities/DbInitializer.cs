@@ -907,7 +907,6 @@ namespace Persistence.Utilities
 
         }
 
-
         #region Regulation
         private List<ApprovalAuthority> ApprovalAuthorities =>
             new List<ApprovalAuthority>

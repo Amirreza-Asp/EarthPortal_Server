@@ -7,6 +7,7 @@ namespace Endpoint.Workers
     public class SeenWorker : BackgroundService
     {
         private IServiceProvider _serviceProvider;
+        private static List<(String connectionId, DateTime expired)> users = new List<(string connectionId, DateTime expired)>();
 
         public SeenWorker(IServiceProvider serviceProvider)
         {
@@ -21,7 +22,7 @@ namespace Endpoint.Workers
 
             while (true)
             {
-                await Task.Delay(TimeSpan.FromMinutes(5));
+                users = users.Where(b => b.expired > DateTime.Now).ToList();
                 var footer = await context.FooterPage.FirstOrDefaultAsync();
 
                 if (footer == null)
@@ -32,22 +33,28 @@ namespace Endpoint.Workers
                 }
                 else
                 {
-                    var totalSeen = 0;
-                    var todaySeen = 0;
 
-                    memoryCache.TryGetValue("totalSeen", out totalSeen);
-                    memoryCache.TryGetValue("todaySeen", out todaySeen);
+                    var connection =
 
-                    if (footer.TodaySeen != todaySeen || footer.TotalSeen != totalSeen)
+
+                    memoryCache.TryGetValue("totalSeen", out int totalSeen);
+                    memoryCache.TryGetValue("todaySeen", out int todaySeen);
+
+                    if (footer.TotalSeen != totalSeen || footer.TodaySeen != todaySeen)
                     {
-                        footer.TodaySeen = todaySeen;
-                        footer.TotalSeen = totalSeen;
+                        if (footer.TotalSeen > totalSeen)
+                            memoryCache.Set("totalSeen", footer.TotalSeen);
+                        else
+                            footer.TotalSeen = totalSeen;
 
+                        footer.TodaySeen = todaySeen;
 
                         context.Update(footer);
                         context.SaveChanges();
                     }
                 }
+
+                await Task.Delay(TimeSpan.FromMinutes(10));
 
             }
         }
