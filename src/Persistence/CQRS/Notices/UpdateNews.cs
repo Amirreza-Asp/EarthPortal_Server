@@ -32,6 +32,7 @@ namespace Persistence.CQRS.Notices
             if (news == null)
                 return CommandResponse.Failure(400, "خبر مورد نظر در سیستم وجود ندارد");
 
+            news.Order = request.Order;
             news.DateOfRegisration = request.DateOfRegisration;
             news.Description = request.Description;
             news.Title = request.Title;

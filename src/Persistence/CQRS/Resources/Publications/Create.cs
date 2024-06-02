@@ -18,6 +18,7 @@ namespace Persistence.CQRS.Resources.Publications
         {
             var entity = new Publication(request.Title);
 
+            entity.Order = request.Order;
             _context.Publication.Add(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

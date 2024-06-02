@@ -40,7 +40,7 @@ namespace Persistence.CQRS.Resources.Articles
             var oldImage = entity.Image;
             var oldFile = entity.File;
 
-
+            entity.Order = request.Order;
             entity.AuthorId = request.AuthorId;
             entity.ShortDescription = request.ShortDescription;
             entity.Description = request.Description;

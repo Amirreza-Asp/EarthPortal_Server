@@ -17,7 +17,7 @@ namespace Persistence.CQRS.Resources.Authors
         public async Task<CommandResponse> Handle(CreateAuthorCommand request, CancellationToken cancellationToken)
         {
             var author = new Author(request.Name);
-
+            author.Order = request.Order;
             _context.Author.Add(author);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

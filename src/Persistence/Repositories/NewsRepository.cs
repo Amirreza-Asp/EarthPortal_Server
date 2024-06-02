@@ -1,4 +1,5 @@
 ﻿using Application.Contracts.Persistence.Repositories;
+using Application.Models;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Domain.Dtos.Notices;
@@ -14,10 +15,11 @@ namespace Persistence.Repositories
         {
         }
 
-        public async Task<NewsSummary?> NextNewsAsync(int shortLink, DateTime dateTime, CancellationToken cancellationToken) =>
+        public async Task<NewsSummary?> NextNewsAsync(int shortLink, DateTime dateTime, int order, CancellationToken cancellationToken) =>
             await _context.News
-                    .Where(b => b.ShortLink != shortLink && b.DateOfRegisration.Date > dateTime.Date)
+                    .Where(b => b.ShortLink != shortLink && b.DateOfRegisration.Date > dateTime.Date && b.Order <= order)
                     .OrderBy(b => b.DateOfRegisration.Date)
+                    .ThenBy(b => b.Order)
                     .ProjectTo<NewsSummary>(_mapper.ConfigurationProvider)
                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -32,10 +34,11 @@ namespace Persistence.Repositories
                    .ToListAsync(cancellationToken);
         }
 
-        public async Task<NewsSummary?> PrevNewsAsync(int shortLink, int shortLink2, DateTime dateTime, CancellationToken cancellationToken) =>
+        public async Task<NewsSummary?> PrevNewsAsync(int shortLink, int shortLink2, DateTime dateTime, int order, CancellationToken cancellationToken) =>
              await _context.News
-                    .Where(b => b.ShortLink != shortLink && b.ShortLink != shortLink2 && b.DateOfRegisration.Date < dateTime.Date)
+                    .Where(b => b.ShortLink != shortLink && b.ShortLink != shortLink2 && b.DateOfRegisration.Date < dateTime.Date && b.Order >= order)
                     .OrderByDescending(b => b.DateOfRegisration.Date)
+                    .ThenBy(b => b.Order)
                     .ProjectTo<NewsSummary>(_mapper.ConfigurationProvider)
                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -64,6 +67,28 @@ namespace Persistence.Repositories
                      .Select(b => b.News)
                      .ProjectTo<NewsSummary>(_mapper.ConfigurationProvider)
                      .ToListAsync(cancellationToken);
+        }
+
+        public async Task<ListActionResult<NewsSummary>> SearchByKeywordAsync(string keyword, int page, int size, CancellationToken cancellationToken)
+        {
+            var queryContext = _context.News.AsQueryable();
+
+            queryContext = queryContext.Where(s => s.Links.Any(l => l.Link.Value == keyword));
+
+
+            return new ListActionResult<NewsSummary>
+            {
+                Data = await queryContext
+                        .Skip((page - 1) * size)
+                        .Take(size)
+                        .OrderByDescending(b => b.DateOfRegisration)
+                        .ThenBy(s => s.Order)
+                        .ProjectTo<NewsSummary>(_mapper.ConfigurationProvider)
+                        .ToListAsync(cancellationToken),
+                Total = await queryContext.CountAsync(cancellationToken),
+                Size = size,
+                Page = page
+            };
         }
     }
 }

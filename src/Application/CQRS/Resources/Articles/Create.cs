@@ -16,5 +16,6 @@ namespace Application.CQRS.Resources.Articles
         public Guid AuthorId { get; set; }
         public int Pages { get; set; }
         public Guid TranslatorId { get; set; }
+        public int Order { get; set; }
     }
 }

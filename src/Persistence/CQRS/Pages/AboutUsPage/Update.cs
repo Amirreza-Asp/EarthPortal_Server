@@ -24,6 +24,7 @@ namespace Persistence.CQRS.Pages.AboutUsPage
             entity.Title = request.Title;
             entity.Content = request.Content;
 
+
             _context.AboutUsPage.Update(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

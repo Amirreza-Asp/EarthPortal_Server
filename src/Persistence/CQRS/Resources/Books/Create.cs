@@ -37,6 +37,7 @@ namespace Persistence.CQRS.Resources.Books
 
             var book = new Book(request.Title, request.Description, fileName, request.PublishDate, request.AuthorId, imgName, request.ShortDescription, request.Pages, request.TranslatorId, request.PublicationId);
 
+            book.Order = request.Order;
             _context.Book.Add(book);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

@@ -24,6 +24,7 @@ namespace Persistence.CQRS.Contact.Guids
             guide.Title = request.Title;
             guide.IsPort = request.IsPort.ToLower() == "true";
             guide.Content = request.Content;
+            guide.Order = request.Order;
 
             _context.Guide.Update(guide);
 

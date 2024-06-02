@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Regulation.ApprovalStatus
             if (entity == null)
                 return CommandResponse.Failure(400, " وضعیت مصوبه انتخاب شده در سیستم وجود ندارد");
 
+            entity.Order = request.Order;
             entity.Status = request.Title;
 
             _context.ApprovalStatus.Update(entity);

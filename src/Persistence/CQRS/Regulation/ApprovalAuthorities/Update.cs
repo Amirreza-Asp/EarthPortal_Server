@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Regulation.ApprovalAuthorities
             if (entity == null)
                 return CommandResponse.Failure(400, "مرجع تصویب انتخاب شده در سیستم وجود ندارد");
 
+            entity.Order = request.Order;
             entity.Name = request.Title;
 
             _context.ApprovalAuthority.Update(entity);

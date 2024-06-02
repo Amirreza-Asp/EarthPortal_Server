@@ -8,5 +8,7 @@ namespace Domain.Dtos.Multimedia
         public String Title { get; set; }
         public String Description { get; set; }
         public List<ImageSummary> Images { get; set; }
+        public int Order { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

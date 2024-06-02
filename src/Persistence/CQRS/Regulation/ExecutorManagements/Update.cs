@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Regulation.ExecutorManagements
             if (entity == null)
                 return CommandResponse.Failure(400, "دستگاه مجری انتخاب شده در سیستم وجود ندارد");
 
+            entity.Order = request.Order;
             entity.Name = request.Title;
 
             _context.ExecutorManagment.Update(entity);

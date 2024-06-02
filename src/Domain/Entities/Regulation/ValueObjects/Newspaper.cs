@@ -4,10 +4,13 @@ namespace Domain.Entities.Regulation.ValueObjects
 {
     public class Newspaper : BaseValueObject<Newspaper>
     {
-        public Newspaper(string number, DateTime date)
+        private Newspaper()
         {
-            Number = number;
-            Date = date;
+        }
+
+        public static Newspaper Create(string number, DateTime date)
+        {
+            return new Newspaper() { Number = number, Date = date };
         }
 
         public string Number { get; set; }

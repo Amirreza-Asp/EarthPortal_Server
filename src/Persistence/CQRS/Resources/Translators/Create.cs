@@ -17,7 +17,7 @@ namespace Persistence.CQRS.Resources.Translators
         public async Task<CommandResponse> Handle(CreateTranslatorCommand request, CancellationToken cancellationToken)
         {
             var entity = new Translator(request.Name);
-
+            entity.Order = request.Order;
             _context.Translator.Add(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

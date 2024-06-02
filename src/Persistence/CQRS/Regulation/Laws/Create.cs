@@ -33,10 +33,11 @@ namespace Persistence.CQRS.Regulation.Laws
 
 
 
-            var law = new Law(request.Title, new Announcement(request.AnnouncementNumber, request.AnnouncementDate), new Newspaper(request.AnnouncementNumber, request.NewspaperDate),
+            var law = new Law(request.Title, new Announcement(request.AnnouncementNumber, request.AnnouncementDate), Newspaper.Create(request.AnnouncementNumber, request.NewspaperDate),
                              request.Description, request.ApprovalDate, request.Type == 0 ? LawType.Rule : LawType.Regulation, request.IsOriginal, request.ApprovalTypeId, request.ApprovalStatusId,
                              request.ExecutorManagmentId, request.ApprovalAuthorityId, request.LawCategoryId, fileName);
 
+            law.Order = request.Order;
             _context.Law.Add(law);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

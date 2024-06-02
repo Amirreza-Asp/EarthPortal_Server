@@ -54,7 +54,29 @@ namespace Persistence.Utilities
             //});
             //_context.News.UpdateRange(newsList);
 
-            //return;
+
+
+
+            var lawss = _context.Law.ToList();
+            _context.RemoveRange(lawss);
+
+            var appAuth = _context.ApprovalAuthority.ToList();
+            _context.RemoveRange(appAuth);
+
+            var appStatus = _context.ApprovalStatus.ToList();
+            _context.RemoveRange(appStatus);
+
+            var appType = _context.ApprovalType.ToList();
+            _context.RemoveRange(appType);
+
+            var lawCategories = _context.LawCategory.ToList();
+            _context.RemoveRange(lawCategories);
+
+            var em = _context.ExecutorManagment.ToList();
+            _context.RemoveRange(em);
+
+            _context.SaveChanges();
+
 
             try
             {
@@ -70,8 +92,20 @@ namespace Persistence.Utilities
             #region Regulation
 
             var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/law.json");
-            var lawData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
+            var newLawsJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/nlaw.json");
 
+            var lawData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
+            var newLawsData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
+
+            foreach (var nLaw in newLawsData)
+            {
+                if (lawData.Any(s => s.Title == nLaw.Title))
+                {
+                    var l = lawData.First(s => s.Title == nLaw.Title);
+                    lawData.Remove(l);
+                    lawData.Add(nLaw);
+                }
+            }
 
             if (!_context.ApprovalAuthority.Any())
             {
@@ -143,17 +177,22 @@ namespace Persistence.Utilities
                     var laws = new List<Law>();
 
 
-                    foreach (var b in lawData.DistinctBy(b => b.Title).Where(b => !String.IsNullOrEmpty(b.Date) && !String.IsNullOrEmpty(b.CommunicatedDate)))
+                    foreach (var b in lawData.DistinctBy(b => b.Title).Where(b => !String.IsNullOrEmpty(b.Date) && !String.IsNullOrEmpty(b.CommunicatedDate) && !String.IsNullOrEmpty(b.NewspaperDate)))
                     {
                         try
                         {
+                            var nd = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.NewspaperDate);
+                            var ad = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.CommunicatedDate);
+                            var date = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.Date);
+                            var newsPaper = Newspaper.Create(Convert.ToString(b.NewspaperNumber), nd);
+
                             var entity =
                                  new Law(
                                      title: b.Title,
-                                     announcement: new Announcement(b.CommunicatedNumber, DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.CommunicatedDate)),
-                                     newspaper: new Newspaper(b.NewspaperNumber, DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.NewspaperDate)),
+                                     announcement: new Announcement(Convert.ToString(b.CommunicatedNumber), ad),
+                                     newspaper: newsPaper,
                                      description: b.LawText,
-                                     approvalDate: DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.Date),
+                                     approvalDate: date,
                                      type: b.Type == "آیین‌نامه" ? LawType.Rule : LawType.Regulation,
                                      isOriginal: true,
                                      approvalTypeId: String.IsNullOrEmpty(b.Type) ? approvalType.First(s => s.Value == "نامشخص").Id : approvalType.First(s => s.Value == b.Type).Id,
@@ -161,7 +200,7 @@ namespace Persistence.Utilities
                                      executorManagmentId: String.IsNullOrEmpty(b.Presenter) ? executorManagment.First(s => s.Name == "نامشخص").Id : executorManagment.First(s => s.Name == b.Presenter).Id,
                                      approvalAuthorityId: String.IsNullOrEmpty(b.Reference) ? approvalAuthority.First(s => s.Name == "نامشخص").Id : approvalAuthority.First(s => s.Name == b.Reference).Id,
                                      lawCategoryId: categories.First(s => s.Title == "نامشخص").Id,
-                                     pdf: b.LawsId + ".pdf"
+                                     pdf: Guid.NewGuid() + ".pdf"
                                  );
 
                             laws.Add(entity);
@@ -997,17 +1036,17 @@ namespace Persistence.Utilities
         private List<Law> Laws =>
             new List<Law>
             {
-                new Law("آیین نامه اجرایی قانون اصلاح قانون حفظ کاربری اراضی زراعی و باغها" , new Announcement("44545" , DateTime.Now.AddDays(-20)), new Newspaper("58653" , DateTime.Now.AddDays(-53)) ,
+                new Law("آیین نامه اجرایی قانون اصلاح قانون حفظ کاربری اراضی زراعی و باغها" , new Announcement("44545" , DateTime.Now.AddDays(-20)),  Newspaper.Create("58653" , DateTime.Now.AddDays(-53)) ,
                         lorem , DateTime.Now.AddDays(-5) , LawType.Regulation , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty , "test.pdf"),
-                new Law("اختصاص اعتبار به وزارت نيرو به منظور تثبيت و ايمن سازي آبراهه هاي مشرف به محدوده سد امير كبير و لايروبي و رسوب برداري رودخانه پايين دست و جبران خسارات ناشي از بارندگي شديد و سيلاب مورخ 1402/03/18 در محور كرج - چالوس حد فاصل تونل هاي (2- الف) و (2-ب)" , new Announcement("44545" , DateTime.Now.AddDays(-27)), new Newspaper("58653" , DateTime.Now.AddDays(-43)) ,
+                new Law("اختصاص اعتبار به وزارت نيرو به منظور تثبيت و ايمن سازي آبراهه هاي مشرف به محدوده سد امير كبير و لايروبي و رسوب برداري رودخانه پايين دست و جبران خسارات ناشي از بارندگي شديد و سيلاب مورخ 1402/03/18 در محور كرج - چالوس حد فاصل تونل هاي (2- الف) و (2-ب)" , new Announcement("44545" , DateTime.Now.AddDays(-27)), Newspaper.Create("58653" , DateTime.Now.AddDays(-43)) ,
                         lorem , DateTime.Now.AddDays(-23) , LawType.Rule , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
-                new Law(" آيين نامه شناسايي و صيانت از وسيله هاي نقليه تاريخي" , new Announcement("44545" , DateTime.Now.AddDays(-73)), new Newspaper("58653" , DateTime.Now.AddYears(-86)) ,
+                new Law(" آيين نامه شناسايي و صيانت از وسيله هاي نقليه تاريخي" , new Announcement("44545" , DateTime.Now.AddDays(-73)), Newspaper.Create("58653" , DateTime.Now.AddYears(-86)) ,
                         lorem , DateTime.Now.AddMonths(-2) , LawType.Regulation , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
-                new Law("همتراز شدن دبيركل كميسيون ملي يونسكو با مقامات موضوع بند (هـ) ماده (71) قانون مديريت خدمات كشوري" , new Announcement("44545" , DateTime.Now.AddDays(-55)), new Newspaper("58653" , DateTime.Now.AddDays(-120)) ,
+                new Law("همتراز شدن دبيركل كميسيون ملي يونسكو با مقامات موضوع بند (هـ) ماده (71) قانون مديريت خدمات كشوري" , new Announcement("44545" , DateTime.Now.AddDays(-55)),Newspaper.Create("58653" , DateTime.Now.AddDays(-120)) ,
                         lorem , DateTime.Now.AddDays(-125) , LawType.Rule , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
-                new Law("تخصيص اعتبار به مبلغ سيصد ميليارد (300/000/000/000) ريال براي تامين مواد مصرفي آزمايشگاهي به منظور خريد تجهيزات براي شناسايي و تشخيص هويت متوفيان ناشي از وقوع حوادث غيرمترقبه در اختيار سازمان پزشكي قانوني كشور" , new Announcement("44545" , DateTime.Now.AddDays(-2)), new Newspaper("58653" , DateTime.Now.AddDays(-155)) ,
+                new Law("تخصيص اعتبار به مبلغ سيصد ميليارد (300/000/000/000) ريال براي تامين مواد مصرفي آزمايشگاهي به منظور خريد تجهيزات براي شناسايي و تشخيص هويت متوفيان ناشي از وقوع حوادث غيرمترقبه در اختيار سازمان پزشكي قانوني كشور" , new Announcement("44545" , DateTime.Now.AddDays(-2)), Newspaper.Create("58653" , DateTime.Now.AddDays(-155)) ,
                         lorem , DateTime.Now.AddDays(-50) , LawType.Rule , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
-                new Law(" \tتعيين صفر درصد سود بازرگاني قطعات گوشت مرغ ا" , new Announcement("44545" , DateTime.Now.AddDays(-23)), new Newspaper("58653" , DateTime.Now.AddDays(-17)) ,
+                new Law(" \tتعيين صفر درصد سود بازرگاني قطعات گوشت مرغ ا" , new Announcement("44545" , DateTime.Now.AddDays(-23)),  Newspaper.Create("58653" , DateTime.Now.AddDays(-17)) ,
                         lorem , DateTime.Now.AddDays(-20) , LawType.Regulation , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
             };
         #endregion
@@ -1179,6 +1218,8 @@ namespace Persistence.Utilities
         [JsonProperty("LawText")]
         public string LawText { get; set; }
     }
+
+
 
     internal class ParseStringConverter : Newtonsoft.Json.JsonConverter
     {

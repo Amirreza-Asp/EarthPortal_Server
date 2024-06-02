@@ -43,6 +43,7 @@ namespace Persistence.CQRS.Contact.About
                 await _photoManager.SaveAsync(request.Image, upload + imgName, cancellationToken);
 
                 var about = new AboutUs(request.Title, request.Description, null, imgName);
+                about.Order = request.Order;
                 about.CreatedAt = request.CreatedAt;
                 _context.AboutUs.Add(about);
 
@@ -53,6 +54,7 @@ namespace Persistence.CQRS.Contact.About
             else
             {
                 var about = new AboutUs(request.Title, request.Description, request.Video, null);
+                about.Order = request.Order;
                 _context.AboutUs.Add(about);
 
 

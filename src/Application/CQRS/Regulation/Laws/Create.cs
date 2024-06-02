@@ -23,5 +23,6 @@ namespace Application.CQRS.Regulation.Laws
         public Guid ExecutorManagmentId { get; set; }
         public Guid ApprovalAuthorityId { get; set; }
         public Guid LawCategoryId { get; set; }
+        public int Order { get; set; }
     }
 }

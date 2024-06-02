@@ -17,5 +17,6 @@
         public Guid AuthorId { get; set; }
         public int Pages { get; set; }
         public double Size { get; set; }
+        public int Order { get; set; }
     }
 }

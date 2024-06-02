@@ -12,5 +12,6 @@ namespace Application.CQRS.Contact.About
         public string? Video { get; set; }
         public bool IsVideo { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int Order { get; set; }
     }
 }

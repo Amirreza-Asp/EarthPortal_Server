@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Contact.FAQ
             if (faq == null)
                 return CommandResponse.Failure(400, "سوال انتخاب شده در سیستم وجود ندارد");
 
+            faq.Order = request.Order;
             faq.Title = request.Title;
             faq.Content = request.Description;
 

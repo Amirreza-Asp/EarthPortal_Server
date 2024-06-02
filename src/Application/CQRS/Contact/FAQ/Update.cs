@@ -8,5 +8,6 @@ namespace Application.CQRS.Contact.FAQ
         public Guid Id { get; set; }
         public String Title { get; set; }
         public String Description { get; set; }
+        public int Order { get; set; }
     }
 }

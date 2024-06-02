@@ -31,6 +31,7 @@ namespace Persistence.CQRS.Multimedia.Gallery
             if (gallery == null)
                 return CommandResponse.Failure(400, "آلبوم تصاویر انتخاب شده در سیستم وجود ندارد");
 
+            gallery.Order = request.Order;
             gallery.Title = request.Title;
             gallery.Description = request.Description;
 

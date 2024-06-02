@@ -27,6 +27,7 @@ namespace Persistence.CQRS.Contact.EducationalVideos
             edv.Title = request.Title;
             edv.Description = request.Description;
             edv.Video = request.Video;
+            edv.Order = request.Order;
 
             _context.EducationalVideo.Update(edv);
 

@@ -32,6 +32,7 @@ namespace Persistence.CQRS.Multimedia.Infographics
             await _photoManager.SaveAsync(request.Image, upload + imgName, cancellationToken);
 
             var infographic = new Infographic(imgName);
+            infographic.Order = request.Order;
             infographic.IsLandscape = request.IsLandscape;
 
             _context.Infographic.Add(infographic);

@@ -20,6 +20,7 @@ namespace Persistence.CQRS.Contact.EducationalVideos
                 return CommandResponse.Failure(400, "فرمت ویدیو وارد شده صحیح نیست");
 
             var edv = new EducationalVideo(request.Title, request.Description, request.Video);
+            edv.Order = request.Order;
 
             _context.EducationalVideo.Add(edv);
 

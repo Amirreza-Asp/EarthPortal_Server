@@ -17,7 +17,7 @@ namespace Persistence.CQRS.Regulation.ExecutorManagements
         public async Task<CommandResponse> Handle(CreateExecutorManagementCommand request, CancellationToken cancellationToken)
         {
             var entity = new ExecutorManagment(request.Title);
-
+            entity.Order = request.Order;
             _context.ExecutorManagment.Add(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

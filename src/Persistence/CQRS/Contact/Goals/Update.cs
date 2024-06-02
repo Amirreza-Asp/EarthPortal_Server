@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Contact.Goals
             if (entity == null)
                 return CommandResponse.Failure(400, "هدف مورد نظر در سیستم وجود ندارد");
 
+            entity.Order = request.Order;
             entity.Title = request.Title;
 
             _context.Goal.Update(entity);

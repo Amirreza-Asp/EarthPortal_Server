@@ -17,6 +17,7 @@ namespace Persistence.CQRS.Contact.Goals
         public async Task<CommandResponse> Handle(CreateGoalCommand request, CancellationToken cancellationToken)
         {
             var entity = new Goal(request.Title);
+            entity.Order = request.Order;
 
             _context.Goal.Add(entity);
 

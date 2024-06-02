@@ -38,7 +38,7 @@ namespace Endpoint.Controllers.Notices
         [Route("PagenationSummary")]
         public async Task<ListActionResult<NewsSummary>> PagenationSummary([FromBody] GridQuery query, CancellationToken cancellationToken)
         {
-            query.Sorted = new SortModel[] { new SortModel { column = "dateOfRegisration", desc = true } };
+            query.Sorted = new SortModel[] { new SortModel { column = "dateOfRegisration", desc = true }, new SortModel { column = "order", desc = false } };
             return await _newsRepository.GetAllAsync<NewsSummary>(query, cancellationToken: cancellationToken);
         }
 
@@ -57,6 +57,14 @@ namespace Endpoint.Controllers.Notices
 
 
         [HttpGet]
+        [Route("SearchByKeyword")]
+        public async Task<ListActionResult<NewsSummary>> SearchByKeyword([FromQuery] String keyword, [FromQuery] int page, [FromQuery] int size, CancellationToken cancellationToken)
+        {
+            return
+                await _newsRepository.SearchByKeywordAsync(keyword, page, size, cancellationToken);
+        }
+
+        [HttpGet]
         [Route("Find")]
         public async Task<NewsDetails?> Find([FromQuery] int shortLink, CancellationToken cancellationToken)
         {
@@ -71,10 +79,10 @@ namespace Endpoint.Controllers.Notices
                 news.RelatedNews = await _newsRepository.RelatedNewsAsync(shortLink, cancellationToken: cancellationToken);
 
                 news.NextNews =
-                    await _newsRepository.NextNewsAsync(shortLink, news.DateOfRegisration, cancellationToken: cancellationToken);
+                    await _newsRepository.NextNewsAsync(shortLink, news.DateOfRegisration, news.Order, cancellationToken: cancellationToken);
 
                 news.PrevNews =
-                    await _newsRepository.PrevNewsAsync(shortLink, news.NextNews != null ? news.NextNews.ShortLink : 0, news.DateOfRegisration, cancellationToken: cancellationToken);
+                    await _newsRepository.PrevNewsAsync(shortLink, news.NextNews != null ? news.NextNews.ShortLink : 0, news.DateOfRegisration, news.Order, cancellationToken: cancellationToken);
             }
 
             return news;

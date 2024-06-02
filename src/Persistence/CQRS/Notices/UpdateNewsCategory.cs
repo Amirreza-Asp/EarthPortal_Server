@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Notices
             if (category == null)
                 return CommandResponse.Failure(400, "ایتم مورد نظر در سیستم وجود ندارد");
 
+            category.Order = request.Order;
             category.Title = request.Title;
             category.Description = request.Description;
 

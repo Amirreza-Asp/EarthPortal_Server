@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Resources.Authors
             if (author == null)
                 return CommandResponse.Failure(400, "نویسنده مورد نظر در سیستم وجود ندارد");
 
+            author.Order = request.Order;
             author.FullName = request.Name;
 
             _context.Author.Update(author);

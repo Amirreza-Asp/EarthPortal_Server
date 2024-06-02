@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Resources.Translators
             if (entity == null)
                 return CommandResponse.Failure(400, "مترجم مورد نظر در سیستم وجود ندارد");
 
+            entity.Order = request.Order;
             entity.FullName = request.Name;
 
             _context.Translator.Update(entity);

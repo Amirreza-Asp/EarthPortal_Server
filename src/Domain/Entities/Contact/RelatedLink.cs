@@ -13,6 +13,5 @@ namespace Domain.Entities.Contact
 
         public String Title { get; set; }
         public String Link { get; set; }
-        public int Order { get; set; }
     }
 }

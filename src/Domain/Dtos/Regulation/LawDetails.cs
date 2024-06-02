@@ -25,6 +25,7 @@ namespace Domain.Dtos.Regulation
         public string ApprovalAuthorityTitle { get; set; }
         public Guid LawCategoryId { get; set; }
         public string LawCategoryTitle { get; set; }
+        public int Order { get; set; }
 
     }
 }

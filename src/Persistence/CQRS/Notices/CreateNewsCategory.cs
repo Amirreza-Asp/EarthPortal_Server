@@ -17,7 +17,7 @@ namespace Persistence.CQRS.Notices
         public async Task<CommandResponse> Handle(CreateNewsCategoryCommand request, CancellationToken cancellationToken)
         {
             var category = new NewsCategory(request.Title, request.Description);
-
+            category.Order = request.Order;
             _context.NewsCategory.Add(category);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

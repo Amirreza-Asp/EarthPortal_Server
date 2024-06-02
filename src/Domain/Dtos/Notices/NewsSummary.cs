@@ -8,5 +8,6 @@
         public String Headline { get; set; }
         public DateTime DateOfRegisration { get; set; }
         public int ShortLink { get; set; }
+        public int Order { get; set; }
     }
 }

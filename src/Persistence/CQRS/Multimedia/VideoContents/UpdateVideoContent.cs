@@ -24,6 +24,7 @@ namespace Persistence.CQRS.Multimedia.VideoContents
             if (video == null)
                 return CommandResponse.Failure(400, "ویدیو در سیستم وجود ندارد");
 
+            video.Order = request.Order;
             video.Title = request.Title;
             video.Description = request.Description;
             video.Video = request.Video;

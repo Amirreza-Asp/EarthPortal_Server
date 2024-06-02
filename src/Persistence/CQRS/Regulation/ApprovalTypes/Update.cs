@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Regulation.ApprovalTypes
             if (entity == null)
                 return CommandResponse.Failure(400, " نوع مصوبه انتخاب شده در سیستم وجود ندارد");
 
+            entity.Order = request.Order;
             entity.Value = request.Title;
 
             _context.ApprovalType.Update(entity);

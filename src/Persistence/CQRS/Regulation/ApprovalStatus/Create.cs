@@ -16,7 +16,7 @@ namespace Persistence.CQRS.Regulation.ApprovalStatus
         public async Task<CommandResponse> Handle(CreateApprovalStatusCommand request, CancellationToken cancellationToken)
         {
             var entity = new Domain.Entities.Regulation.ApprovalStatus(request.Title);
-
+            entity.Order = request.Order;
             _context.ApprovalStatus.Add(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

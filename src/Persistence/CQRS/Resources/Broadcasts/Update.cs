@@ -43,6 +43,7 @@ namespace Persistence.CQRS.Resources.Broadcasts
             var oldFile = entity.File;
 
 
+            entity.Order = request.Order;
             entity.AuthorId = request.AuthorId;
             entity.ShortDescription = request.ShortDescription;
             entity.Description = request.Description;

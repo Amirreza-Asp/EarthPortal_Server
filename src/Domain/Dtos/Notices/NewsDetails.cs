@@ -13,6 +13,7 @@
         public Guid NewsCategoryId { get; set; }
         public List<Keyword> Keywords { get; set; }
         public List<NewsSummary> RelatedNews { get; set; }
+        public int Order { get; set; }
 
 
         public NewsSummary? NextNews { get; set; }

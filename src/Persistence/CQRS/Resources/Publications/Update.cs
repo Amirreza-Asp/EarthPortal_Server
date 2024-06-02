@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Resources.Publications
             if (entity == null)
                 return CommandResponse.Failure(400, "انتشارات مورد نظر در سیستم وجود ندارد");
 
+            entity.Order = request.Order;
             entity.Title = request.Title;
 
             _context.Publication.Update(entity);

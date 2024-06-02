@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Regulation.Categories
             if (entity == null)
                 return CommandResponse.Failure(400, " موضوع انتخاب شده در سیستم وجود ندارد");
 
+            entity.Order = request.Order;
             entity.Title = request.Title;
 
             _context.LawCategory.Update(entity);

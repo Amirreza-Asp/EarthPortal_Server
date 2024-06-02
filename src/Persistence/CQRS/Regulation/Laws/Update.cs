@@ -46,6 +46,8 @@ namespace Persistence.CQRS.Regulation.Laws
                 law.Pdf = newFileName;
             }
 
+
+            law.Order = request.Order;
             law.ApprovalDate = request.ApprovalDate;
             law.ApprovalStatusId = request.ApprovalStatusId;
             law.ApprovalAuthorityId = request.ApprovalAuthorityId;
@@ -56,7 +58,7 @@ namespace Persistence.CQRS.Regulation.Laws
             law.Description = request.Description;
             law.IsOriginal = request.IsOriginal;
             law.Announcement = new Announcement(request.AnnouncementNumber, request.AnnouncementDate);
-            law.Newspaper = new Newspaper(request.NewspaperNumber, request.NewspaperDate);
+            law.Newspaper = Newspaper.Create(request.NewspaperNumber, request.NewspaperDate);
             law.Type = request.Type == 0 ? LawType.Rule : LawType.Regulation;
 
             _context.Law.Update(law);

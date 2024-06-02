@@ -42,7 +42,7 @@ namespace Persistence.CQRS.Resources.Books
             var oldImage = book.Image;
             var oldFile = book.File;
 
-
+            book.Order = request.Order;
             book.AuthorId = request.AuthorId;
             book.ShortDescription = request.ShortDescription;
             book.Description = request.Description;

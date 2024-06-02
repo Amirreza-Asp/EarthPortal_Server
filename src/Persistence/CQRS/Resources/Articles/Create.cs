@@ -36,7 +36,7 @@ namespace Persistence.CQRS.Resources.Articles
 
 
             var entity = new Article(request.Title, request.Description, fileName, request.PublishDate, request.AuthorId, imgName, request.ShortDescription, request.Pages, request.TranslatorId, request.PublicationId);
-
+            entity.Order = request.Order;
             _context.Article.Add(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

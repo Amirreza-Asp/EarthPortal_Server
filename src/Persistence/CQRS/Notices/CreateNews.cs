@@ -32,7 +32,7 @@ namespace Persistence.CQRS.Notices
                 shortLink = CreateRandomLink();
 
             var news = new News(request.Title, request.Description, request.Headline, request.Source, request.DateOfRegisration, request.NewsCategoryId, shortLink);
-
+            news.Order = request.Order;
             _context.News.Add(news);
 
             var links = request.Links?.Select(link => new Link(link));

@@ -17,7 +17,7 @@ namespace Persistence.CQRS.Regulation.ApprovalAuthorities
         public async Task<CommandResponse> Handle(CreateApprovalAuthorityCommand request, CancellationToken cancellationToken)
         {
             var entity = new ApprovalAuthority(request.Title);
-
+            entity.Order = request.Order;
             _context.ApprovalAuthority.Add(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

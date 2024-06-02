@@ -86,12 +86,16 @@ namespace Persistence.Repositories
             //sort
             if (query.Sorted != null && query.Sorted.Length > 0)
             {
-                for (int i = 0; i < query.Sorted.Length; i++)
+                var sortedItem = query.Sorted[0];
+                queryContext = queryContext.SortMeDynamically(sortedItem.column, sortedItem.desc);
+
+                // سپس بقیه پارامترهای مرتب‌سازی را اضافه می‌کنیم
+                for (int i = 1; i < query.Sorted.Length; i++)
                 {
-                    queryContext = queryContext.SortMeDynamically(query.Sorted[i].column, query.Sorted[i].desc);
+                    sortedItem = query.Sorted[i];
+                    queryContext = QueryUtility.ThenSortMeDynamically((IOrderedQueryable<TEntity>)queryContext, sortedItem.column, sortedItem.desc);
                 }
             }
-
             var result = await queryContext
                 .ProjectTo<TDto>(_mapper.ConfigurationProvider)
                 .Skip((query.Page - 1) * query.Size)

@@ -11,5 +11,6 @@ namespace Application.CQRS.Multimedia.Gallery
         public String Description { get; set; }
         public List<Guid>? DeletedImages { get; set; }
         public List<IFormFile>? Images { get; set; }
+        public int Order { get; set; }
     }
 }

@@ -21,5 +21,6 @@ namespace Application.CQRS.Notices
         public List<String>? Links { get; set; }
 
         public IFormFile Image { get; set; }
+        public int Order { get; set; }
     }
 }

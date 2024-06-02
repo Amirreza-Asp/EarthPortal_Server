@@ -17,7 +17,7 @@ namespace Persistence.CQRS.Regulation.Categories
         public async Task<CommandResponse> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
         {
             var entity = new LawCategory(request.Title);
-
+            entity.Order = request.Order;
             _context.LawCategory.Add(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

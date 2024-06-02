@@ -13,24 +13,58 @@ namespace Persistence.Utilities
 
             var param = Expression.Parameter(typeof(TEntityType), "s");
             var prop = Expression.PropertyOrField(param, propertyname);
-            var sortLambda = Expression.Lambda(prop, param);
 
-            Expression<Func<IOrderedQueryable<TEntityType>>> sortMethod;
+            // برای properyهایی با type DateTime فقط بر اساس Date مرتب کند
+            if (prop.Type == typeof(DateTime) || prop.Type == typeof(DateTime?))
+            {
+                var dateProp = Expression.Property(prop, "Date");
+                var sortLambda = Expression.Lambda(dateProp, param);
 
-            if (desc)
-                sortMethod = () => query.OrderByDescending<TEntityType, object>(k => null);
+                if (desc)
+                    return Queryable.OrderByDescending(query, (dynamic)sortLambda);
+                else
+                    return Queryable.OrderBy(query, (dynamic)sortLambda);
+            }
             else
-                sortMethod = () => query.OrderBy<TEntityType, object>(k => null);
+            {
+                var sortLambda = Expression.Lambda(prop, param);
 
-            var methodCallExpression = sortMethod.Body as MethodCallExpression;
-            if (methodCallExpression == null)
-                throw new Exception("Oops");
+                if (desc)
+                    return Queryable.OrderByDescending(query, (dynamic)sortLambda);
+                else
+                    return Queryable.OrderBy(query, (dynamic)sortLambda);
+            }
+        }
 
-            var method = methodCallExpression.Method.GetGenericMethodDefinition();
-            var genericSortMethod = method.MakeGenericMethod(typeof(TEntityType), prop.Type);
-            var orderedQuery = (IOrderedQueryable<TEntityType>)genericSortMethod.Invoke(query, new object[] { query, sortLambda });
+        public static IOrderedQueryable<TEntityType> ThenSortMeDynamically<TEntityType>(this IOrderedQueryable<TEntityType> query, string propertyname, bool desc = false)
+        {
+            propertyname = propertyname ?? "CreatedAt";
 
-            return orderedQuery;
+            propertyname = typeof(TEntityType).GetPropertyExactName(propertyname);
+
+            var param = Expression.Parameter(typeof(TEntityType), "s");
+            var prop = Expression.PropertyOrField(param, propertyname);
+
+            // برای properyهایی با type DateTime فقط بر اساس Date مرتب کند
+            if (prop.Type == typeof(DateTime) || prop.Type == typeof(DateTime?))
+            {
+                var dateProp = Expression.Property(prop, "Date");
+                var sortLambda = Expression.Lambda(dateProp, param);
+
+                if (desc)
+                    return Queryable.ThenByDescending(query, (dynamic)sortLambda);
+                else
+                    return Queryable.ThenBy(query, (dynamic)sortLambda);
+            }
+            else
+            {
+                var sortLambda = Expression.Lambda(prop, param);
+
+                if (desc)
+                    return Queryable.ThenByDescending(query, (dynamic)sortLambda);
+                else
+                    return Queryable.ThenBy(query, (dynamic)sortLambda);
+            }
         }
 
         public static IOrderedQueryable<T> SortBy<T>(this IQueryable<T> query, string by, bool desc = true) where T : class

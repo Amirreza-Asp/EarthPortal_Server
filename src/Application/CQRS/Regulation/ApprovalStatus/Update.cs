@@ -7,5 +7,6 @@ namespace Application.CQRS.Regulation.ApprovalStatus
     {
         public Guid Id { get; set; }
         public String Title { get; set; }
+        public int Order { get; set; }
     }
 }

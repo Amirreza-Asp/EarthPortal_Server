@@ -8,5 +8,6 @@ namespace Application.CQRS.Contact.Guids
         public String Title { get; set; }
         public String Content { get; set; }
         public String IsPort { get; set; }
+        public int Order { get; set; }
     }
 }

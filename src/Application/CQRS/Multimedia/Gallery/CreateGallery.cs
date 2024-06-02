@@ -9,6 +9,7 @@ namespace Application.CQRS.Multimedia.Gallery
         public String Title { get; set; }
         public String Description { get; set; }
         public IFormFileCollection Images { get; set; }
+        public int Order { get; set; }
 
     }
 }

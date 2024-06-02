@@ -7,5 +7,6 @@ namespace Application.CQRS.Contact.Goals
     {
         public Guid Id { get; set; }
         public String Title { get; set; }
+        public int Order { get; set; }
     }
 }

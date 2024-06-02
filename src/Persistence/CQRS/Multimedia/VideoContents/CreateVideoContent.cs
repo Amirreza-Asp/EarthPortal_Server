@@ -20,7 +20,7 @@ namespace Persistence.CQRS.Multimedia.VideoContents
                 return CommandResponse.Failure(400, "فرمت ویدیو وارد شده صحیح نیست");
 
             var video = new VideoContent(request.Title, request.Description, request.Video);
-
+            video.Order = request.Order;
             _context.Add(video);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

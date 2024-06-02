@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.CQRS.Regulation.ApprovalTypes
 {
-    public class RemoveApprovalTypeCommandHandler : IRequestHandler<UpdateApprovalTypeCommand, CommandResponse>
+    public class RemoveApprovalTypeCommandHandler : IRequestHandler<RemoveApprovalTypeCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
 
@@ -14,7 +14,7 @@ namespace Persistence.CQRS.Regulation.ApprovalTypes
             _context = context;
         }
 
-        public async Task<CommandResponse> Handle(UpdateApprovalTypeCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(RemoveApprovalTypeCommand request, CancellationToken cancellationToken)
         {
             var entity = await _context.ApprovalType.FirstOrDefaultAsync(b => b.Id == request.Id);
 

@@ -8,5 +8,6 @@
         public String ApprovalAuthority { get; set; }
         public DateTime ApprovalDate { get; set; }
         public String Pdf { get; set; }
+        public int Order { get; set; }
     }
 }

@@ -9,5 +9,6 @@
         public String? Video { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool HaveVideo { get; set; }
+        public int Order { get; set; }
     }
 }

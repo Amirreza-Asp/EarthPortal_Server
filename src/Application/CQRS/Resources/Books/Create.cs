@@ -15,6 +15,7 @@ namespace Application.CQRS.Resources.Books
         public Guid PublicationId { get; set; }
         public Guid AuthorId { get; set; }
         public int Pages { get; set; }
+        public int Order { get; set; }
         public Guid TranslatorId { get; set; }
     }
 }

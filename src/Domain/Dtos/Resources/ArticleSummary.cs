@@ -7,5 +7,7 @@
         public String ShortDescription { get; set; }
         public String Author { get; set; }
         public String Image { get; set; }
+        public int Order { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

@@ -24,7 +24,7 @@ namespace Persistence.CQRS.Multimedia.Gallery
         public async Task<CommandResponse> Handle(CreateGalleryCommand request, CancellationToken cancellationToken)
         {
             var gallery = new Domain.Entities.Mutimedia.Gallery(request.Title, request.Description);
-
+            gallery.Order = request.Order;
             _context.Gallery.Add(gallery);
 
             var images = new List<GalleryPhoto>();

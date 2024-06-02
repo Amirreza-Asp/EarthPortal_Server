@@ -39,6 +39,7 @@ namespace Persistence.CQRS.Contact.About
             about.Title = request.Title;
             about.Content = request.Description;
             about.CreatedAt = request.CreatedAt;
+            about.Order = request.Order;
             var upload = _env.WebRootPath + SD.AboutUsPath;
 
             if (!request.IsVideo)

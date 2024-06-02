@@ -36,7 +36,7 @@ namespace Persistence.CQRS.Resources.Broadcasts
 
 
             var entity = new Broadcast(request.Title, request.Description, fileName, request.PublishDate, request.AuthorId, imgName, request.ShortDescription, request.Pages, request.TranslatorId, request.PublicationId);
-
+            entity.Order = request.Order;
             _context.Broadcast.Add(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

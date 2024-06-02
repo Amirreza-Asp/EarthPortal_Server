@@ -14,5 +14,6 @@ namespace Domain.Shared
         public Guid Id { get; private set; }
 
         public DateTime CreatedAt { get; set; }
+        public int Order { get; set; }
     }
 }

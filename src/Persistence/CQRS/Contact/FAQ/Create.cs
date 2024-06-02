@@ -17,7 +17,7 @@ namespace Persistence.CQRS.Contact.FAQ
         public async Task<CommandResponse> Handle(CreateFAQCommand request, CancellationToken cancellationToken)
         {
             var faq = new FrequentlyAskedQuestions(request.Title, request.Description);
-
+            faq.Order = request.Order;
             _context.FrequentlyAskedQuestions.Add(faq);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
