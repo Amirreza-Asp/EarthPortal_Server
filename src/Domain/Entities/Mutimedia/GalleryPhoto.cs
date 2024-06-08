@@ -15,7 +15,6 @@ namespace Domain.Entities.Mutimedia
 
 
         public string Name { get; set; }
-        public int Order { get; set; }
         public Guid GalleryId { get; set; }
 
         public Gallery? Gallery { get; set; }

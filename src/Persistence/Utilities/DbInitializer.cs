@@ -91,21 +91,11 @@ namespace Persistence.Utilities
 
             #region Regulation
 
-            var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/law.json");
-            var newLawsJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/nlaw.json");
+            var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/lawData.json");
 
-            var lawData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
-            var newLawsData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
+            var lawData = JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
 
-            foreach (var nLaw in newLawsData)
-            {
-                if (lawData.Any(s => s.Title == nLaw.Title))
-                {
-                    var l = lawData.First(s => s.Title == nLaw.Title);
-                    lawData.Remove(l);
-                    lawData.Add(nLaw);
-                }
-            }
+
 
             if (!_context.ApprovalAuthority.Any())
             {
@@ -200,7 +190,7 @@ namespace Persistence.Utilities
                                      executorManagmentId: String.IsNullOrEmpty(b.Presenter) ? executorManagment.First(s => s.Name == "نامشخص").Id : executorManagment.First(s => s.Name == b.Presenter).Id,
                                      approvalAuthorityId: String.IsNullOrEmpty(b.Reference) ? approvalAuthority.First(s => s.Name == "نامشخص").Id : approvalAuthority.First(s => s.Name == b.Reference).Id,
                                      lawCategoryId: categories.First(s => s.Title == "نامشخص").Id,
-                                     pdf: Guid.NewGuid() + ".pdf"
+                                     pdf: String.IsNullOrEmpty(b.File) ? Guid.NewGuid() + ".pdf" : b.File.Replace("فایل", "") + ".pdf"
                                  );
 
                             laws.Add(entity);
@@ -223,7 +213,10 @@ namespace Persistence.Utilities
                         {
                             try
                             {
-                                if (!File.Exists(_env.WebRootPath + SD.LawPdfPath + item.Pdf))
+                                var ld = lawData.FirstOrDefault(b => b.Title == item.Title);
+                                if (ld != null && !String.IsNullOrEmpty(ld.File) && File.Exists(_env.WebRootPath + SD.LawPdfPath + ld.File.Replace("فایل", "") + ".pdf"))
+                                    continue;
+                                else if (!File.Exists(_env.WebRootPath + SD.LawPdfPath + item.Pdf))
                                     _fileManager.ConvertHtmlToPdf(item.Description, _env.WebRootPath + SD.LawPdfPath + item.Pdf);
                             }
                             catch (Exception ex)
@@ -1182,8 +1175,11 @@ namespace Persistence.Utilities
 
     class LawData
     {
-        [JsonProperty("LawsID")]
-        public long LawsId { get; set; }
+        [JsonProperty("File", NullValueHandling = NullValueHandling.Ignore)]
+        public string? File { get; set; }
+
+        [JsonProperty("Row")]
+        public long Row { get; set; }
 
         [JsonProperty("Title")]
         public string Title { get; set; }
@@ -1207,7 +1203,7 @@ namespace Persistence.Utilities
         public string CommunicatedDate { get; set; }
 
         [JsonProperty("NewspaperNumber")]
-        public dynamic NewspaperNumber { get; set; }
+        public string NewspaperNumber { get; set; }
 
         [JsonProperty("NewspaperDate")]
         public string NewspaperDate { get; set; }

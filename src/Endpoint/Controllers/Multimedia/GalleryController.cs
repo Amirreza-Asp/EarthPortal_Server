@@ -50,6 +50,12 @@ namespace Endpoint.Controllers.Multimedia
         }
 
 
+        [HttpPut]
+        [AccessControl("Admin")]
+        [Route("SetPhotoOrder")]
+        public async Task<CommandResponse> SetPhotoOrder([FromBody] SetPhotoOrderCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
+
         [HttpPost]
         [AccessControl("Admin")]
         [Route("Create")]

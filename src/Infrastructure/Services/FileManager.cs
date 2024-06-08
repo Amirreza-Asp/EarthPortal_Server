@@ -1,25 +1,36 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Aspose.Pdf;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
 namespace Infrastructure.Services
 {
     public class FileManager : IFileManager
     {
+        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IWebHostEnvironment _hostEnv;
+
+        public FileManager(IHttpContextAccessor contextAccessor, IWebHostEnvironment hostEnv)
+        {
+            _contextAccessor = contextAccessor;
+            _hostEnv = hostEnv;
+        }
+
         public void ConvertHtmlToPdf(string htmlContent, string outputPath)
         {
             try
             {
-                //var renderer = new ChromePdfRenderer();
-                //PdfDocument pdf = renderer.RenderHtmlAsPdf($"<p>{htmlContent}</p>");
-                //pdf.PrintToFile(outputPath);
-
                 // Initialize document object
                 Document document = new Document();
+                document.Direction = Direction.R2L;
                 // Add page
                 Page page = document.Pages.Add();
-                // Add text to new page
-                page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment(htmlContent));
+
+                var text = new Aspose.Pdf.Text.TextFragment(htmlContent);
+                text.HorizontalAlignment = HorizontalAlignment.Right;
+                text.Margin = new MarginInfo() { Right = 10, Left = 10 };
+
+                page.Paragraphs.Add(text);
                 // Save updated PDF
                 document.Save(outputPath);
             }

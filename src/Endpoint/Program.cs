@@ -123,7 +123,7 @@ builder.Services.AddAuthentication(options =>
             OnMessageReceived = context =>
             {
                 var userCounterService = context.HttpContext.RequestServices.GetRequiredService<IUserCounterService>();
-                userCounterService.ExecuteAsync(default);
+
 
                 var token = context.Request.Cookies[SD.AuthToken];
                 if (token != null)
@@ -144,7 +144,7 @@ app.Lifetime.ApplicationStarted.Register(() =>
 {
     var scope = app.Services.CreateScope();
     var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-    initializer.Execute();
+    //initializer.Execute();
 });
 
 

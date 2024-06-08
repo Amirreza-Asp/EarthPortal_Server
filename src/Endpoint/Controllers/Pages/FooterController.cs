@@ -27,6 +27,7 @@ namespace Endpoint.Controllers.Pages
         [HttpGet]
         public async Task<FooterSummary> Get(CancellationToken cancellationToken)
         {
+            _userCounterService.ExecuteAsync(default);
             var footer = await _footerRepo.FirstOrDefaultAsync(b => true, cancellationToken: cancellationToken);
 
             var todaySeen = 1;
