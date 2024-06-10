@@ -8,5 +8,6 @@
         public String Video { get; set; }
         public int Order { get; set; }
         public DateTime CreatedAt { get; set; }
+        public String Link { get; set; }
     }
 }

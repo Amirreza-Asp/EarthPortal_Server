@@ -4,11 +4,12 @@ namespace Domain.Entities.Mutimedia
 {
     public class VideoContent : BaseEntity
     {
-        public VideoContent(string title, string description, string video)
+        public VideoContent(string title, string description, string video, string link)
         {
             Title = title;
             Description = description;
             Video = video;
+            Link = link;
         }
 
         private VideoContent() { }
@@ -16,5 +17,6 @@ namespace Domain.Entities.Mutimedia
         public String Title { get; set; }
         public String Description { get; set; }
         public String Video { get; set; }
+        public String Link { get; set; }
     }
 }

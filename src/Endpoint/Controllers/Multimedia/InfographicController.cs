@@ -52,6 +52,11 @@ namespace Endpoint.Controllers.Multimedia
         public async Task<CommandResponse> Create([FromForm] CreateInfographicCommand command, CancellationToken cancellationToken) =>
             await _mediator.Send(command, cancellationToken);
 
+        [Route("[action]")]
+        [AccessControl("Admin")]
+        [HttpPut]
+        public async Task<CommandResponse> Update([FromForm] UpdateInfographicCommand command, CancellationToken cancellationToken) =>
+            await _mediator.Send(command, cancellationToken);
 
         [Route("Remove")]
         [AccessControl("Admin")]

@@ -57,25 +57,28 @@ namespace Persistence.Utilities
 
 
 
-            var lawss = _context.Law.ToList();
-            _context.RemoveRange(lawss);
+            //var lawss = _context.Law.ToList();
 
-            var appAuth = _context.ApprovalAuthority.ToList();
-            _context.RemoveRange(appAuth);
 
-            var appStatus = _context.ApprovalStatus.ToList();
-            _context.RemoveRange(appStatus);
 
-            var appType = _context.ApprovalType.ToList();
-            _context.RemoveRange(appType);
+            //_context.RemoveRange(lawss);
 
-            var lawCategories = _context.LawCategory.ToList();
-            _context.RemoveRange(lawCategories);
+            //var appAuth = _context.ApprovalAuthority.ToList();
+            //_context.RemoveRange(appAuth);
 
-            var em = _context.ExecutorManagment.ToList();
-            _context.RemoveRange(em);
+            //var appStatus = _context.ApprovalStatus.ToList();
+            //_context.RemoveRange(appStatus);
 
-            _context.SaveChanges();
+            //var appType = _context.ApprovalType.ToList();
+            //_context.RemoveRange(appType);
+
+            //var lawCategories = _context.LawCategory.ToList();
+            //_context.RemoveRange(lawCategories);
+
+            //var em = _context.ExecutorManagment.ToList();
+            //_context.RemoveRange(em);
+
+            //_context.SaveChanges();
 
 
             try
@@ -90,12 +93,23 @@ namespace Persistence.Utilities
             }
 
             #region Regulation
+            var lawss = _context.Law.ToList();
 
             var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/lawData.json");
-
             var lawData = JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
 
 
+            foreach (var l in lawss)
+            {
+                if (lawData.Any(b => b.Title == l.Title && !String.IsNullOrEmpty(b.File)))
+                {
+                    l.Pdf = lawData.Find(b => b.Title == l.Title && !String.IsNullOrEmpty(b.File)).File.Replace("فایل", "") + ".pdf";
+                    _context.Law.Update(l);
+                }
+            }
+
+            _context.SaveChanges();
+            return;
 
             if (!_context.ApprovalAuthority.Any())
             {
@@ -264,7 +278,7 @@ namespace Persistence.Utilities
             {
                 for (int i = 1; i < 53; i++)
                 {
-                    var videoContent = new VideoContent($"عنوان {i}", lorem.Substring(50), video);
+                    var videoContent = new VideoContent($"عنوان {i}", lorem.Substring(50), video, "#");
                     _context.VideoContent.Add(videoContent);
                 }
 
@@ -275,7 +289,7 @@ namespace Persistence.Utilities
             {
                 for (int i = 1; i < 2; i++)
                 {
-                    var infographic = new Infographic($"{rnd.Next(1, 4)}.jpg");
+                    var infographic = new Infographic($"{rnd.Next(1, 4)}.jpg", i.ToString());
                     _context.Infographic.Add(infographic);
                 }
 

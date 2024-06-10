@@ -28,6 +28,7 @@ namespace Persistence.CQRS.Multimedia.VideoContents
             video.Title = request.Title;
             video.Description = request.Description;
             video.Video = request.Video;
+            video.Link = request.Link;
 
             _context.VideoContent.Update(video);
 

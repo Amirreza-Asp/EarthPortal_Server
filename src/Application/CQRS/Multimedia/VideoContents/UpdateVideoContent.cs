@@ -10,5 +10,6 @@ namespace Application.CQRS.Multimedia.VideoContents
         public String Description { get; set; }
         public String Video { get; set; }
         public int Order { get; set; }
+        public String Link { get; set; }
     }
 }

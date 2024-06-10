@@ -19,7 +19,7 @@ namespace Persistence.CQRS.Multimedia.VideoContents
             if (!request.Video.Contains("</iframe>"))
                 return CommandResponse.Failure(400, "فرمت ویدیو وارد شده صحیح نیست");
 
-            var video = new VideoContent(request.Title, request.Description, request.Video);
+            var video = new VideoContent(request.Title, request.Description, request.Video, request.Link);
             video.Order = request.Order;
             _context.Add(video);
 
