@@ -72,7 +72,7 @@ namespace Persistence.CQRS.Contact.About
             else
             {
                 var oldImage = about.Image;
-                about.Video = about.Video;
+                about.Video = request.Video;
                 about.Image = null;
 
                 _context.AboutUs.Update(about);
