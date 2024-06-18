@@ -32,6 +32,7 @@ namespace Persistence.Repositories
                 CurrentSituation = data.CurrentSituation,
                 MainIdea = data.MainIdea,
                 Intro = data.Intro,
+                Header = data.Header,
                 Problems = data.Problems.Select(b => new EnglishItem { Id = b.Id, Content = b.Content }).ToList(),
                 Vision = data.Vision,
                 Solutions = data.Solutions.Select(b => new EnglishItem { Id = b.Id, Content = b.Content }).ToList(),

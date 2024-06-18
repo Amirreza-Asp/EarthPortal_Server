@@ -51,7 +51,7 @@ namespace Endpoint.Controllers.Notices
                 await _newsRepository.GetAllAsync<NewsSummary>(
                     new GridQuery { Page = query.Page, Size = query.Size, Sorted = new SortModel[] { new SortModel { column = "dateOfRegisration", desc = true } } },
                     b => (!query.LinksId.Any() || b.Links.Where(b => query.LinksId.Contains(b.LinkId)).Any()) &&
-                         (String.IsNullOrEmpty(query.Title) || b.Title.Contains(query.Title)),
+                         (String.IsNullOrEmpty(query.Title) || b.Title.Contains(query.Title) || b.Headline.Contains(query.Title) || b.Links.Any(s => s.Link.Value.Contains(query.Title))),
                     cancellationToken);
         }
 

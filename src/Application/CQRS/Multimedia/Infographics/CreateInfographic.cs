@@ -10,5 +10,6 @@ namespace Application.CQRS.Multimedia.Infographics
         public IFormFile Image { get; set; }
         public bool IsLandscape { get; set; }
         public int Order { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

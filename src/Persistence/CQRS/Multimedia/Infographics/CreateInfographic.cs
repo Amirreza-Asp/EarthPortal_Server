@@ -34,6 +34,7 @@ namespace Persistence.CQRS.Multimedia.Infographics
             var infographic = new Infographic(imgName, request.Title);
             infographic.Order = request.Order;
             infographic.IsLandscape = request.IsLandscape;
+            infographic.CreatedAt = request.CreatedAt;
 
             _context.Infographic.Add(infographic);
 

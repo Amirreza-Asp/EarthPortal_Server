@@ -25,6 +25,7 @@ namespace Persistence.CQRS.Multimedia.Gallery
         {
             var gallery = new Domain.Entities.Mutimedia.Gallery(request.Title, request.Description);
             gallery.Order = request.Order;
+            gallery.CreatedAt = request.CreatedAt;
             _context.Gallery.Add(gallery);
 
             var images = new List<GalleryPhoto>();

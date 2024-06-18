@@ -14,7 +14,9 @@ namespace Infrastructure.Profiles
             CreateMap<Law, Law>();
             CreateMap<Law, LawSummary>()
                 .ForMember(b => b.Type, d => d.MapFrom(e => e.Type == LawType.Rule ? "آیین نامه" : "قانون"))
-                .ForMember(b => b.ApprovalAuthority, d => d.MapFrom(e => e.ApprovalAuthority.Name));
+                .ForMember(b => b.ApprovalAuthority, d => d.MapFrom(e => e.ApprovalAuthority.Name))
+                .ForMember(b => b.NewspaperNumber, d => d.MapFrom(e => e.Newspaper.Number));
+
             CreateMap<Law, LawDetails>()
                 .ForMember(b => b.ApprovalAuthority, d => d.MapFrom(e => e.ApprovalAuthority.Name))
                 .ForMember(b => b.Type, d => d.MapFrom(e => e.Type == LawType.Rule ? "آیین نامه" : "قانون"))

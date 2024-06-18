@@ -6,6 +6,8 @@ namespace Domain.Dtos.Pages
     {
         public Guid Id { get; set; }
 
+        public EnglishHeader Header { get; set; }
+
         public EnglishIntro Intro { get; set; }
 
         public EnglishMainIdea MainIdea { get; set; }

@@ -7,6 +7,8 @@ using Domain.Dtos.Regulation;
 using Endpoint.CustomeAttributes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Persistence;
 
 namespace Endpoint.Controllers.Regulation
 {
@@ -18,12 +20,14 @@ namespace Endpoint.Controllers.Regulation
         private readonly ILawRepository _lawRepository;
         private readonly IMediator _mediator;
         private readonly IWebHostEnvironment _hostEnv;
+        private readonly ApplicationDbContext _context;
 
-        public LawController(ILawRepository lawRepository, IMediator mediator, IWebHostEnvironment hostEnv)
+        public LawController(ILawRepository lawRepository, IMediator mediator, IWebHostEnvironment hostEnv, ApplicationDbContext context)
         {
             _lawRepository = lawRepository;
             _mediator = mediator;
             _hostEnv = hostEnv;
+            _context = context;
         }
 
 
@@ -41,6 +45,35 @@ namespace Endpoint.Controllers.Regulation
         [HttpGet]
         public async Task<LawDetails> Find([FromQuery] Guid id, CancellationToken cancellationToken) =>
             await _lawRepository.FirstOrDefaultAsync<LawDetails>(b => b.Id == id, cancellationToken);
+
+        [Route("Test")]
+        [HttpDelete]
+        public async Task<IActionResult> RemoveRepeatedLaws(CancellationToken cancellationToken)
+        {
+            var laws = await _context.Law.ToListAsync();
+            var okLaws = laws.DistinctBy(s => s.Title.Trim()).ToList();
+            var removeLaws = laws.Where(b => !okLaws.Any(s => s.Id == b.Id)).ToList();
+
+            foreach (var item in laws)
+            {
+                if (laws.Count(s => s.Title == item.Title) > 1 &&
+                    okLaws.Select(s => s.Title).Contains(item.Title))
+                    removeLaws.Add(item);
+                else
+                    okLaws.Add(item);
+            }
+
+
+            foreach (var item in removeLaws)
+            {
+                _lawRepository.Remove(item);
+            }
+
+
+            await _lawRepository.SaveAsync();
+            return Ok();
+        }
+
 
         [Route("[action]")]
         [HttpGet]

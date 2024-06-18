@@ -11,6 +11,12 @@ namespace Persistence.FluentConfig.Pages
             builder.HasKey(x => x.Id);
             builder.Property(b => b.Id).ValueGeneratedNever();
 
+            builder.OwnsOne(b => b.Header, d =>
+            {
+                d.Property(s => s.Title).HasColumnName("HeaderTitle").IsRequired();
+                d.Property(s => s.Description).HasColumnName("HeaderDescription").IsRequired();
+            });
+
             builder.OwnsOne(b => b.Intro, d =>
             {
                 d.Property(e => e.Title).HasColumnName("IntroTitle").IsRequired();

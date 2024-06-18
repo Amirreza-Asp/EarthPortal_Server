@@ -9,5 +9,6 @@
         public DateTime ApprovalDate { get; set; }
         public String Pdf { get; set; }
         public int Order { get; set; }
+        public String NewspaperNumber { get; set; }
     }
 }

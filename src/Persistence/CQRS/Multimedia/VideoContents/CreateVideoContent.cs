@@ -21,6 +21,7 @@ namespace Persistence.CQRS.Multimedia.VideoContents
 
             var video = new VideoContent(request.Title, request.Description, request.Video, request.Link);
             video.Order = request.Order;
+            video.CreatedAt = request.CreatedAt;
             _context.Add(video);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)

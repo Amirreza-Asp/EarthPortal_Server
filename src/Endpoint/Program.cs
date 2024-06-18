@@ -144,7 +144,7 @@ app.Lifetime.ApplicationStarted.Register(() =>
 {
     var scope = app.Services.CreateScope();
     var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-    //initializer.Execute();
+    initializer.Execute();
 });
 
 

@@ -29,6 +29,7 @@ namespace Persistence.CQRS.Multimedia.VideoContents
             video.Description = request.Description;
             video.Video = request.Video;
             video.Link = request.Link;
+            video.CreatedAt = request.CreatedAt;
 
             _context.VideoContent.Update(video);
 

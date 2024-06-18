@@ -6,6 +6,8 @@ namespace Application.CQRS.Pages.EnglishPage
 {
     public class UpdateEnglishPageCommand : IRequest<CommandResponse>
     {
+        public EnglishHeader Header { get; set; }
+
         public EnglishIntro Intro { get; set; }
 
         public EnglishMainIdea MainIdea { get; set; }

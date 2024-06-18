@@ -34,6 +34,7 @@ namespace Persistence.CQRS.Multimedia.Gallery
             gallery.Order = request.Order;
             gallery.Title = request.Title;
             gallery.Description = request.Description;
+            gallery.CreatedAt = request.CreatedAt;
 
             _context.Gallery.Update(gallery);
             var upload = _env.WebRootPath + SD.GalleryPath;

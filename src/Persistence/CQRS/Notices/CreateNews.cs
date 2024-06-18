@@ -31,7 +31,15 @@ namespace Persistence.CQRS.Notices
             while (await _context.News.AnyAsync(b => b.ShortLink == shortLink))
                 shortLink = CreateRandomLink();
 
-            var news = new News(request.Title, request.Description, request.Headline, request.Source, request.DateOfRegisration, request.NewsCategoryId, shortLink);
+
+            var category = await _context.NewsCategory.FirstOrDefaultAsync(b => b.Title == "نامشخص");
+            if (category == null)
+            {
+                category = new NewsCategory("نامشخص", null);
+                _context.NewsCategory.Add(category);
+            }
+
+            var news = new News(request.Title, request.Description, request.Headline, request.Source, request.DateOfRegisration, category.Id, shortLink);
             news.Order = request.Order;
             _context.News.Add(news);
 

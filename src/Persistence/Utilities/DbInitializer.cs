@@ -92,6 +92,7 @@ namespace Persistence.Utilities
             {
             }
 
+            return;
             #region Regulation
             var lawss = _context.Law.ToList();
 

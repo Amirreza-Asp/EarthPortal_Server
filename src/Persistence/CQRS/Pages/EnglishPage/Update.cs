@@ -24,6 +24,7 @@ namespace Persistence.CQRS.Pages.EnglishPage
             englishPage.CurrentSituation = request.CurrentSituation;
             englishPage.MainIdea = request.MainIdea;
             englishPage.Vision = request.Vision;
+            englishPage.Header = request.Header;
 
             _context.EnglishPage.Update(englishPage);
 

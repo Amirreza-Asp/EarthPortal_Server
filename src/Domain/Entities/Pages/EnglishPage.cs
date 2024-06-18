@@ -6,6 +6,8 @@ namespace Domain.Entities.Pages
     {
         public Guid Id { get; set; }
 
+        public EnglishHeader Header { get; set; }
+
         public EnglishIntro Intro { get; set; }
 
         public EnglishMainIdea MainIdea { get; set; }
@@ -19,6 +21,12 @@ namespace Domain.Entities.Pages
         public ICollection<EnglishProblem> Problems { get; set; }
 
         public ICollection<EnglishSolution> Solutions { get; set; }
+    }
+
+    public class EnglishHeader
+    {
+        public String Title { get; set; }
+        public String Description { get; set; }
     }
 
     public class EnglishIntro

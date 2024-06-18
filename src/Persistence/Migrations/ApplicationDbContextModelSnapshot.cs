@@ -1419,6 +1419,29 @@ namespace Persistence.Migrations
                                 .HasForeignKey("EnglishPageId");
                         });
 
+                    b.OwnsOne("Domain.Entities.Pages.EnglishHeader", "Header", b1 =>
+                        {
+                            b1.Property<Guid>("EnglishPageId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Description")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("HeaderDescription");
+
+                            b1.Property<string>("Title")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("HeaderTitle");
+
+                            b1.HasKey("EnglishPageId");
+
+                            b1.ToTable("EnglishPage");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EnglishPageId");
+                        });
+
                     b.OwnsOne("Domain.Entities.Pages.EnglishIntro", "Intro", b1 =>
                         {
                             b1.Property<Guid>("EnglishPageId")
@@ -1499,6 +1522,9 @@ namespace Persistence.Migrations
                         });
 
                     b.Navigation("CurrentSituation")
+                        .IsRequired();
+
+                    b.Navigation("Header")
                         .IsRequired();
 
                     b.Navigation("Intro")

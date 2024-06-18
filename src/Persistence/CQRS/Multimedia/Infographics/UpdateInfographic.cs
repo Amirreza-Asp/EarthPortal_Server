@@ -33,6 +33,7 @@ namespace Persistence.CQRS.Multimedia.Infographics
             infographic.Order = request.Order;
             infographic.Title = request.Title;
             infographic.IsLandscape = request.IsLandscape;
+            infographic.CreatedAt = request.CreatedAt;
 
             var oldImageName = infographic.Name;
 

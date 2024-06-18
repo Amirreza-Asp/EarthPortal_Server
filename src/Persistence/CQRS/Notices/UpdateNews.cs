@@ -38,7 +38,7 @@ namespace Persistence.CQRS.Notices
             news.Title = request.Title;
             news.Headline = request.Headline;
             news.Source = request.Source;
-            news.NewsCategoryId = request.NewsCategoryId;
+
             _context.News.Update(news);
 
             var upsertNewsLink = new UpsertNewsLinkCommand(request.Links == null ? new List<string>() : request.Links, request.Id);

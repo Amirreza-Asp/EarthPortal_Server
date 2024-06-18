@@ -18,7 +18,6 @@ namespace Application.CQRS.Notices
 
         public DateTime DateOfRegisration { get; set; }
 
-        public Guid NewsCategoryId { get; set; }
 
         public List<String>? Links { get; set; }
 
