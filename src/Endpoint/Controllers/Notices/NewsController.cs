@@ -56,6 +56,7 @@ namespace Endpoint.Controllers.Notices
         }
 
 
+
         [HttpGet]
         [Route("SearchByKeyword")]
         public async Task<ListActionResult<NewsSummary>> SearchByKeyword([FromQuery] String keyword, [FromQuery] int page, [FromQuery] int size, CancellationToken cancellationToken)
