@@ -33,7 +33,7 @@ namespace Persistence.CQRS.Notices
             {
                 // افزودن کلید واژه های جدید
                 _context.Link.AddRange(unavailableLinks);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
 
             var addedLinks = await _context.Link.Where(b => unavailableLinks.Select(e => e.Value).Contains(b.Value)).ToListAsync();

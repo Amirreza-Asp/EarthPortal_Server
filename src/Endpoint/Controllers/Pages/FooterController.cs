@@ -27,15 +27,13 @@ namespace Endpoint.Controllers.Pages
         [HttpGet]
         public async Task<FooterSummary> Get(CancellationToken cancellationToken)
         {
-            _userCounterService.ExecuteAsync(default);
+            await _userCounterService.ExecuteAsync(default);
             var footer = await _footerRepo.FirstOrDefaultAsync(b => true, cancellationToken: cancellationToken);
 
-            var todaySeen = 1;
-            var totalSeen = 1;
             List<OnlineUserData> onlineUsers;
 
-            _memoryCache.TryGetValue<int>("todaySeen", out todaySeen);
-            _memoryCache.TryGetValue<int>("totalSeen", out totalSeen);
+            _memoryCache.TryGetValue<int>("todaySeen", out int todaySeen);
+            _memoryCache.TryGetValue<int>("totalSeen", out int totalSeen);
             _memoryCache.TryGetValue<List<OnlineUserData>>("onlineUsers", out onlineUsers);
 
 
@@ -43,9 +41,9 @@ namespace Endpoint.Controllers.Pages
 
             return new FooterSummary
             {
-                TodaySeen = todaySeen,
+                TodaySeen = Math.Max(todaySeen, 1),
                 TodayTotalSeen = 0,
-                TotalSeen = totalSeen,
+                TotalSeen = Math.Max(totalSeen, 1),
                 UpdateAt = footer.LastUpdate,
                 Ip = ip,
                 OnlineUsers = onlineUsers == null ? 1 : onlineUsers.Count

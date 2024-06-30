@@ -26,11 +26,26 @@ builder.Services.AddMvc(opt =>
     opt.Filters.Add(new RemoveServerInfoFilter());
 });
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Logging.ClearProviders();
+builder.Services.AddMemoryCache();
 
+builder.Host.UseSerilog((hostBuilderContext, logConfig) =>
+{
+    if (hostBuilderContext.HostingEnvironment.IsDevelopment())
+    {
+        logConfig.WriteTo.Console().MinimumLevel.Error();
 
-builder.Host.UseSerilog((ctx, lc) => lc
+    }
+    else
+    {
+        if (connectionString != null)
+            logConfig
+                .WriteTo.MSSqlServer(connectionString, "Logs", null, Serilog.Events.LogEventLevel.Information, 50, null, null, true, null, null, "Earth", null);
+        //logConfig.WriteTo.Console().MinimumLevel.Error();
+    }
+});
 
-    .WriteTo.Console());
 
 //.WriteTo.File("logs/myapp.txt", rollingInterval: RollingInterval.Day)
 
@@ -71,7 +86,7 @@ builder.Services.AddCors(options =>
         policy
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .WithOrigins("http://localhost:4173", "http://localhost:5173", "https://newportal.iraneland.ir", "http://192.168.142.49:3000", "http://newportal.iraneland.ir", "http://172.33.21.101:3000", "https://localhost:7121", "https://840f-2a09-bac5-41dc-505-00-80-ec.ngrok-free.app/", "http://localhost:5174", "https://earth-portal-client.vercel.app")
+            .WithOrigins("http://localhost:4173", "https://zamin.gov.ir", "http://localhost:5173", "https://newportal.iraneland.ir", "http://192.168.142.49:3000", "http://newportal.iraneland.ir", "http://172.33.21.101:3000", "https://localhost:7121", "https://840f-2a09-bac5-41dc-505-00-80-ec.ngrok-free.app/", "http://localhost:5174", "https://earth-portal-client.vercel.app")
             .AllowCredentials();
     });
 });

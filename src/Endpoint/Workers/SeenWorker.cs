@@ -33,17 +33,13 @@ namespace Endpoint.Workers
                 }
                 else
                 {
-
-                    var connection =
-
-
                     memoryCache.TryGetValue("totalSeen", out int totalSeen);
                     memoryCache.TryGetValue("todaySeen", out int todaySeen);
 
                     if (footer.TotalSeen != totalSeen || footer.TodaySeen != todaySeen)
                     {
                         if (footer.TotalSeen > totalSeen)
-                            memoryCache.Set("totalSeen", footer.TotalSeen);
+                            memoryCache.Set("totalSeen", footer.TotalSeen, DateTimeOffset.MaxValue);
                         else
                             footer.TotalSeen = totalSeen;
 
