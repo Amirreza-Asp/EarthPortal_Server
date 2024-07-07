@@ -52,15 +52,13 @@ namespace Persistence.CQRS.Notices
             var image = new NewsImage(Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName), news.Id, 0);
             _context.Add(image);
 
+            var upload = _env.WebRootPath + SD.NewsImagePath;
+            if (!Directory.Exists(upload))
+                Directory.CreateDirectory(upload);
+
+            await _photoManager.SaveAsync(request.Image, upload + image.Name, cancellationToken);
             if (await _context.SaveChangesAsync() > 0)
             {
-                var upload = _env.WebRootPath + SD.NewsImagePath;
-
-                if (!Directory.Exists(upload))
-                    Directory.CreateDirectory(upload);
-
-                await _photoManager.SaveAsync(request.Image, upload + image.Name, cancellationToken);
-
                 return CommandResponse.Success(new { Id = news.Id, Image = news.Images.First().Name, ShortLink = news.ShortLink });
             }
 

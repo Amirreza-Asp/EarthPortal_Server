@@ -5,6 +5,7 @@ using Application.Queries;
 using Domain.Dtos.Shared;
 using Domain.Entities.Regulation;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,18 +34,18 @@ namespace Endpoint.Controllers.Regulation
         [AccessControl("Admin")]
         [Route("Create")]
         public async Task<CommandResponse> Create([FromBody] CreateApprovalAuthorityCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [AccessControl("Admin")]
         [Route("Update")]
         public async Task<CommandResponse> Update([FromBody] UpdateApprovalAuthorityCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [AccessControl("Admin")]
         [Route("Remove")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveApprovalAuthorityCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

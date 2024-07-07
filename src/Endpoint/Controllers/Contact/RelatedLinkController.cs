@@ -5,6 +5,7 @@ using Application.Models;
 using Application.Queries;
 using Domain;
 using Domain.Entities.Contact;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,18 +37,18 @@ namespace Endpoint.Controllers.Contact
         [HttpPost]
         [Route("[action]")]
         public async Task<CommandResponse> Create([FromBody] CreateRelatedLinkCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("[action]")]
         public async Task<CommandResponse> Update([FromBody] UpdateRelatedLinkCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
         [HttpDelete]
         [Route("[action]")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveRelatedLinkCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
         [HttpGet]

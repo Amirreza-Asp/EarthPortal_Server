@@ -26,16 +26,20 @@ namespace Persistence.CQRS.Resources.Articles
             if (entity == null)
                 return CommandResponse.Failure(400, "مقاله مورد نظر در سیستم وجود ندارد");
 
-            if (File.Exists(upload + SD.ArticleFilePath + entity.File))
-                File.Delete(upload + SD.ArticleFilePath + entity.File);
 
-            if (File.Exists(upload + SD.ArticleImagePath + entity.Image))
-                File.Delete(upload + SD.ArticleImagePath + entity.Image);
 
             _context.Article.Remove(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                if (File.Exists(upload + SD.ArticleFilePath + entity.File))
+                    File.Delete(upload + SD.ArticleFilePath + entity.File);
+
+                if (File.Exists(upload + SD.ArticleImagePath + entity.Image))
+                    File.Delete(upload + SD.ArticleImagePath + entity.Image);
+
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

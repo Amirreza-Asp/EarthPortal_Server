@@ -31,6 +31,7 @@ namespace Persistence.CQRS.Regulation.Laws
             if (!Directory.Exists(upload))
                 Directory.CreateDirectory(upload);
 
+            await _fileManager.SaveFileAsync(request.Pdf, upload + fileName);
 
 
             var law = new Law(request.Title, new Announcement(request.AnnouncementNumber, request.AnnouncementDate), Newspaper.Create(request.AnnouncementNumber, request.NewspaperDate),
@@ -42,7 +43,6 @@ namespace Persistence.CQRS.Regulation.Laws
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                await _fileManager.SaveFileAsync(request.Pdf, upload + fileName);
                 return CommandResponse.Success(law.Id);
             }
 

@@ -5,6 +5,7 @@ using Application.Models;
 using Application.Queries;
 using Domain;
 using Domain.Dtos.Pages;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -47,57 +48,57 @@ namespace Endpoint.Controllers.Pages
         [HttpPut]
         [Route("[action]")]
         public async Task<CommandResponse> ChangeCurrentSituationImage([FromForm] UpdateCurrentSituationImageCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("[action]")]
         public async Task<CommandResponse> Update([FromBody] UpdateEnglishPageCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
         [HttpPost]
         [Route("[action]")]
         public async Task<CommandResponse> AddCard([FromBody] CreateEnglishCardCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("[action]")]
         public async Task<CommandResponse> UpdateCard([FromBody] UpdateEnglishCardCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("[action]")]
         public async Task<CommandResponse> RemoveCard([FromQuery] RemoveEnglishCardCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPost]
         [Route("[action]")]
         public async Task<CommandResponse> AddProblem([FromBody] EnglishPageAddProblemCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPost]
         [Route("[action]")]
         public async Task<CommandResponse> AddSolution([FromBody] EnglishPageAddSolutionCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("[action]")]
         public async Task<CommandResponse> UpdateProblem([FromBody] EnglishPageUpdateProblemCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("[action]")]
         public async Task<CommandResponse> UpdateSolution([FromBody] EnglishPageUpdateSolutionCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("[action]")]
         public async Task<CommandResponse> RemoveProblem([FromQuery] EnglishPageRemoveProblemCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("[action]")]
         public async Task<CommandResponse> RemoveSolution([FromQuery] EnglishPageRemoveSolutionCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

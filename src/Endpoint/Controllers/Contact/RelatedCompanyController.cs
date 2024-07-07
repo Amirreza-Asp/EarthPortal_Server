@@ -6,6 +6,7 @@ using Application.Queries;
 using Domain;
 using Domain.Entities.Contact;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -49,18 +50,18 @@ namespace Endpoint.Controllers.Contact
         [AccessControl("Admin")]
         [Route("Create")]
         public async Task<CommandResponse> Create([FromForm] CreateRelatedCompanyCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("Update")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Update([FromForm] UpdateRelatedCompanyCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("Remove")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveRelatedCompanyCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

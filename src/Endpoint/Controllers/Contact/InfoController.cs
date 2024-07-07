@@ -5,6 +5,7 @@ using Application.Models;
 using Domain.Dtos.Contact;
 using Domain.Entities.Contact;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,19 +34,19 @@ namespace Endpoint.Controllers.Contact
         [HttpPut]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Update(UpdateInfoCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPost]
         [Route("AddGeoAddress")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Create([FromBody] AddGeoAddressCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
         [HttpDelete]
         [Route("RemoveGeoAddress")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveGeoAddressCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

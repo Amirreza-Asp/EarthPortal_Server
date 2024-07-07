@@ -5,6 +5,7 @@ using Application.Queries;
 using Domain.Dtos.Account;
 using Domain.Entities.Account;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,16 +33,16 @@ namespace Endpoint.Controllers.Account
         [HttpPost]
         [Route("[action]")]
         public async Task<CommandResponse> Create([FromBody] CreateUserCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("[action]")]
         public async Task<CommandResponse> Update([FromBody] UpdateUserCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("[action]")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveUserCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

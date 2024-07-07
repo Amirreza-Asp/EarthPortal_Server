@@ -8,6 +8,7 @@ using Domain;
 using Domain.Dtos.Resources;
 using Domain.Entities.Resources;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -92,19 +93,19 @@ namespace Endpoint.Controllers.Resources
         [Route("Create")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Create([FromForm] CreateBroadcastCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("Update")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Update([FromForm] UpdateBroadcastCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
         [AccessControl("Admin")]
         [HttpDelete]
         [Route("Remove")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveBroadcastCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

@@ -3,6 +3,7 @@ using Application.CQRS.Contact.SystemEvaluations;
 using Application.Models;
 using Domain.Dtos.Contact;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +32,6 @@ namespace Endpoint.Controllers.Contact
         [HttpPost]
         [Route("Create")]
         public async Task<CommandResponse> SystemEvaluation([FromBody] CreateSystemEvaluationCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

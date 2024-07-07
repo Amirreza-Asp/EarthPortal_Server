@@ -44,6 +44,8 @@ namespace Persistence.CQRS.Regulation.Laws
                 oldFileName = law.Pdf;
 
                 law.Pdf = newFileName;
+
+                await _fileManager.SaveFileAsync(request.Pdf, upload + SD.LawPdfPath + newFileName);
             }
 
 
@@ -69,8 +71,6 @@ namespace Persistence.CQRS.Regulation.Laws
                 {
                     if (File.Exists(upload + SD.LawPdfPath + oldFileName))
                         File.Delete(upload + SD.LawPdfPath + oldFileName);
-
-                    await _fileManager.SaveFileAsync(request.Pdf, upload + SD.LawPdfPath + newFileName);
                 }
 
                 return CommandResponse.Success();

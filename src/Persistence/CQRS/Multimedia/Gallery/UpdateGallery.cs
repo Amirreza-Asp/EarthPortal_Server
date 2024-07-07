@@ -25,6 +25,10 @@ namespace Persistence.CQRS.Multimedia.Gallery
 
         public async Task<CommandResponse> Handle(UpdateGalleryCommand request, CancellationToken cancellationToken)
         {
+            var upload = _env.WebRootPath + SD.GalleryPath;
+            if (!Directory.Exists(upload))
+                Directory.CreateDirectory(upload);
+
             var gallery =
                 await _context.Gallery.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
 
@@ -37,30 +41,14 @@ namespace Persistence.CQRS.Multimedia.Gallery
             gallery.CreatedAt = request.CreatedAt;
 
             _context.Gallery.Update(gallery);
-            var upload = _env.WebRootPath + SD.GalleryPath;
-
-            if (request.DeletedImages != null)
-            {
-                var deletedPhotos = await _context.GalleryPhoto.Where(b => request.DeletedImages.Contains(b.Id)).ToListAsync();
-
-                foreach (var deletedPhoto in deletedPhotos)
-                {
-                    if (File.Exists(upload + deletedPhoto.Name))
-                        File.Delete(upload + deletedPhoto.Name);
-
-                    _context.GalleryPhoto.Remove(deletedPhoto);
-                }
-            }
 
             List<ImageSummary> images = new List<ImageSummary>();
+
             if (request.Images != null)
             {
                 foreach (var img in request.Images)
                 {
                     var imgName = Guid.NewGuid() + Path.GetExtension(img.FileName);
-
-                    if (!Directory.Exists(upload))
-                        Directory.CreateDirectory(upload);
 
                     await _photoManager.SaveAsync(img, upload + imgName, cancellationToken);
 
@@ -71,9 +59,23 @@ namespace Persistence.CQRS.Multimedia.Gallery
                 }
             }
 
-
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                if (request.DeletedImages != null)
+                {
+                    var deletedPhotos = await _context.GalleryPhoto.Where(b => request.DeletedImages.Contains(b.Id)).ToListAsync();
+
+                    foreach (var deletedPhoto in deletedPhotos)
+                    {
+                        if (File.Exists(upload + deletedPhoto.Name))
+                            File.Delete(upload + deletedPhoto.Name);
+
+                        _context.GalleryPhoto.Remove(deletedPhoto);
+                    }
+                }
+
                 return CommandResponse.Success(images);
+            }
 
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");

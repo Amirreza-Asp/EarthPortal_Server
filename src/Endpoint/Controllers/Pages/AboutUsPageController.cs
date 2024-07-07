@@ -3,6 +3,7 @@ using Application.CQRS.Pages.AboutUsPage;
 using Application.Models;
 using Domain.Entities.Pages;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,6 +31,6 @@ namespace Endpoint.Controllers.Pages
         [HttpPost]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Update([FromBody] UpdateAboutUsPageCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

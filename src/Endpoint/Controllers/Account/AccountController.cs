@@ -5,6 +5,7 @@ using Application.Models;
 using Domain;
 using Domain.Entities.Account;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ namespace Endpoint.Controllers.Account
         [HttpPost]
         [Route("Login")]
         public async Task<CommandResponse> Login([FromBody] LoginCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpGet]
         [Route("Logout")]
@@ -62,7 +63,7 @@ namespace Endpoint.Controllers.Account
         [Authorize]
         [Route("[action]")]
         public async Task<CommandResponse> ToggleEditContent(CancellationToken cancellationToken) =>
-            await _mediator.Send(new ToggleEditContentCommand(), cancellationToken);
+            await _mediator.HandleRequestAsync(new ToggleEditContentCommand(), cancellationToken);
 
 
         [HttpGet]

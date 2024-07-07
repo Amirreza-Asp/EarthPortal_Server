@@ -5,6 +5,7 @@ using Application.Queries;
 using Domain.Dtos.Shared;
 using Domain.Entities.Resources;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,18 +35,18 @@ namespace Endpoint.Controllers.Resources
         [HttpPost]
         [Route("Create")]
         public async Task<CommandResponse> Create([FromBody] CreateAuthorCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [AccessControl("Admin")]
         [HttpPut]
         [Route("Update")]
         public async Task<CommandResponse> Update([FromBody] UpdateAuthorCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [AccessControl("Admin")]
         [HttpDelete]
         [Route("Remove")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveAuthorCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

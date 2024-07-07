@@ -7,6 +7,7 @@ using Domain;
 using Domain.Dtos.Multimedia;
 using Domain.Entities.Mutimedia;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,18 +51,18 @@ namespace Endpoint.Controllers.Multimedia
         [Route("Create")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Create([FromBody] CreateVideoContentCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("Update")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Update([FromBody] UpdateVideoContentCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("Remove")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveVideoContentCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

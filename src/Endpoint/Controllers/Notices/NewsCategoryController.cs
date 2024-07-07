@@ -5,6 +5,7 @@ using Application.Queries;
 using Domain.Dtos.Notices;
 using Domain.Entities.Notices;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,7 +39,7 @@ namespace Endpoint.Controllers.Notices
         [Route("Create")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Create([FromBody] CreateNewsCategoryCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
 
@@ -46,7 +47,7 @@ namespace Endpoint.Controllers.Notices
         [Route("Update")]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Update([FromBody] UpdateNewsCategoryCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
 
@@ -54,6 +55,6 @@ namespace Endpoint.Controllers.Notices
         [AccessControl("Admin")]
         [Route("Remove")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveNewsCategoryCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

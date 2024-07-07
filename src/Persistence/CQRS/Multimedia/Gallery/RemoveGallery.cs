@@ -30,18 +30,23 @@ namespace Persistence.CQRS.Multimedia.Gallery
                 return CommandResponse.Failure(400, "آلبوم تصاویر انتخاب شده در سیستم وجود ندارد");
 
             var upload = _env.WebRootPath + SD.GalleryPath;
-            foreach (var deletedPhoto in gallery.Images)
-            {
-                if (File.Exists(upload + deletedPhoto.Name))
-                    File.Delete(upload + deletedPhoto.Name);
 
-                _context.GalleryPhoto.Remove(deletedPhoto);
-            }
-
+            _context.GalleryPhoto.RemoveRange(gallery.Images);
             _context.Gallery.Remove(gallery);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                foreach (var deletedPhoto in gallery.Images)
+                {
+                    if (File.Exists(upload + deletedPhoto.Name))
+                        File.Delete(upload + deletedPhoto.Name);
+
+                    _context.GalleryPhoto.Remove(deletedPhoto);
+                }
+
                 return CommandResponse.Success();
+            }
+
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

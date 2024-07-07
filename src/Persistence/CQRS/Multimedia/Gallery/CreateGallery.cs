@@ -30,18 +30,18 @@ namespace Persistence.CQRS.Multimedia.Gallery
 
             var images = new List<GalleryPhoto>();
 
+            var upload = _env.WebRootPath + SD.GalleryPath;
+            if (!Directory.Exists(upload))
+                Directory.CreateDirectory(upload);
+
             foreach (var img in request.Images)
             {
-                var upload = _env.WebRootPath + SD.GalleryPath;
                 var imgName = Guid.NewGuid() + Path.GetExtension(img.FileName);
-
-                if (!Directory.Exists(upload))
-                    Directory.CreateDirectory(upload);
-
                 await _photoManager.SaveAsync(img, upload + imgName, cancellationToken);
 
                 var galleryImage = new GalleryPhoto(imgName, 0, gallery.Id);
                 images.Add(galleryImage);
+
                 _context.GalleryPhoto.Add(galleryImage);
             }
 

@@ -40,21 +40,22 @@ namespace Persistence.CQRS.Multimedia.Infographics
             if (request.Image != null)
                 infographic.Name = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
 
+            var upload = _env.WebRootPath;
+
+            if (!Directory.Exists(upload + SD.InfographicPath))
+                Directory.CreateDirectory(upload + SD.InfographicPath);
+
+            if (request.Image != null)
+                await _photoManager.SaveAsync(request.Image, upload + SD.InfographicPath + infographic.Name, cancellationToken);
+
             _context.Infographic.Update(infographic);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 if (request.Image != null)
                 {
-                    var upload = _env.WebRootPath;
-
-                    if (Directory.Exists(upload + SD.InfographicPath))
-                        Directory.CreateDirectory(upload + SD.InfographicPath);
-
                     if (File.Exists(upload + SD.InfographicPath + oldImageName))
                         File.Delete(upload + SD.InfographicPath + oldImageName);
-
-                    await _photoManager.SaveAsync(request.Image, upload + SD.InfographicPath + infographic.Name, cancellationToken);
                 }
 
                 return CommandResponse.Success(infographic.Name);

@@ -50,23 +50,26 @@ namespace Persistence.CQRS.Notices
             await _context.SaveChangesAsync();
 
             var image = await _context.NewsImage.Where(b => b.NewsId == request.Id).FirstAsync(cancellationToken);
+
+            var oldImage = image.Name;
+
+            var upload = _env.WebRootPath + SD.NewsImagePath;
+            if (!Directory.Exists(upload))
+                Directory.CreateDirectory(upload);
+
             if (request.Image != null)
             {
-
                 image.Name = Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName);
-                _context.NewsImage.Update(image);
-
-                var upload = _env.WebRootPath + SD.NewsImagePath;
-
-                if (image != null && File.Exists(upload + image.Name))
-                    File.Delete(upload + image.Name);
-
-                if (!Directory.Exists(upload))
-                    Directory.CreateDirectory(upload);
-
                 await _photoManager.SaveAsync(request.Image, upload + image.Name, cancellationToken);
 
-                await _context.SaveChangesAsync(cancellationToken);
+                _context.NewsImage.Update(image);
+            }
+
+            if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                if (request.Image != null && image != null && File.Exists(upload + oldImage))
+                    File.Delete(upload + oldImage);
+
                 return CommandResponse.Success(new { Image = image.Name });
             }
 

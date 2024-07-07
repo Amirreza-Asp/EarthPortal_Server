@@ -34,6 +34,12 @@ namespace Persistence.CQRS.Resources.Articles
             var fileName = Guid.NewGuid() + Path.GetExtension(request.File.FileName);
             var imgName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
 
+            using (Stream fileStream = new FileStream(upload + SD.ArticleFilePath + fileName, FileMode.Create))
+            {
+                await request.File.CopyToAsync(fileStream);
+            }
+
+            await _photoManager.SaveAsync(request.Image, upload + SD.ArticleImagePath + imgName, cancellationToken);
 
             var entity = new Article(request.Title, request.Description, fileName, request.PublishDate, request.AuthorId, imgName, request.ShortDescription, request.Pages, request.TranslatorId, request.PublicationId);
             entity.Order = request.Order;
@@ -41,13 +47,6 @@ namespace Persistence.CQRS.Resources.Articles
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                using (Stream fileStream = new FileStream(upload + SD.ArticleFilePath + fileName, FileMode.Create))
-                {
-                    await request.File.CopyToAsync(fileStream);
-                }
-
-                await _photoManager.SaveAsync(request.Image, upload + SD.ArticleImagePath + imgName, cancellationToken);
-
                 return CommandResponse.Success(new { Id = entity.Id, Image = entity.Image, File = entity.File });
             }
 

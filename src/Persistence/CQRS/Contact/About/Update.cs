@@ -23,74 +23,71 @@ namespace Persistence.CQRS.Contact.About
 
         public async Task<CommandResponse> Handle(UpdateAboutCommand request, CancellationToken cancellationToken)
         {
-            if (request.IsVideo && String.IsNullOrEmpty(request.Video))
-                return CommandResponse.Failure(400, "ویدیو را وارد کنید");
-
-            if (request.IsVideo && !request.Video.Contains("iframe"))
-                return CommandResponse.Failure(400, "فرمت ویدیو وارد شده صحیح نمی باشد");
-
-
-
-            var about = await _context.AboutUs.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
-
-            if (about == null)
-                return CommandResponse.Failure(400, "آیتم مورد نظر در سیستم وجود ندارد");
-
-            about.Title = request.Title;
-            about.Content = request.Description;
-            about.CreatedAt = request.CreatedAt;
-            about.Order = request.Order;
-            var upload = _env.WebRootPath + SD.AboutUsPath;
-
-            if (!request.IsVideo)
+            try
             {
-                var oldImage = about.Image;
-                if (request.Image != null)
-                    about.Image = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
+                if (request.IsVideo && String.IsNullOrEmpty(request.Video))
+                    return CommandResponse.Failure(400, "ویدیو را وارد کنید");
 
-                about.Video = null;
+                if (request.IsVideo && !request.Video.Contains("iframe"))
+                    return CommandResponse.Failure(400, "فرمت ویدیو وارد شده صحیح نمی باشد");
 
-                _context.AboutUs.Update(about);
+                var about = await _context.AboutUs.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
 
-                if (await _context.SaveChangesAsync(cancellationToken) > 0)
+                if (about == null)
+                    return CommandResponse.Failure(400, "آیتم مورد نظر در سیستم وجود ندارد");
+
+                about.Title = request.Title;
+                about.Content = request.Description;
+                about.CreatedAt = request.CreatedAt;
+                about.Order = request.Order;
+                var upload = _env.WebRootPath + SD.AboutUsPath;
+
+                if (!Directory.Exists(upload))
+                    Directory.CreateDirectory(upload);
+
+                if (!request.IsVideo)
                 {
+                    var oldImage = about.Image;
+                    if (request.Image != null)
+                        about.Image = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
 
-                    if (!Directory.Exists(upload))
-                        Directory.CreateDirectory(upload);
+                    about.Video = null;
+                    _context.AboutUs.Update(about);
 
                     if (request.Image != null)
+                        await _photoManager.SaveAsync(request.Image, upload + about.Image, cancellationToken);
+
+                    if (await _context.SaveChangesAsync(cancellationToken) > 0)
+                    {
+                        if (request.Image != null && oldImage != null && File.Exists(upload + oldImage))
+                            File.Delete(upload + oldImage);
+
+                        return CommandResponse.Success(new { Image = about.Image });
+                    }
+                }
+                else
+                {
+                    var oldImage = about.Image;
+                    about.Video = request.Video;
+                    about.Image = null;
+
+                    _context.AboutUs.Update(about);
+
+                    if (await _context.SaveChangesAsync(cancellationToken) > 0)
                     {
                         if (oldImage != null && File.Exists(upload + oldImage))
                             File.Delete(upload + oldImage);
 
-                        await _photoManager.SaveAsync(request.Image, upload + about.Image, cancellationToken);
+                        return CommandResponse.Success();
                     }
-
-                    return CommandResponse.Success(new { Image = about.Image });
                 }
+
+                return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
             }
-            else
+            catch (Exception ex)
             {
-                var oldImage = about.Image;
-                about.Video = request.Video;
-                about.Image = null;
-
-                _context.AboutUs.Update(about);
-
-                if (await _context.SaveChangesAsync(cancellationToken) > 0)
-                {
-
-                    if (!Directory.Exists(upload))
-                        Directory.CreateDirectory(upload);
-
-                    if (oldImage != null && File.Exists(upload + oldImage))
-                        File.Delete(upload + oldImage);
-
-                    return CommandResponse.Success();
-                }
+                return CommandResponse.Failure(500, ex);
             }
-
-            return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }
     }
 }

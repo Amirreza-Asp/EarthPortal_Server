@@ -5,6 +5,7 @@ using Application.Queries;
 using Domain;
 using Domain.Dtos.Regulation;
 using Endpoint.CustomeAttributes;
+using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -106,20 +107,20 @@ namespace Endpoint.Controllers.Regulation
         [HttpPost]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Create([FromForm] CreateLawCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+           await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
         [Route("Update")]
         [HttpPut]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Update([FromForm] UpdateLawCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
         [Route("Remove")]
         [HttpDelete]
         [AccessControl("Admin")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveLawCommand command, CancellationToken cancellationToken) =>
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

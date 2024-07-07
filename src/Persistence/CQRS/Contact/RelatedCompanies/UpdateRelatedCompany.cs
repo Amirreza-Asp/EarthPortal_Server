@@ -37,14 +37,12 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
             if (!Directory.Exists(upload))
                 Directory.CreateDirectory(upload);
 
-            String imgName = String.Empty;
+            String imgName = relatedCompany.Image;
+            var oldImage = relatedCompany.Image;
 
             if (request.Image != null)
             {
                 imgName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
-                if (File.Exists(upload + relatedCompany.Image))
-                    File.Delete(upload + relatedCompany.Image);
-
                 await _photoManager.SaveAsync(request.Image, upload + imgName, cancellationToken);
 
                 relatedCompany.Image = imgName;
@@ -53,7 +51,13 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
             _context.RelatedCompany.Update(relatedCompany);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                if (request.Image != null && File.Exists(upload + oldImage))
+                    File.Delete(upload + oldImage);
+
+
                 return CommandResponse.Success(imgName);
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }
