@@ -18,6 +18,9 @@ namespace Infrastructure.Services
 
         public async Task<Byte[]> ResizeAsync(string path, int? width, int? height, CancellationToken cancellationToken = default)
         {
+            if (!File.Exists(path))
+                return new List<Byte>().ToArray();
+
             using var image = await Image.LoadAsync(path, cancellationToken);
 
             if (width.HasValue && height.HasValue)
@@ -31,10 +34,12 @@ namespace Infrastructure.Services
             }
         }
 
-        public async Task SaveAsync(IFormFile file, String path, CancellationToken cancellationToken = default)
+        public void Save(IFormFile file, String path)
         {
-            var image = await Image.LoadAsync(file.OpenReadStream(), cancellationToken);
-            await image.SaveAsync(path, cancellationToken);
+            using (FileStream stream = new FileStream(path, FileMode.Create))
+            {
+                file.CopyTo(stream);
+            }
         }
 
         public async Task SaveFromBase64Async(string base64File, string path, CancellationToken cancellationToken = default)

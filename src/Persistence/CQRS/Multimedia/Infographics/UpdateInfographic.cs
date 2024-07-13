@@ -5,6 +5,7 @@ using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Infographics
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Multimedia.Infographics
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<UpdateInfographicCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateInfographicCommandHandler(ApplicationDbContext context, IWebHostEnvironment env, IPhotoManager photoManager)
+        public UpdateInfographicCommandHandler(ApplicationDbContext context, IWebHostEnvironment env, IPhotoManager photoManager, ILogger<UpdateInfographicCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
             _photoManager = photoManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateInfographicCommand request, CancellationToken cancellationToken)
@@ -46,7 +51,7 @@ namespace Persistence.CQRS.Multimedia.Infographics
                 Directory.CreateDirectory(upload + SD.InfographicPath);
 
             if (request.Image != null)
-                await _photoManager.SaveAsync(request.Image, upload + SD.InfographicPath + infographic.Name, cancellationToken);
+                _photoManager.Save(request.Image, upload + SD.InfographicPath + infographic.Name);
 
             _context.Infographic.Update(infographic);
 
@@ -58,6 +63,7 @@ namespace Persistence.CQRS.Multimedia.Infographics
                         File.Delete(upload + SD.InfographicPath + oldImageName);
                 }
 
+                _logger.LogInformation($"Infographic with id {infographic.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(infographic.Name);
             }
 

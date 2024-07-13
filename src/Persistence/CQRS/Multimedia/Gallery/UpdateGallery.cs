@@ -7,6 +7,7 @@ using Domain.Entities.Mutimedia;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Gallery
 {
@@ -15,12 +16,16 @@ namespace Persistence.CQRS.Multimedia.Gallery
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<UpdateGalleryCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateGalleryCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager)
+        public UpdateGalleryCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<UpdateGalleryCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
             _photoManager = photoManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateGalleryCommand request, CancellationToken cancellationToken)
@@ -50,7 +55,7 @@ namespace Persistence.CQRS.Multimedia.Gallery
                 {
                     var imgName = Guid.NewGuid() + Path.GetExtension(img.FileName);
 
-                    await _photoManager.SaveAsync(img, upload + imgName, cancellationToken);
+                    _photoManager.Save(img, upload + imgName);
 
                     var galleryImage = new GalleryPhoto(imgName, 0, gallery.Id);
                     _context.GalleryPhoto.Add(galleryImage);
@@ -74,6 +79,7 @@ namespace Persistence.CQRS.Multimedia.Gallery
                     }
                 }
 
+                _logger.LogInformation($"Gallery with id {gallery.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(images);
             }
 

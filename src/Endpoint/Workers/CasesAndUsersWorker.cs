@@ -26,7 +26,7 @@ namespace Endpoint.BackgroundServices
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("CasesAndUsers running at: {time}", DateTimeOffset.Now);
+                //_logger.LogInformation("CasesAndUsers running at: {time}", DateTimeOffset.Now);
                 var data = await _iranelandService.GetCasesAndUsersAsync(stoppingToken);
 
                 var result = await _homePageRepo.UpdateCasesAndUsersAsync(data);

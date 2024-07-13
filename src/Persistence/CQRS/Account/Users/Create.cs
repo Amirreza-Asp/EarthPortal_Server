@@ -4,6 +4,7 @@ using Application.Models;
 using Domain.Entities.Account;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Account.Users
 {
@@ -11,10 +12,14 @@ namespace Persistence.CQRS.Account.Users
     {
         private readonly ApplicationDbContext _context;
         private readonly IPasswordManager _passManager;
-        public CreateUserCommandHandler(ApplicationDbContext context, IPasswordManager passManager)
+        private readonly ILogger<CreateUserCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
+        public CreateUserCommandHandler(ApplicationDbContext context, IPasswordManager passManager, ILogger<CreateUserCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _passManager = passManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -33,7 +38,10 @@ namespace Persistence.CQRS.Account.Users
             _context.User.Add(user);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"user with username {request.UserName} registered by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(user.CreatedAt);
+            }
 
             return CommandResponse.Failure(400, "عملیات با خطا مواجه شد");
 

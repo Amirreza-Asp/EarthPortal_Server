@@ -43,10 +43,7 @@ namespace Persistence.CQRS.Notices
 
             _context.NewsLink.AddRange(newLinks);
 
-            if (await _context.SaveChangesAsync(cancellationToken) > 0)
-                return CommandResponse.Success();
-
-            return CommandResponse.Failure(400, "افزودن کلیدواژه ها با شکست مواجه شد");
+            return CommandResponse.Success();
         }
     }
 }

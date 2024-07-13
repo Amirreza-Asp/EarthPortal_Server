@@ -1,6 +1,7 @@
 ﻿using Application.Contracts.Persistence.Services;
 using Application.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 
@@ -23,9 +24,9 @@ namespace Persistence.Services
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             var connectionId = _accessor.HttpContext.Connection.Id;
-            var semaphore = _connectionLocks.GetOrAdd(connectionId, new SemaphoreSlim(1, 1));
+            //var semaphore = _connectionLocks.GetOrAdd(connectionId, new SemaphoreSlim(1, 1));
 
-            await semaphore.WaitAsync(cancellationToken);
+            //await semaphore.WaitAsync(cancellationToken);
             try
             {
                 _memoryCache.TryGetValue<List<OnlineUserData>>("onlineUsers", out List<OnlineUserData>? onlineUsers);
@@ -41,23 +42,32 @@ namespace Persistence.Services
 
                 if (!exist)
                 {
+                    await UpdateTotalSeen(_context, cancellationToken);
                     _memoryCache.TryGetValue<int>("todaySeen", out int todaySeen);
-                    _memoryCache.TryGetValue<int>("totalSeen", out int totalSeen);
-
                     _memoryCache.Set<int>("todaySeen", todaySeen + 1, new DateTimeOffset(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59, TimeSpan.Zero));
-                    _memoryCache.Set<int>("totalSeen", totalSeen + 1, DateTimeOffset.MaxValue);
                 }
             }
             finally
             {
-                semaphore.Release();
+                //semaphore.Release();
                 // Clean up the semaphore if it's no longer needed
-                if (_connectionLocks.TryRemove(connectionId, out var existingSemaphore))
-                {
-                    existingSemaphore.Dispose();
-                }
+                //if (_connectionLocks.TryRemove(connectionId, out var existingSemaphore))
+                //{
+                //    existingSemaphore.Dispose();
+                //}
             }
 
+        }
+
+
+        async Task UpdateTotalSeen(ApplicationDbContext context, CancellationToken cancellationToken)
+        {
+            var footer =
+                      await _context.FooterPage.FirstAsync();
+
+            footer.TotalSeen += 1;
+            _context.FooterPage.Update(footer);
+            _context.SaveChanges();
         }
     }
 }

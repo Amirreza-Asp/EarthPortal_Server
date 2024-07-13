@@ -1,17 +1,23 @@
-﻿using Application.CQRS.Account.User;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Account.User;
 using Application.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Account.Users
 {
     public class RemoveUserCommandHandler : IRequestHandler<RemoveUserCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<RemoveUserCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public RemoveUserCommandHandler(ApplicationDbContext context)
+        public RemoveUserCommandHandler(ApplicationDbContext context, ILogger<RemoveUserCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
 
@@ -30,7 +36,10 @@ namespace Persistence.CQRS.Account.Users
             _context.User.Update(user);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"user with username {request.UserName} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

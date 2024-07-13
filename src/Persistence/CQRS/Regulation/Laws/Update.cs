@@ -7,6 +7,7 @@ using Domain.Entities.Regulation.ValueObjects;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Regulation.Laws
 {
@@ -15,12 +16,16 @@ namespace Persistence.CQRS.Regulation.Laws
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IFileManager _fileManager;
+        private readonly ILogger<UpdateLawCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateLawCommandHandler(ApplicationDbContext context, IFileManager fileManager, IHostingEnvironment env)
+        public UpdateLawCommandHandler(ApplicationDbContext context, IFileManager fileManager, IHostingEnvironment env, ILogger<UpdateLawCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _fileManager = fileManager;
             _env = env;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateLawCommand request, CancellationToken cancellationToken)
@@ -72,6 +77,9 @@ namespace Persistence.CQRS.Regulation.Laws
                     if (File.Exists(upload + SD.LawPdfPath + oldFileName))
                         File.Delete(upload + SD.LawPdfPath + oldFileName);
                 }
+
+
+                _logger.LogInformation($"Law with id {law.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
 
                 return CommandResponse.Success();
             }

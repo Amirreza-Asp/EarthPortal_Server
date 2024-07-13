@@ -1,17 +1,24 @@
-﻿using Application.CQRS.Resources.Publications;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Resources.Publications;
 using Application.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Publications
 {
     public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublicationCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<UpdatePublicationCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdatePublicationCommandHandler(ApplicationDbContext context)
+
+        public UpdatePublicationCommandHandler(ApplicationDbContext context, ILogger<UpdatePublicationCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdatePublicationCommand request, CancellationToken cancellationToken)
@@ -27,7 +34,10 @@ namespace Persistence.CQRS.Resources.Publications
             _context.Publication.Update(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"Publication with id {entity.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

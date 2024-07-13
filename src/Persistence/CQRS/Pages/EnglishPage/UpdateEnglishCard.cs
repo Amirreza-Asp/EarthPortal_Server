@@ -1,17 +1,23 @@
-﻿using Application.CQRS.Pages.EnglishPage;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Pages.EnglishPage;
 using Application.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Pages.EnglishPage
 {
     public class UpdateEnglishCardCommandHandler : IRequestHandler<UpdateEnglishCardCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<UpdateEnglishCardCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateEnglishCardCommandHandler(ApplicationDbContext context)
+        public UpdateEnglishCardCommandHandler(ApplicationDbContext context, ILogger<UpdateEnglishCardCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateEnglishCardCommand request, CancellationToken cancellationToken)
@@ -32,7 +38,11 @@ namespace Persistence.CQRS.Pages.EnglishPage
             _context.EnglishCard.Update(card);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+
+                _logger.LogInformation($"Card with id {request.Id} Updated from EnglishPage  by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "The operation failed");
 

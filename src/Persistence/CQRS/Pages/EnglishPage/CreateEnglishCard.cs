@@ -1,10 +1,12 @@
-﻿using Application.CQRS.Pages.EnglishPage;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Pages.EnglishPage;
 using Application.Models;
 using AutoMapper;
 using Domain.Dtos.Pages;
 using Domain.Entities.Pages;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Pages.EnglishPage
 {
@@ -12,11 +14,15 @@ namespace Persistence.CQRS.Pages.EnglishPage
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger<CreateEnglishCardCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public CreateEnglishCardCommandHandler(ApplicationDbContext context, IMapper mapper)
+        public CreateEnglishCardCommandHandler(ApplicationDbContext context, IMapper mapper, ILogger<CreateEnglishCardCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(CreateEnglishCardCommand request, CancellationToken cancellationToken)
@@ -56,8 +62,11 @@ namespace Persistence.CQRS.Pages.EnglishPage
 
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
-                return CommandResponse.Success(new { data = _mapper.Map<List<EnglishCardDto>>(data) });
+            {
 
+                _logger.LogInformation($"New Card  added to english page by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                return CommandResponse.Success(new { data = _mapper.Map<List<EnglishCardDto>>(data) });
+            }
             return CommandResponse.Failure(400, "The operation failed");
         }
     }

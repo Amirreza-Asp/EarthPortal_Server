@@ -5,6 +5,7 @@ using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Pages.EnglishPage
 {
@@ -13,12 +14,17 @@ namespace Persistence.CQRS.Pages.EnglishPage
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<UpdateCurrentSituationImageCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateCurrentSituationImageCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager)
+
+        public UpdateCurrentSituationImageCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<UpdateCurrentSituationImageCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
             _photoManager = photoManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateCurrentSituationImageCommand request, CancellationToken cancellationToken)
@@ -36,12 +42,14 @@ namespace Persistence.CQRS.Pages.EnglishPage
 
             page.CurrentSituation.Image = newImageName;
 
+            _photoManager.Save(request.Image, upload + newImageName);
+
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 if (File.Exists(upload + oldImageName))
                     File.Delete(upload + oldImageName);
 
-                await _photoManager.SaveAsync(request.Image, upload + newImageName, cancellationToken);
+                _logger.LogInformation($"CurrentSituationImage Updated from EnglishPage  by {_userAccessor.GetUserName()} in {DateTime.Now}");
 
                 return CommandResponse.Success(newImageName);
             }

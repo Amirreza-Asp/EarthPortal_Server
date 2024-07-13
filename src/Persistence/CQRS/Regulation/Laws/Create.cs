@@ -7,6 +7,7 @@ using Domain.Entities.Regulation.Enums;
 using Domain.Entities.Regulation.ValueObjects;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Regulation.Laws
 {
@@ -15,12 +16,16 @@ namespace Persistence.CQRS.Regulation.Laws
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _hostEnv;
         private readonly IFileManager _fileManager;
+        private readonly ILogger<CreateLawCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public CreateLawCommandHandler(ApplicationDbContext context, IHostingEnvironment hostEnv, IFileManager fileManager)
+        public CreateLawCommandHandler(ApplicationDbContext context, IHostingEnvironment hostEnv, IFileManager fileManager, ILogger<CreateLawCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _hostEnv = hostEnv;
             _fileManager = fileManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(CreateLawCommand request, CancellationToken cancellationToken)
@@ -43,6 +48,8 @@ namespace Persistence.CQRS.Regulation.Laws
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
+
+                _logger.LogInformation($"Law with id {law.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(law.Id);
             }
 

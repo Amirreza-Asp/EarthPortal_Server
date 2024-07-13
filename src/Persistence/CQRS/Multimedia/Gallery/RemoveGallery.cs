@@ -5,6 +5,7 @@ using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Gallery
 {
@@ -13,12 +14,17 @@ namespace Persistence.CQRS.Multimedia.Gallery
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<RemoveGalleryCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public RemoveGalleryCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager)
+
+        public RemoveGalleryCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<RemoveGalleryCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
             _photoManager = photoManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(RemoveGalleryCommand request, CancellationToken cancellationToken)
@@ -40,9 +46,9 @@ namespace Persistence.CQRS.Multimedia.Gallery
                 {
                     if (File.Exists(upload + deletedPhoto.Name))
                         File.Delete(upload + deletedPhoto.Name);
-
-                    _context.GalleryPhoto.Remove(deletedPhoto);
                 }
+
+                _logger.LogInformation($"Gallery with id {gallery.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
 
                 return CommandResponse.Success();
             }

@@ -1,17 +1,24 @@
-﻿using Application.CQRS.Resources.Publications;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Resources.Publications;
 using Application.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Publications
 {
     public class RemovePublicationCommandHandler : IRequestHandler<RemovePublicationCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<RemovePublicationCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public RemovePublicationCommandHandler(ApplicationDbContext context)
+
+        public RemovePublicationCommandHandler(ApplicationDbContext context, ILogger<RemovePublicationCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(RemovePublicationCommand request, CancellationToken cancellationToken)
@@ -24,7 +31,10 @@ namespace Persistence.CQRS.Resources.Publications
             _context.Publication.Remove(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"Publication with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

@@ -1,9 +1,11 @@
-﻿using Application.CQRS.Resources.Articles;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Resources.Articles;
 using Application.Models;
 using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Articles
 {
@@ -11,11 +13,14 @@ namespace Persistence.CQRS.Resources.Articles
     {
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
-
-        public RemoveArticleCommandHandler(ApplicationDbContext context, IHostingEnvironment env)
+        private readonly ILogger<RemoveArticleCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
+        public RemoveArticleCommandHandler(ApplicationDbContext context, IHostingEnvironment env, ILogger<RemoveArticleCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(RemoveArticleCommand request, CancellationToken cancellationToken)
@@ -38,6 +43,7 @@ namespace Persistence.CQRS.Resources.Articles
                 if (File.Exists(upload + SD.ArticleImagePath + entity.Image))
                     File.Delete(upload + SD.ArticleImagePath + entity.Image);
 
+                _logger.LogInformation($"Article with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
             }
 

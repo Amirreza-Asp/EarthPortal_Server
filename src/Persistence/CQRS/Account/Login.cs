@@ -5,6 +5,7 @@ using Application.Models;
 using Domain.Entities.Account;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Account
 {
@@ -13,12 +14,14 @@ namespace Persistence.CQRS.Account
         private readonly IRepository<User> _userRepository;
         private readonly IPasswordManager _passManager;
         private readonly IMediator _mediator;
+        private readonly ILogger<LoginCommandHandler> _logger;
 
-        public LoginCommandHandler(IRepository<User> useRepository, IPasswordManager passManager, IMediator mediator)
+        public LoginCommandHandler(IRepository<User> useRepository, IPasswordManager passManager, IMediator mediator, ILogger<LoginCommandHandler> logger)
         {
             _userRepository = useRepository;
             _passManager = passManager;
             _mediator = mediator;
+            _logger = logger;
         }
 
         public async Task<CommandResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -38,6 +41,7 @@ namespace Persistence.CQRS.Account
             var setCookiesNotification = new SetAuthCookiesNotification(user.UserName);
             await _mediator.Publish(setCookiesNotification);
 
+            _logger.LogInformation($"User with username : {request.UserName} logged in {DateTime.Now}");
 
             return CommandResponse.Success(new { userName = user.UserName, name = user.Name + " " + user.Family, role = user.Role?.Title, roleDisplay = user.Role?.Display });
         }

@@ -1,17 +1,23 @@
-﻿using Application.CQRS.Resources.Authors;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Resources.Authors;
 using Application.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Authors
 {
     public class UpdateAuthorCommandHandler : IRequestHandler<UpdateAuthorCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<UpdateAuthorCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateAuthorCommandHandler(ApplicationDbContext context)
+        public UpdateAuthorCommandHandler(ApplicationDbContext context, ILogger<UpdateAuthorCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateAuthorCommand request, CancellationToken cancellationToken)
@@ -27,7 +33,11 @@ namespace Persistence.CQRS.Resources.Authors
             _context.Author.Update(author);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+
+                _logger.LogInformation($"Author with id {author.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

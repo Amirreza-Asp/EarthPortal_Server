@@ -5,6 +5,7 @@ using Domain;
 using Domain.Entities.Resources;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Books
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Resources.Books
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<CreateBookCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public CreateBookCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager)
+        public CreateBookCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<CreateBookCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
             _photoManager = photoManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(CreateBookCommand request, CancellationToken cancellationToken)
@@ -40,15 +45,19 @@ namespace Persistence.CQRS.Resources.Books
             book.Order = request.Order;
             _context.Book.Add(book);
 
+
+            _photoManager.Save(request.Image, upload + SD.BookImagePath + imgName);
+            using (Stream fileStream = new FileStream(upload + SD.BookFilePath + fileName, FileMode.Create))
+            {
+                await request.File.CopyToAsync(fileStream);
+            }
+
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                using (Stream fileStream = new FileStream(upload + SD.BookFilePath + fileName, FileMode.Create))
-                {
-                    await request.File.CopyToAsync(fileStream);
-                }
 
-                await _photoManager.SaveAsync(request.Image, upload + SD.BookImagePath + imgName, cancellationToken);
 
+
+                _logger.LogInformation($"Book with id {book.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(new { Id = book.Id, Image = book.Image, File = book.File });
             }
 

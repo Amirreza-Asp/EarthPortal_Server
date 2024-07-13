@@ -16,6 +16,7 @@ namespace Infrastructure
             services.AddScoped<IPasswordManager, PasswordManager>();
             services.AddScoped<IFileManager, FileManager>();
             services.AddScoped<ITokenValidate, TokenValidate>();
+            services.AddScoped<IUserAccessor, UserAccessor>();
 
             return services;
         }

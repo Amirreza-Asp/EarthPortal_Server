@@ -8,7 +8,6 @@ using Domain;
 using Endpoint.BackgroundServices;
 using Endpoint.Filters;
 using Endpoint.Middlewares;
-using Endpoint.Workers;
 using Infrastructure;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -34,14 +33,12 @@ builder.Host.UseSerilog((hostBuilderContext, logConfig) =>
 {
     if (hostBuilderContext.HostingEnvironment.IsDevelopment())
     {
-        logConfig.WriteTo.Console().MinimumLevel.Error();
-
+        //logConfig.WriteTo.Console().MinimumLevel.Information();
+        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
     }
     else
     {
-        if (connectionString != null)
-            logConfig
-                .WriteTo.MSSqlServer(connectionString, "Logs", null, Serilog.Events.LogEventLevel.Information, 50, null, null, true, null, null, "Earth", null);
+        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
         //logConfig.WriteTo.Console().MinimumLevel.Error();
     }
 });
@@ -75,7 +72,6 @@ builder.Services
     .AddInfrastructureRegistrations();
 
 builder.Services.AddHostedService<CasesAndUsersWorker>();
-builder.Services.AddHostedService<SeenWorker>();
 
 builder.Services.AddHttpContextAccessor();
 

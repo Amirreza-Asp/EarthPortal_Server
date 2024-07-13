@@ -5,6 +5,7 @@ using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Books
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Resources.Books
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<UpdateBookCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateBookCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager)
+        public UpdateBookCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<UpdateBookCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
             _photoManager = photoManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateBookCommand request, CancellationToken cancellationToken)
@@ -58,12 +63,18 @@ namespace Persistence.CQRS.Resources.Books
             {
                 var fileName = Guid.NewGuid() + Path.GetExtension(request.File.FileName);
                 book.File = fileName;
+
+                using (Stream fileStream = new FileStream(upload + SD.BookFilePath + book.File, FileMode.Create))
+                {
+                    await request.File.CopyToAsync(fileStream);
+                }
             }
 
             if (request.Image != null)
             {
                 var imgName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
                 book.Image = imgName;
+                _photoManager.Save(request.Image, upload + SD.BookImagePath + book.Image);
             }
 
             _context.Book.Update(book);
@@ -77,7 +88,6 @@ namespace Persistence.CQRS.Resources.Books
                     if (File.Exists(upload + SD.BookImagePath + oldImage))
                         File.Delete(upload + SD.BookImagePath + oldImage);
 
-                    await _photoManager.SaveAsync(request.Image, upload + SD.BookImagePath + book.Image, cancellationToken);
                 }
 
                 if (request.File != null)
@@ -85,12 +95,9 @@ namespace Persistence.CQRS.Resources.Books
                     if (File.Exists(upload + SD.BookFilePath + oldFile))
                         File.Delete(upload + SD.BookFilePath + oldFile);
 
-                    using (Stream fileStream = new FileStream(upload + SD.BookFilePath + book.File, FileMode.Create))
-                    {
-                        await request.File.CopyToAsync(fileStream);
-                    }
                 }
 
+                _logger.LogInformation($"Book with id {book.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(new { Id = book.Id, Image = book.Image, File = book.File });
             }
 

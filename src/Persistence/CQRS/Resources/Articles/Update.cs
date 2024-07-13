@@ -5,6 +5,7 @@ using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Articles
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Resources.Articles
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<UpdateArticleCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateArticleCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager)
+        public UpdateArticleCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<UpdateArticleCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
             _photoManager = photoManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateArticleCommand request, CancellationToken cancellationToken)
@@ -69,7 +74,7 @@ namespace Persistence.CQRS.Resources.Articles
                 entity.Image = imgName;
 
 
-                await _photoManager.SaveAsync(request.Image, upload + SD.ArticleImagePath + entity.Image, cancellationToken);
+                _photoManager.Save(request.Image, upload + SD.ArticleImagePath + entity.Image);
             }
 
             _context.Article.Update(entity);
@@ -88,6 +93,9 @@ namespace Persistence.CQRS.Resources.Articles
                     if (File.Exists(upload + SD.ArticleFilePath + oldFile))
                         File.Delete(upload + SD.ArticleFilePath + oldFile);
                 }
+
+
+                _logger.LogInformation($"Article with id {entity.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
 
                 return CommandResponse.Success(new { Id = entity.Id, Image = entity.Image, File = entity.File });
             }

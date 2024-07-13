@@ -1,7 +1,9 @@
-﻿using Application.CQRS.Regulation.ApprovalAuthorities;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Regulation.ApprovalAuthorities;
 using Application.Models;
 using Domain.Entities.Regulation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Regulation.ApprovalAuthorities
 {
@@ -9,9 +11,14 @@ namespace Persistence.CQRS.Regulation.ApprovalAuthorities
     {
         private readonly ApplicationDbContext _context;
 
-        public CreateApprovalAuthorityCommandHandler(ApplicationDbContext context)
+        private readonly ILogger<CreateApprovalAuthorityCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
+
+        public CreateApprovalAuthorityCommandHandler(ApplicationDbContext context, ILogger<CreateApprovalAuthorityCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(CreateApprovalAuthorityCommand request, CancellationToken cancellationToken)
@@ -21,7 +28,11 @@ namespace Persistence.CQRS.Regulation.ApprovalAuthorities
             _context.ApprovalAuthority.Add(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+
+                _logger.LogInformation($"ApprovalAuthority with id {entity.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(entity.Id);
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

@@ -5,6 +5,7 @@ using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.About
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Contact.About
         private readonly ApplicationDbContext _context;
         private readonly IPhotoManager _photoManager;
         private readonly IHostingEnvironment _env;
+        private readonly ILogger<UpdateAboutCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateAboutCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env)
+        public UpdateAboutCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env, ILogger<UpdateAboutCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _photoManager = photoManager;
             _env = env;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateAboutCommand request, CancellationToken cancellationToken)
@@ -55,12 +60,14 @@ namespace Persistence.CQRS.Contact.About
                     _context.AboutUs.Update(about);
 
                     if (request.Image != null)
-                        await _photoManager.SaveAsync(request.Image, upload + about.Image, cancellationToken);
+                        _photoManager.Save(request.Image, upload + about.Image);
 
                     if (await _context.SaveChangesAsync(cancellationToken) > 0)
                     {
                         if (request.Image != null && oldImage != null && File.Exists(upload + oldImage))
                             File.Delete(upload + oldImage);
+
+                        _logger.LogInformation($"about with id {about.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
 
                         return CommandResponse.Success(new { Image = about.Image });
                     }
@@ -77,6 +84,8 @@ namespace Persistence.CQRS.Contact.About
                     {
                         if (oldImage != null && File.Exists(upload + oldImage))
                             File.Delete(upload + oldImage);
+
+                        _logger.LogInformation($"about with id {about.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
 
                         return CommandResponse.Success();
                     }

@@ -1,17 +1,23 @@
-﻿using Application.CQRS.Pages.EnglishPage;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Pages.EnglishPage;
 using Application.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Pages.EnglishPage
 {
     public class RemoveEnglishCardCommandHandler : IRequestHandler<RemoveEnglishCardCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<RemoveEnglishCardCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public RemoveEnglishCardCommandHandler(ApplicationDbContext context)
+        public RemoveEnglishCardCommandHandler(ApplicationDbContext context, ILogger<RemoveEnglishCardCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(RemoveEnglishCardCommand request, CancellationToken cancellationToken)
@@ -35,7 +41,11 @@ namespace Persistence.CQRS.Pages.EnglishPage
             _context.EnglishCard.UpdateRange(otherCards);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+
+                _logger.LogInformation($"Card  with id {request.Id} removed from english page by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "The operation failed");
         }

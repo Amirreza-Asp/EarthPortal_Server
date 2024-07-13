@@ -5,6 +5,7 @@ using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Broadcasts
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Resources.Broadcasts
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<UpdateBroadcastCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateBroadcastCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager)
+        public UpdateBroadcastCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<UpdateBroadcastCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
             _photoManager = photoManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateBroadcastCommand request, CancellationToken cancellationToken)
@@ -59,39 +64,38 @@ namespace Persistence.CQRS.Resources.Broadcasts
             {
                 var fileName = Guid.NewGuid() + Path.GetExtension(request.File.FileName);
                 entity.File = fileName;
+
+                using (Stream fileStream = new FileStream(upload + SD.BroadcastFilePath + entity.File, FileMode.Create))
+                {
+                    await request.File.CopyToAsync(fileStream);
+                }
             }
 
             if (request.Image != null)
             {
                 var imgName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
                 entity.Image = imgName;
+
+                _photoManager.Save(request.Image, upload + SD.BroadcastImagePath + entity.Image);
             }
 
             _context.Broadcast.Update(entity);
 
-
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-
                 if (request.Image != null)
                 {
                     if (File.Exists(upload + SD.BroadcastImagePath + oldImage))
                         File.Delete(upload + SD.BroadcastImagePath + oldImage);
-
-                    await _photoManager.SaveAsync(request.Image, upload + SD.BroadcastImagePath + entity.Image, cancellationToken);
                 }
 
                 if (request.File != null)
                 {
                     if (File.Exists(upload + SD.BroadcastFilePath + oldFile))
                         File.Delete(upload + SD.BroadcastFilePath + oldFile);
-
-                    using (Stream fileStream = new FileStream(upload + SD.BroadcastFilePath + entity.File, FileMode.Create))
-                    {
-                        await request.File.CopyToAsync(fileStream);
-                    }
                 }
 
+                _logger.LogInformation($"Broadcast with id {entity.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(new { Id = entity.Id, Image = entity.Image, File = entity.File });
             }
 

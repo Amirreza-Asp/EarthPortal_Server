@@ -5,6 +5,7 @@ using Domain;
 using Domain.Entities.Resources;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Articles
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Resources.Articles
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<CreateArticleCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public CreateArticleCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env)
+        public CreateArticleCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env, ILogger<CreateArticleCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _photoManager = photoManager;
             _env = env;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(CreateArticleCommand request, CancellationToken cancellationToken)
@@ -39,7 +44,7 @@ namespace Persistence.CQRS.Resources.Articles
                 await request.File.CopyToAsync(fileStream);
             }
 
-            await _photoManager.SaveAsync(request.Image, upload + SD.ArticleImagePath + imgName, cancellationToken);
+            _photoManager.Save(request.Image, upload + SD.ArticleImagePath + imgName);
 
             var entity = new Article(request.Title, request.Description, fileName, request.PublishDate, request.AuthorId, imgName, request.ShortDescription, request.Pages, request.TranslatorId, request.PublicationId);
             entity.Order = request.Order;
@@ -47,6 +52,7 @@ namespace Persistence.CQRS.Resources.Articles
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
+                _logger.LogInformation($"Article with id {entity.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(new { Id = entity.Id, Image = entity.Image, File = entity.File });
             }
 

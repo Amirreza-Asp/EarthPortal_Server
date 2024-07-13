@@ -5,6 +5,7 @@ using Domain;
 using Domain.Entities.Mutimedia;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Gallery
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Multimedia.Gallery
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<CreateGalleryCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public CreateGalleryCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager)
+        public CreateGalleryCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<CreateGalleryCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
             _photoManager = photoManager;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(CreateGalleryCommand request, CancellationToken cancellationToken)
@@ -37,7 +42,7 @@ namespace Persistence.CQRS.Multimedia.Gallery
             foreach (var img in request.Images)
             {
                 var imgName = Guid.NewGuid() + Path.GetExtension(img.FileName);
-                await _photoManager.SaveAsync(img, upload + imgName, cancellationToken);
+                _photoManager.Save(img, upload + imgName);
 
                 var galleryImage = new GalleryPhoto(imgName, 0, gallery.Id);
                 images.Add(galleryImage);
@@ -46,8 +51,10 @@ namespace Persistence.CQRS.Multimedia.Gallery
             }
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"Gallery with id {gallery.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(new { Id = gallery.Id, Images = images.Select(s => new { Id = s.Id, Name = s.Name }) });
-
+            }
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }
     }

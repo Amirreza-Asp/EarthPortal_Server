@@ -6,6 +6,7 @@ using Domain.Entities.Notices;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Notices
 {
@@ -15,13 +16,18 @@ namespace Persistence.CQRS.Notices
         private readonly IHostingEnvironment _env;
         private readonly IMediator _mediator;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<CreateNewsCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public CreateNewsCommandHandler(ApplicationDbContext context, IMediator mediator, IPhotoManager photoManager, IHostingEnvironment env)
+
+        public CreateNewsCommandHandler(ApplicationDbContext context, IMediator mediator, IPhotoManager photoManager, IHostingEnvironment env, ILogger<CreateNewsCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _mediator = mediator;
             _photoManager = photoManager;
             _env = env;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(CreateNewsCommand request, CancellationToken cancellationToken)
@@ -56,9 +62,11 @@ namespace Persistence.CQRS.Notices
             if (!Directory.Exists(upload))
                 Directory.CreateDirectory(upload);
 
-            await _photoManager.SaveAsync(request.Image, upload + image.Name, cancellationToken);
+            _photoManager.Save(request.Image, upload + image.Name);
             if (await _context.SaveChangesAsync() > 0)
             {
+
+                _logger.LogInformation($"News with id {news.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(new { Id = news.Id, Image = news.Images.First().Name, ShortLink = news.ShortLink });
             }
 

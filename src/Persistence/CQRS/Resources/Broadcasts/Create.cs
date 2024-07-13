@@ -5,6 +5,7 @@ using Domain;
 using Domain.Entities.Resources;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Broadcasts
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Resources.Broadcasts
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<CreateBroadcastCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public CreateBroadcastCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env)
+        public CreateBroadcastCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env, ILogger<CreateBroadcastCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _photoManager = photoManager;
             _env = env;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(CreateBroadcastCommand request, CancellationToken cancellationToken)
@@ -39,15 +44,17 @@ namespace Persistence.CQRS.Resources.Broadcasts
             entity.Order = request.Order;
             _context.Broadcast.Add(entity);
 
+            using (Stream fileStream = new FileStream(upload + SD.BroadcastFilePath + fileName, FileMode.Create))
+            {
+                await request.File.CopyToAsync(fileStream);
+            }
+
+            _photoManager.Save(request.Image, upload + SD.BroadcastImagePath + imgName);
+
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                using (Stream fileStream = new FileStream(upload + SD.BroadcastFilePath + fileName, FileMode.Create))
-                {
-                    await request.File.CopyToAsync(fileStream);
-                }
 
-                await _photoManager.SaveAsync(request.Image, upload + SD.BroadcastImagePath + imgName, cancellationToken);
-
+                _logger.LogInformation($"Broadcast with id {entity.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(new { Id = entity.Id, Image = entity.Image, File = entity.File });
             }
 

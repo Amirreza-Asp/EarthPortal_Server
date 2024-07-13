@@ -1,17 +1,23 @@
-﻿using Application.CQRS.Contact.Goals;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Contact.Goals;
 using Application.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.Goals
 {
     public class RemoveGoalCommandHandler : IRequestHandler<RemoveGoalCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<RemoveGoalCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public RemoveGoalCommandHandler(ApplicationDbContext context)
+        public RemoveGoalCommandHandler(ApplicationDbContext context, ILogger<RemoveGoalCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(RemoveGoalCommand request, CancellationToken cancellationToken)
@@ -24,7 +30,10 @@ namespace Persistence.CQRS.Contact.Goals
             _context.Goal.Remove(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"Goal with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

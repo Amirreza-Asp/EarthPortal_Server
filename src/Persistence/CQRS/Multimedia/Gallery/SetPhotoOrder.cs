@@ -1,17 +1,23 @@
-﻿using Application.CQRS.Multimedia.Gallery;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Multimedia.Gallery;
 using Application.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Gallery
 {
     public class SetPhotoOrderCommandResponse : IRequestHandler<SetPhotoOrderCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<SetPhotoOrderCommandResponse> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public SetPhotoOrderCommandResponse(ApplicationDbContext context)
+        public SetPhotoOrderCommandResponse(ApplicationDbContext context, ILogger<SetPhotoOrderCommandResponse> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(SetPhotoOrderCommand request, CancellationToken cancellationToken)
@@ -29,9 +35,12 @@ namespace Persistence.CQRS.Multimedia.Gallery
                 img.Order = request.Images.Find(b => b.Id == img.Id).Order;
 
             _context.GalleryPhoto.UpdateRange(galleryPhotos);
-
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+
+                _logger.LogInformation($"Photo for Gallery with id {galleryPhotos.First().GalleryId} sorted by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

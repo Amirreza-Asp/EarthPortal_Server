@@ -1,8 +1,10 @@
-﻿using Application.CQRS.Multimedia.Infographics;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Multimedia.Infographics;
 using Application.Models;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Infographics
 {
@@ -10,11 +12,15 @@ namespace Persistence.CQRS.Multimedia.Infographics
     {
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
+        private readonly ILogger<RemoveInfographicCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public RemoveInfographicCommandHandler(ApplicationDbContext context, IHostingEnvironment env)
+        public RemoveInfographicCommandHandler(ApplicationDbContext context, IHostingEnvironment env, ILogger<RemoveInfographicCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(RemoveInfographicCommand request, CancellationToken cancellationToken)
@@ -27,7 +33,10 @@ namespace Persistence.CQRS.Multimedia.Infographics
             _context.Infographic.Remove(infographic);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"Infographic with id {infographic.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

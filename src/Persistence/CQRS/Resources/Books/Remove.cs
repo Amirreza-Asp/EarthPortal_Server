@@ -1,9 +1,11 @@
-﻿using Application.CQRS.Resources.Books;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Resources.Books;
 using Application.Models;
 using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Books
 {
@@ -11,11 +13,15 @@ namespace Persistence.CQRS.Resources.Books
     {
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
+        private readonly ILogger<RemoveBookCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public RemoveBookCommandHandler(ApplicationDbContext context, IHostingEnvironment env)
+        public RemoveBookCommandHandler(ApplicationDbContext context, IHostingEnvironment env, ILogger<RemoveBookCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _env = env;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(RemoveBookCommand request, CancellationToken cancellationToken)
@@ -35,7 +41,10 @@ namespace Persistence.CQRS.Resources.Books
             _context.Book.Remove(book);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"Book with id {book.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

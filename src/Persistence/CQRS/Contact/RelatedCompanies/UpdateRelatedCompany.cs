@@ -5,6 +5,7 @@ using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.RelatedCompanies
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
         private readonly ApplicationDbContext _context;
         private readonly IPhotoManager _photoManager;
         private readonly IHostingEnvironment _env;
+        private readonly ILogger<UpdateRelatedCompanyCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateRelatedCompanyCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env)
+        public UpdateRelatedCompanyCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env, ILogger<UpdateRelatedCompanyCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
             _photoManager = photoManager;
             _env = env;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateRelatedCompanyCommand request, CancellationToken cancellationToken)
@@ -43,7 +48,7 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
             if (request.Image != null)
             {
                 imgName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
-                await _photoManager.SaveAsync(request.Image, upload + imgName, cancellationToken);
+                _photoManager.Save(request.Image, upload + imgName);
 
                 relatedCompany.Image = imgName;
             }
@@ -55,6 +60,8 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
                 if (request.Image != null && File.Exists(upload + oldImage))
                     File.Delete(upload + oldImage);
 
+
+                _logger.LogInformation($"RelatedCompany with id {relatedCompany.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
 
                 return CommandResponse.Success(imgName);
             }

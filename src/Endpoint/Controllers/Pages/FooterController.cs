@@ -33,7 +33,6 @@ namespace Endpoint.Controllers.Pages
             List<OnlineUserData> onlineUsers;
 
             _memoryCache.TryGetValue<int>("todaySeen", out int todaySeen);
-            _memoryCache.TryGetValue<int>("totalSeen", out int totalSeen);
             _memoryCache.TryGetValue<List<OnlineUserData>>("onlineUsers", out onlineUsers);
 
 
@@ -43,7 +42,7 @@ namespace Endpoint.Controllers.Pages
             {
                 TodaySeen = Math.Max(todaySeen, 1),
                 TodayTotalSeen = 0,
-                TotalSeen = Math.Max(totalSeen, 1),
+                TotalSeen = footer.TotalSeen,
                 UpdateAt = footer.LastUpdate,
                 Ip = ip,
                 OnlineUsers = onlineUsers == null ? 1 : onlineUsers.Count

@@ -1,17 +1,23 @@
-﻿using Application.CQRS.Contact.CommonicationWays;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Contact.CommonicationWays;
 using Application.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.Infos
 {
     public class UpdateInfoCommandHandler : IRequestHandler<UpdateInfoCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<UpdateInfoCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateInfoCommandHandler(ApplicationDbContext context)
+        public UpdateInfoCommandHandler(ApplicationDbContext context, ILogger<UpdateInfoCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(UpdateInfoCommand request, CancellationToken cancellationToken)
@@ -33,7 +39,10 @@ namespace Persistence.CQRS.Contact.Infos
             _context.Info.Update(info);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"Info with id {info.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

@@ -80,7 +80,7 @@ namespace Endpoint.Controllers.Contact
             foreach (var file in files)
                 System.IO.File.Delete(file);
 
-            await _photoManager.SaveAsync(command.Image, upload + command.Image.FileName, cancellationToken);
+            _photoManager.Save(command.Image, upload + command.Image.FileName);
 
             return CommandResponse.Success();
         }

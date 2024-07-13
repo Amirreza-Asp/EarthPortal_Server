@@ -5,6 +5,7 @@ using Domain;
 using Domain.Entities.Contact;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.About
 {
@@ -13,12 +14,16 @@ namespace Persistence.CQRS.Contact.About
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _env;
         private readonly IPhotoManager _photoManager;
+        private readonly ILogger<CreateAboutCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public CreateAboutCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env)
+        public CreateAboutCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env, IUserAccessor userAccessor, ILogger<CreateAboutCommandHandler> logger)
         {
             _context = context;
             _photoManager = photoManager;
             _env = env;
+            _userAccessor = userAccessor;
+            _logger = logger;
         }
 
         public async Task<CommandResponse> Handle(CreateAboutCommand request, CancellationToken cancellationToken)
@@ -42,7 +47,7 @@ namespace Persistence.CQRS.Contact.About
                     if (!Directory.Exists(upload))
                         Directory.CreateDirectory(upload);
 
-                    await _photoManager.SaveAsync(request.Image, upload + imgName, cancellationToken);
+                    _photoManager.Save(request.Image, upload + imgName);
 
                     var about = new AboutUs(request.Title, request.Description, null, imgName);
                     about.Order = request.Order;
@@ -51,7 +56,10 @@ namespace Persistence.CQRS.Contact.About
 
 
                     if (await _context.SaveChangesAsync(cancellationToken) > 0)
+                    {
+                        _logger.LogInformation($"about with id {about.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}");
                         return CommandResponse.Success(new { id = about.Id, image = imgName });
+                    }
                 }
                 else
                 {
@@ -61,7 +69,10 @@ namespace Persistence.CQRS.Contact.About
 
 
                     if (await _context.SaveChangesAsync(cancellationToken) > 0)
+                    {
+                        _logger.LogInformation($"about with id {about.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}");
                         return CommandResponse.Success(new { id = about.Id });
+                    }
                 }
 
                 return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");

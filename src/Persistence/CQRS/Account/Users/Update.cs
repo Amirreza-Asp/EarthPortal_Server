@@ -3,6 +3,7 @@ using Application.CQRS.Account.User;
 using Application.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Account.Users
 {
@@ -10,11 +11,15 @@ namespace Persistence.CQRS.Account.Users
     {
         private readonly ApplicationDbContext _context;
         private readonly IPasswordManager _passManager;
+        private readonly ILogger<UpdateUserCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public UpdateUserCommandHandler(ApplicationDbContext context, IPasswordManager passManager)
+        public UpdateUserCommandHandler(ApplicationDbContext context, IPasswordManager passManager, IUserAccessor userAccessor, ILogger<UpdateUserCommandHandler> logger)
         {
             _context = context;
             _passManager = passManager;
+            _userAccessor = userAccessor;
+            _logger = logger;
         }
 
         public async Task<CommandResponse> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -45,7 +50,10 @@ namespace Persistence.CQRS.Account.Users
             _context.User.Update(user);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"user with username {request.UserName} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

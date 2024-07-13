@@ -1,17 +1,23 @@
-﻿using Application.CQRS.Contact.EducationalVideos;
+﻿using Application.Contracts.Infrastructure.Services;
+using Application.CQRS.Contact.EducationalVideos;
 using Application.Models;
 using Domain.Entities.Contact;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.EducationalVideos
 {
     public class CreateEducationalVideoCommandHandler : IRequestHandler<CreateEducationalVideoCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<CreateEducationalVideoCommandHandler> _logger;
+        private readonly IUserAccessor _userAccessor;
 
-        public CreateEducationalVideoCommandHandler(ApplicationDbContext context)
+        public CreateEducationalVideoCommandHandler(ApplicationDbContext context, ILogger<CreateEducationalVideoCommandHandler> logger, IUserAccessor userAccessor)
         {
             _context = context;
+            _logger = logger;
+            _userAccessor = userAccessor;
         }
 
         public async Task<CommandResponse> Handle(CreateEducationalVideoCommand request, CancellationToken cancellationToken)
@@ -25,7 +31,10 @@ namespace Persistence.CQRS.Contact.EducationalVideos
             _context.EducationalVideo.Add(edv);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _logger.LogInformation($"EducationalVideo with id {edv.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(edv.Id);
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }
