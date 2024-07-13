@@ -172,7 +172,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseStaticFiles();
-app.UseCustomExceptionHandler();
+//app.UseCustomExceptionHandler();
 app.UseCustomHeaderHandler();
 
 

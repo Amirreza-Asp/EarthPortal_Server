@@ -1,7 +1,5 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Application.Contracts.Persistence.Utilities;
-using Domain;
-using Domain.Dtos.Resources;
 using Domain.Entities.Account;
 using Domain.Entities.Contact;
 using Domain.Entities.Contact.Enums;
@@ -12,12 +10,10 @@ using Domain.Entities.Regulation;
 using Domain.Entities.Regulation.Enums;
 using Domain.Entities.Regulation.ValueObjects;
 using Domain.Entities.Resources;
-using Domain.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
-using System.Globalization;
 using System.Text.Json;
 
 namespace Persistence.Utilities
@@ -94,274 +90,274 @@ namespace Persistence.Utilities
 
             return;
             #region Regulation
-            var lawss = _context.Law.ToList();
+            //var lawss = _context.Law.ToList();
 
-            var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/lawData.json");
-            var lawData = JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
-
-
-            foreach (var l in lawss)
-            {
-                if (lawData.Any(b => b.Title == l.Title && !String.IsNullOrEmpty(b.File)))
-                {
-                    l.Pdf = lawData.Find(b => b.Title == l.Title && !String.IsNullOrEmpty(b.File)).File.Replace("فایل", "") + ".pdf";
-                    _context.Law.Update(l);
-                }
-            }
-
-            _context.SaveChanges();
-            return;
-
-            if (!_context.ApprovalAuthority.Any())
-            {
-                var approvalAuthorities =
-                    lawData.Select(b => b.Reference)
-                    .Where(b => !String.IsNullOrEmpty(b))
-                    .Distinct()
-                    .Select(b => new ApprovalAuthority(b))
-                    .ToList();
-
-                _context.ApprovalAuthority.AddRange(approvalAuthorities);
-                _context.ApprovalAuthority.Add(new ApprovalAuthority("نامشخص"));
-                await _context.SaveChangesAsync();
-            }
-
-            if (!_context.ApprovalStatus.Any())
-            {
-                _context.ApprovalStatus.AddRange(ApprovalStatuses);
-                _context.ApprovalStatus.Add(new ApprovalStatus("نامشخص"));
-                await _context.SaveChangesAsync();
-            }
-
-            if (!_context.ApprovalType.Any())
-            {
-                var approvalTypes =
-                    lawData.Select(b => b.Type)
-                    .Where(b => !String.IsNullOrEmpty(b))
-                    .Distinct()
-                    .Select(b => new ApprovalType(b))
-                    .ToList();
-
-                _context.ApprovalType.AddRange(approvalTypes);
-                _context.ApprovalType.Add(new ApprovalType("نامشخص"));
-                await _context.SaveChangesAsync();
-            }
-
-            if (!_context.ExecutorManagment.Any())
-            {
-                var executorManagements =
-                    lawData.Select(b => b.Presenter)
-                    .Where(b => !String.IsNullOrEmpty(b))
-                    .Distinct()
-                    .Select(b => new ExecutorManagment(b))
-                    .ToList();
-
-                _context.ExecutorManagment.AddRange(executorManagements);
-                _context.ExecutorManagment.Add(new ExecutorManagment("نامشخص"));
-                await _context.SaveChangesAsync();
-            }
-
-            if (!_context.LawCategory.Any())
-            {
-                _context.LawCategory.AddRange(LawCategories);
-                _context.LawCategory.Add(new LawCategory("نامشخص"));
-                await _context.SaveChangesAsync();
-            }
-
-            if (!_context.Law.Any())
-            {
-                var categories = await _context.LawCategory.ToListAsync();
-                var approvalAuthority = await _context.ApprovalAuthority.ToListAsync();
-                var approvalStatus = await _context.ApprovalStatus.ToListAsync();
-                var approvalType = await _context.ApprovalType.ToListAsync();
-                var executorManagment = await _context.ExecutorManagment.ToListAsync();
-
-                try
-                {
-                    var pc = new PersianCalendar();
-                    var laws = new List<Law>();
+            //var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/lawData.json");
+            //var lawData = JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
 
 
-                    foreach (var b in lawData.DistinctBy(b => b.Title).Where(b => !String.IsNullOrEmpty(b.Date) && !String.IsNullOrEmpty(b.CommunicatedDate) && !String.IsNullOrEmpty(b.NewspaperDate)))
-                    {
-                        try
-                        {
-                            var nd = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.NewspaperDate);
-                            var ad = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.CommunicatedDate);
-                            var date = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.Date);
-                            var newsPaper = Newspaper.Create(Convert.ToString(b.NewspaperNumber), nd);
+            //foreach (var l in lawss)
+            //{
+            //    if (lawData.Any(b => b.Title == l.Title && !String.IsNullOrEmpty(b.File)))
+            //    {
+            //        l.Pdf = lawData.Find(b => b.Title == l.Title && !String.IsNullOrEmpty(b.File)).File.Replace("فایل", "") + ".pdf";
+            //        _context.Law.Update(l);
+            //    }
+            //}
 
-                            var entity =
-                                 new Law(
-                                     title: b.Title,
-                                     announcement: new Announcement(Convert.ToString(b.CommunicatedNumber), ad),
-                                     newspaper: newsPaper,
-                                     description: b.LawText,
-                                     approvalDate: date,
-                                     type: b.Type == "آیین‌نامه" ? LawType.Rule : LawType.Regulation,
-                                     isOriginal: true,
-                                     approvalTypeId: String.IsNullOrEmpty(b.Type) ? approvalType.First(s => s.Value == "نامشخص").Id : approvalType.First(s => s.Value == b.Type).Id,
-                                     approvalStatusId: approvalStatus.First(s => s.Status == "نامشخص").Id,
-                                     executorManagmentId: String.IsNullOrEmpty(b.Presenter) ? executorManagment.First(s => s.Name == "نامشخص").Id : executorManagment.First(s => s.Name == b.Presenter).Id,
-                                     approvalAuthorityId: String.IsNullOrEmpty(b.Reference) ? approvalAuthority.First(s => s.Name == "نامشخص").Id : approvalAuthority.First(s => s.Name == b.Reference).Id,
-                                     lawCategoryId: categories.First(s => s.Title == "نامشخص").Id,
-                                     pdf: String.IsNullOrEmpty(b.File) ? Guid.NewGuid() + ".pdf" : b.File.Replace("فایل", "") + ".pdf"
-                                 );
+            //_context.SaveChanges();
+            //return;
 
-                            laws.Add(entity);
+            //if (!_context.ApprovalAuthority.Any())
+            //{
+            //    var approvalAuthorities =
+            //        lawData.Select(b => b.Reference)
+            //        .Where(b => !String.IsNullOrEmpty(b))
+            //        .Distinct()
+            //        .Select(b => new ApprovalAuthority(b))
+            //        .ToList();
 
-                            _context.Law.Add(entity);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.ToString());
-                        }
-                    }
+            //    _context.ApprovalAuthority.AddRange(approvalAuthorities);
+            //    _context.ApprovalAuthority.Add(new ApprovalAuthority("نامشخص"));
+            //    await _context.SaveChangesAsync();
+            //}
 
-                    if (await _context.SaveChangesAsync() > 0)
-                    {
-                        if (!Directory.Exists(_env.WebRootPath + SD.LawPdfPath))
-                            Directory.CreateDirectory(_env.WebRootPath + SD.LawPdfPath);
+            //if (!_context.ApprovalStatus.Any())
+            //{
+            //    _context.ApprovalStatus.AddRange(ApprovalStatuses);
+            //    _context.ApprovalStatus.Add(new ApprovalStatus("نامشخص"));
+            //    await _context.SaveChangesAsync();
+            //}
+
+            //if (!_context.ApprovalType.Any())
+            //{
+            //    var approvalTypes =
+            //        lawData.Select(b => b.Type)
+            //        .Where(b => !String.IsNullOrEmpty(b))
+            //        .Distinct()
+            //        .Select(b => new ApprovalType(b))
+            //        .ToList();
+
+            //    _context.ApprovalType.AddRange(approvalTypes);
+            //    _context.ApprovalType.Add(new ApprovalType("نامشخص"));
+            //    await _context.SaveChangesAsync();
+            //}
+
+            //if (!_context.ExecutorManagment.Any())
+            //{
+            //    var executorManagements =
+            //        lawData.Select(b => b.Presenter)
+            //        .Where(b => !String.IsNullOrEmpty(b))
+            //        .Distinct()
+            //        .Select(b => new ExecutorManagment(b))
+            //        .ToList();
+
+            //    _context.ExecutorManagment.AddRange(executorManagements);
+            //    _context.ExecutorManagment.Add(new ExecutorManagment("نامشخص"));
+            //    await _context.SaveChangesAsync();
+            //}
+
+            //if (!_context.LawCategory.Any())
+            //{
+            //    _context.LawCategory.AddRange(LawCategories);
+            //    _context.LawCategory.Add(new LawCategory("نامشخص"));
+            //    await _context.SaveChangesAsync();
+            //}
+
+            //if (!_context.Law.Any())
+            //{
+            //    var categories = await _context.LawCategory.ToListAsync();
+            //    var approvalAuthority = await _context.ApprovalAuthority.ToListAsync();
+            //    var approvalStatus = await _context.ApprovalStatus.ToListAsync();
+            //    var approvalType = await _context.ApprovalType.ToListAsync();
+            //    var executorManagment = await _context.ExecutorManagment.ToListAsync();
+
+            //    try
+            //    {
+            //        var pc = new PersianCalendar();
+            //        var laws = new List<Law>();
 
 
-                        foreach (var item in laws)
-                        {
-                            try
-                            {
-                                var ld = lawData.FirstOrDefault(b => b.Title == item.Title);
-                                if (ld != null && !String.IsNullOrEmpty(ld.File) && File.Exists(_env.WebRootPath + SD.LawPdfPath + ld.File.Replace("فایل", "") + ".pdf"))
-                                    continue;
-                                else if (!File.Exists(_env.WebRootPath + SD.LawPdfPath + item.Pdf))
-                                    _fileManager.ConvertHtmlToPdf(item.Description, _env.WebRootPath + SD.LawPdfPath + item.Pdf);
-                            }
-                            catch (Exception ex)
-                            {
-                                _context.Law.Remove(item);
-                            }
-                        };
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
-            }
+            //        foreach (var b in lawData.DistinctBy(b => b.Title).Where(b => !String.IsNullOrEmpty(b.Date) && !String.IsNullOrEmpty(b.CommunicatedDate) && !String.IsNullOrEmpty(b.NewspaperDate)))
+            //        {
+            //            try
+            //            {
+            //                var nd = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.NewspaperDate);
+            //                var ad = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.CommunicatedDate);
+            //                var date = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.Date);
+            //                var newsPaper = Newspaper.Create(Convert.ToString(b.NewspaperNumber), nd);
+
+            //                var entity =
+            //                     new Law(
+            //                         title: b.Title,
+            //                         announcement: new Announcement(Convert.ToString(b.CommunicatedNumber), ad),
+            //                         newspaper: newsPaper,
+            //                         description: b.LawText,
+            //                         approvalDate: date,
+            //                         type: b.Type == "آیین‌نامه" ? LawType.Rule : LawType.Regulation,
+            //                         isOriginal: true,
+            //                         approvalTypeId: String.IsNullOrEmpty(b.Type) ? approvalType.First(s => s.Value == "نامشخص").Id : approvalType.First(s => s.Value == b.Type).Id,
+            //                         approvalStatusId: approvalStatus.First(s => s.Status == "نامشخص").Id,
+            //                         executorManagmentId: String.IsNullOrEmpty(b.Presenter) ? executorManagment.First(s => s.Name == "نامشخص").Id : executorManagment.First(s => s.Name == b.Presenter).Id,
+            //                         approvalAuthorityId: String.IsNullOrEmpty(b.Reference) ? approvalAuthority.First(s => s.Name == "نامشخص").Id : approvalAuthority.First(s => s.Name == b.Reference).Id,
+            //                         lawCategoryId: categories.First(s => s.Title == "نامشخص").Id,
+            //                         pdf: String.IsNullOrEmpty(b.File) ? Guid.NewGuid() + ".pdf" : b.File.Replace("فایل", "") + ".pdf"
+            //                     );
+
+            //                laws.Add(entity);
+
+            //                _context.Law.Add(entity);
+            //            }
+            //            catch (Exception ex)
+            //            {
+            //                Console.WriteLine(ex.ToString());
+            //            }
+            //        }
+
+            //        if (await _context.SaveChangesAsync() > 0)
+            //        {
+            //            if (!Directory.Exists(_env.WebRootPath + SD.LawPdfPath))
+            //                Directory.CreateDirectory(_env.WebRootPath + SD.LawPdfPath);
+
+
+            //            foreach (var item in laws)
+            //            {
+            //                try
+            //                {
+            //                    var ld = lawData.FirstOrDefault(b => b.Title == item.Title);
+            //                    if (ld != null && !String.IsNullOrEmpty(ld.File) && File.Exists(_env.WebRootPath + SD.LawPdfPath + ld.File.Replace("فایل", "") + ".pdf"))
+            //                        continue;
+            //                    else if (!File.Exists(_env.WebRootPath + SD.LawPdfPath + item.Pdf))
+            //                        _fileManager.ConvertHtmlToPdf(item.Description, _env.WebRootPath + SD.LawPdfPath + item.Pdf);
+            //                }
+            //                catch (Exception ex)
+            //                {
+            //                    _context.Law.Remove(item);
+            //                }
+            //            };
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Console.WriteLine(ex);
+            //    }
+            //}
             #endregion
 
             #region Multimedia
-            if (!_context.Gallery.Any())
-            {
-                for (int i = 1; i <= 60; i++)
-                {
-                    var imageGallery = new Gallery($"عنوان {i}", lorem.Substring(50));
-                    _context.Gallery.Add(imageGallery);
-                }
+            //if (!_context.Gallery.Any())
+            //{
+            //    for (int i = 1; i <= 60; i++)
+            //    {
+            //        var imageGallery = new Gallery($"عنوان {i}", lorem.Substring(50));
+            //        _context.Gallery.Add(imageGallery);
+            //    }
 
-                _context.SaveChanges();
-
-
-                var galleriesId = await _context.Gallery.Select(b => b.Id).ToListAsync();
-
-                foreach (var id in galleriesId)
-                {
-                    foreach (var image in Images)
-                    {
-                        image.GalleryId = id;
-                        _context.GalleryPhoto.Add(image);
-                    }
-                }
+            //    _context.SaveChanges();
 
 
-                await _context.SaveChangesAsync();
-            }
+            //    var galleriesId = await _context.Gallery.Select(b => b.Id).ToListAsync();
 
-            if (!_context.VideoContent.Any())
-            {
-                for (int i = 1; i < 53; i++)
-                {
-                    var videoContent = new VideoContent($"عنوان {i}", lorem.Substring(50), video, "#");
-                    _context.VideoContent.Add(videoContent);
-                }
+            //    foreach (var id in galleriesId)
+            //    {
+            //        foreach (var image in Images)
+            //        {
+            //            image.GalleryId = id;
+            //            _context.GalleryPhoto.Add(image);
+            //        }
+            //    }
 
-                await _context.SaveChangesAsync();
-            }
 
-            if (!_context.Infographic.Any())
-            {
-                for (int i = 1; i < 2; i++)
-                {
-                    var infographic = new Infographic($"{rnd.Next(1, 4)}.jpg", i.ToString());
-                    _context.Infographic.Add(infographic);
-                }
+            //    await _context.SaveChangesAsync();
+            //}
 
-                await _context.SaveChangesAsync();
-            }
+            //if (!_context.VideoContent.Any())
+            //{
+            //    for (int i = 1; i < 53; i++)
+            //    {
+            //        var videoContent = new VideoContent($"عنوان {i}", lorem.Substring(50), video, "#");
+            //        _context.VideoContent.Add(videoContent);
+            //    }
+
+            //    await _context.SaveChangesAsync();
+            //}
+
+            //if (!_context.Infographic.Any())
+            //{
+            //    for (int i = 1; i < 2; i++)
+            //    {
+            //        var infographic = new Infographic($"{rnd.Next(1, 4)}.jpg", i.ToString());
+            //        _context.Infographic.Add(infographic);
+            //    }
+
+            //    await _context.SaveChangesAsync();
+            //}
             #endregion
 
             #region Notices
-            if (!_context.NewsCategory.Any())
-            {
-                _context.NewsCategory.AddRange(NewsCategories);
-                await _context.SaveChangesAsync();
+            //if (!_context.NewsCategory.Any())
+            //{
+            //    _context.NewsCategory.AddRange(NewsCategories);
+            //    await _context.SaveChangesAsync();
 
-                var category = new NewsCategory("نامشخص", null);
-                _context.NewsCategory.Add(category);
-                await _context.SaveChangesAsync();
-            }
+            //    var category = new NewsCategory("نامشخص", null);
+            //    _context.NewsCategory.Add(category);
+            //    await _context.SaveChangesAsync();
+            //}
 
 
-            if (!_context.News.Any())
-            {
-                var path = _env.WebRootPath + "/notices/news.json";
+            //if (!_context.News.Any())
+            //{
+            //    var path = _env.WebRootPath + "/notices/news.json";
 
-                var jsonData = await File.ReadAllTextAsync(path);
-                var data = System.Text.Json.JsonSerializer.Deserialize<List<NewsData>>(jsonData);
+            //    var jsonData = await File.ReadAllTextAsync(path);
+            //    var data = System.Text.Json.JsonSerializer.Deserialize<List<NewsData>>(jsonData);
 
-                var categoryId = _context.NewsCategory.Where(b => b.Title == "نامشخص").Select(b => b.Id).First();
+            //    var categoryId = _context.NewsCategory.Where(b => b.Title == "نامشخص").Select(b => b.Id).First();
 
-                foreach (var item in data)
-                {
+            //    foreach (var item in data)
+            //    {
 
-                    while (true)
-                    {
-                        var shortLink = rnd.Next(Convert.ToInt32(Math.Pow(10, 7)), Convert.ToInt32(Math.Pow(10, 8)));
+            //        while (true)
+            //        {
+            //            var shortLink = rnd.Next(Convert.ToInt32(Math.Pow(10, 7)), Convert.ToInt32(Math.Pow(10, 8)));
 
-                        if (!_context.News.Where(b => b.ShortLink == shortLink).Any())
-                        {
-                            var news = new News(
-                                item.title,
-                                item.description,
-                                item.newsText,
-                                source: "#",
-                                item.newsDateO,
-                                categoryId,
-                                shortLink);
+            //            if (!_context.News.Where(b => b.ShortLink == shortLink).Any())
+            //            {
+            //                var news = new News(
+            //                    item.title,
+            //                    item.description,
+            //                    item.newsText,
+            //                    source: "#",
+            //                    item.newsDateO,
+            //                    categoryId,
+            //                    shortLink);
 
-                            _context.News.Add(news);
+            //                _context.News.Add(news);
 
-                            var imageName = item._id + Path.GetExtension(item.newsImage.name);
+            //                var imageName = item._id + Path.GetExtension(item.newsImage.name);
 
-                            var upload = _env.WebRootPath + SD.NewsImagePath + imageName;
+            //                var upload = _env.WebRootPath + SD.NewsImagePath + imageName;
 
-                            if (!Directory.Exists(_env.WebRootPath + SD.NewsImagePath))
-                                Directory.CreateDirectory(_env.WebRootPath + SD.NewsImagePath);
+            //                if (!Directory.Exists(_env.WebRootPath + SD.NewsImagePath))
+            //                    Directory.CreateDirectory(_env.WebRootPath + SD.NewsImagePath);
 
-                            var image = new NewsImage(imageName, news.Id, 0);
-                            _context.NewsImage.Add(image);
-                            if (!File.Exists(upload))
-                            {
+            //                var image = new NewsImage(imageName, news.Id, 0);
+            //                _context.NewsImage.Add(image);
+            //                if (!File.Exists(upload))
+            //                {
 
-                                await _photoManager.SaveFromBase64Async(item.newsImage.value, upload);
+            //                    await _photoManager.SaveFromBase64Async(item.newsImage.value, upload);
 
-                            }
+            //                }
 
-                            break;
-                        }
-                    }
-                }
+            //                break;
+            //            }
+            //        }
+            //    }
 
-                _context.SaveChanges();
-            }
+            //    _context.SaveChanges();
+            //}
 
             #endregion
 
@@ -517,76 +513,76 @@ namespace Persistence.Utilities
             #endregion
 
             #region Resources
-            if (!_context.Author.Any())
-            {
-                _context.Author.AddRange(Authors);
-                await _context.SaveChangesAsync();
-            }
+            //if (!_context.Author.Any())
+            //{
+            //    _context.Author.AddRange(Authors);
+            //    await _context.SaveChangesAsync();
+            //}
 
-            if (!_context.Translator.Any())
-            {
-                var translator = new Translator("مهدی امینی");
-                _context.Translator.Add(translator);
-                await _context.SaveChangesAsync();
-            }
+            //if (!_context.Translator.Any())
+            //{
+            //    var translator = new Translator("مهدی امینی");
+            //    _context.Translator.Add(translator);
+            //    await _context.SaveChangesAsync();
+            //}
 
-            if (!_context.Publication.Any())
-            {
-                var publication = new Publication("انتشارات کتابسرای تندیس");
-                _context.Publication.Add(publication);
-                await _context.SaveChangesAsync();
-            }
+            //if (!_context.Publication.Any())
+            //{
+            //    var publication = new Publication("انتشارات کتابسرای تندیس");
+            //    _context.Publication.Add(publication);
+            //    await _context.SaveChangesAsync();
+            //}
 
-            if (!_context.Book.Any())
-            {
-                var authorId = _context.Author.First().Id;
-                var translatorId = _context.Translator.First().Id;
-                var publicationId = _context.Publication.First().Id;
-                for (int i = 1; i <= 25; i++)
-                {
-                    String image = $"{i % 5 + 1}.png";
-                    var book = new Book($"کتاب سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
-                        publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
+            //if (!_context.Book.Any())
+            //{
+            //    var authorId = _context.Author.First().Id;
+            //    var translatorId = _context.Translator.First().Id;
+            //    var publicationId = _context.Publication.First().Id;
+            //    for (int i = 1; i <= 25; i++)
+            //    {
+            //        String image = $"{i % 5 + 1}.png";
+            //        var book = new Book($"کتاب سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
+            //            publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
 
-                    _context.Book.Add(book);
-                }
+            //        _context.Book.Add(book);
+            //    }
 
-                await _context.SaveChangesAsync();
-            }
+            //    await _context.SaveChangesAsync();
+            //}
 
-            if (!_context.Broadcast.Any())
-            {
-                var authorId = _context.Author.First().Id;
-                var translatorId = _context.Translator.First().Id;
-                var publicationId = _context.Publication.First().Id;
-                for (int i = 1; i <= 25; i++)
-                {
-                    String image = $"{i % 5 + 1}.png";
-                    var broadcast = new Broadcast($"نشریه سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
-                        publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
+            //if (!_context.Broadcast.Any())
+            //{
+            //    var authorId = _context.Author.First().Id;
+            //    var translatorId = _context.Translator.First().Id;
+            //    var publicationId = _context.Publication.First().Id;
+            //    for (int i = 1; i <= 25; i++)
+            //    {
+            //        String image = $"{i % 5 + 1}.png";
+            //        var broadcast = new Broadcast($"نشریه سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
+            //            publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
 
-                    _context.Broadcast.Add(broadcast);
-                }
+            //        _context.Broadcast.Add(broadcast);
+            //    }
 
-                await _context.SaveChangesAsync();
-            }
+            //    await _context.SaveChangesAsync();
+            //}
 
-            if (!_context.Article.Any())
-            {
-                var authorId = _context.Author.First().Id;
-                for (int i = 1; i <= 25; i++)
-                {
-                    String image = $"{i % 5 + 1}.png";
-                    var translatorId = _context.Translator.First().Id;
-                    var publicationId = _context.Publication.First().Id;
-                    var article = new Article($"مقاله سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
-                        publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
+            //if (!_context.Article.Any())
+            //{
+            //    var authorId = _context.Author.First().Id;
+            //    for (int i = 1; i <= 25; i++)
+            //    {
+            //        String image = $"{i % 5 + 1}.png";
+            //        var translatorId = _context.Translator.First().Id;
+            //        var publicationId = _context.Publication.First().Id;
+            //        var article = new Article($"مقاله سواد بصری {i}", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><h3 class='mt-40'>لورم ایپسوم متن ساختگی با تولید</h3><p class='mt-30'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>", "test.pdf",
+            //            publishDate: DateTime.Now.AddDays(-40), authorId, image, shortDescription: lorem, 150, translatorId, publicationId);
 
-                    _context.Article.Add(article);
-                }
+            //        _context.Article.Add(article);
+            //    }
 
-                await _context.SaveChangesAsync();
-            }
+            //    await _context.SaveChangesAsync();
+            //}
             #endregion
 
             #region Pages
