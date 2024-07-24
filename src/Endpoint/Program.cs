@@ -1,4 +1,4 @@
-using Application;
+ï»¿using Application;
 using Application.Contracts.Infrastructure.Services;
 using Application.Contracts.Persistence.Services;
 using Application.Contracts.Persistence.Utilities;
@@ -179,7 +179,6 @@ app.UseCustomHeaderHandler();
 var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
 app.Use(async (context, next) =>
 {
-
     if (context.Request.Method.ToLower() != "get")
     {
         if (context.Request.Path.Value.StartsWith("/"))
@@ -190,14 +189,12 @@ app.Use(async (context, next) =>
             new CookieOptions()
             {
                 HttpOnly = false,
-                Secure = context.Request.Scheme == "https",
+                Secure = true,
                 IsEssential = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
             });
         }
     }
-
-
 
     await next();
 });
@@ -243,18 +240,18 @@ app.Run();
 
 //        //spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions
 //        //{
-//        //    ServeUnknownFileTypes = true, // Ermöglicht das Servieren von Dateien ohne bekannten MIME-Typ
+//        //    ServeUnknownFileTypes = true, // ErmÃ¶glicht das Servieren von Dateien ohne bekannten MIME-Typ
 //        //    DefaultContentType = "text/html", // Setzt den Standard-MIME-Typ auf 'text/html'
 //        //    OnPrepareResponse = ctx =>
 //        //    {
 
-//        //        // Überprüfen, ob die angeforderte Datei die 'index.html' ist
+//        //        // ÃœberprÃ¼fen, ob die angeforderte Datei die 'index.html' ist
 //        //        if (ctx.File.Name.Equals("POST", StringComparison.OrdinalIgnoreCase))
 //        //        {
 //        //            // Weiterleiten der Anfrage an die Angular-App
 //        //            ctx.Context.Request.Path = "/dist/index.html";
 
-//        //            // Führe hier die gewünschten Aktionen aus
+//        //            // FÃ¼hre hier die gewÃ¼nschten Aktionen aus
 //        //            Console.WriteLine("OnPrepareResponse - index.html");
 //        //        }
 //        //    }
