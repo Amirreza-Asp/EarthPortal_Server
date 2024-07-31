@@ -4,7 +4,7 @@ namespace Domain.Entities.Notices
 {
     public class Link : BaseEntity
     {
-        public Link(string value)
+        public Link(Guid id, string value) : base(id)
         {
             Value = value;
         }

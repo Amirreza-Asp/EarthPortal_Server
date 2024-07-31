@@ -588,7 +588,7 @@ namespace Persistence.Utilities
             #region Pages
             if (!_context.HomePage.Any())
             {
-                var homePage = new HomePage()
+                var homePage = new HomePage(Guid.NewGuid())
                 {
                     Header =
                         new HomeHeader
@@ -942,7 +942,7 @@ namespace Persistence.Utilities
 
             if (!_context.FooterPage.Any())
             {
-                var footer = new FooterPage();
+                var footer = new FooterPage(Guid.NewGuid());
                 _context.FooterPage.Add(footer);
                 await _context.SaveChangesAsync();
             }

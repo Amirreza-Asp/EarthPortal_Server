@@ -105,7 +105,7 @@ namespace Persistence
             var footer = await this.FooterPage.FirstOrDefaultAsync(cancellationToken);
 
             if (footer == null)
-                this.FooterPage.Add(new FooterPage());
+                this.FooterPage.Add(new FooterPage(Guid.NewGuid()));
             else
             {
                 footer.LastUpdate = DateTime.Now.AddHours(-1);

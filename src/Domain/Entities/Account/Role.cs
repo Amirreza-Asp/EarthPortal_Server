@@ -4,7 +4,7 @@ namespace Domain.Entities.Account
 {
     public class Role : BaseEntity
     {
-        public Role(string title, string display, string? description)
+        public Role(string title, string display, string? description) : base(Guid.NewGuid())
         {
             Title = title;
             Description = description;

@@ -4,7 +4,7 @@ namespace Domain.Entities.Mutimedia
 {
     public class Gallery : BaseEntity
     {
-        public Gallery(string title, string description)
+        public Gallery(string title, string description) : base(Guid.NewGuid())
         {
             Title = title;
             Description = description;

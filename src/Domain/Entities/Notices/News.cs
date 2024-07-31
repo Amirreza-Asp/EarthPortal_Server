@@ -4,7 +4,7 @@ namespace Domain.Entities.Notices
 {
     public class News : BaseEntity
     {
-        public News(string title, string description, string headline, string source, DateTime dateOfRegisration, Guid newsCategoryId, int shortLink)
+        public News(string title, string description, string headline, string source, DateTime dateOfRegisration, Guid newsCategoryId, int shortLink) : base(Guid.NewGuid())
         {
             Title = title;
             Description = description;

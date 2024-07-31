@@ -18,16 +18,14 @@ namespace Persistence.CQRS.Notices
         public async Task<CommandResponse> Handle(UpsertNewsLinkCommand request, CancellationToken cancellationToken)
         {
             // حذف کلید واژه هایی که به هیچ خبری مرتبط نیستند
-            var emptyLinks = await _context.Link.Where(b => b.NewsLinks.Count == 0).ToListAsync(cancellationToken);
+            var emptyLinks = await _context.Link.Where(b => b.NewsLinks.Count == 0).AsNoTracking().ToListAsync(cancellationToken);
             _context.Link.RemoveRange(emptyLinks);
-            await _context.SaveChangesAsync(cancellationToken);
 
-            var oldRelationLinks = await _context.NewsLink.Where(b => b.NewsId == request.NewsId).ToListAsync(cancellationToken);
+            var oldRelationLinks = await _context.NewsLink.Where(b => b.NewsId == request.NewsId).AsNoTracking().ToListAsync(cancellationToken);
             _context.NewsLink.RemoveRange(oldRelationLinks);
-            await _context.SaveChangesAsync(cancellationToken);
 
-            var availableLinks = await _context.Link.Where(b => request.Links.Contains(b.Value)).ToListAsync(cancellationToken);
-            var unavailableLinks = request.Links.Where(link => !availableLinks.Select(b => b.Value).Contains(link)).Select(b => new Link(b));
+            var availableLinks = await _context.Link.Where(b => request.Links.Contains(b.Value)).AsNoTracking().ToListAsync(cancellationToken);
+            var unavailableLinks = request.Links.Where(link => !availableLinks.Select(b => b.Value).Contains(link)).Select(b => new Link(Guid.NewGuid(), b));
 
             if (unavailableLinks.Any())
             {
@@ -36,13 +34,14 @@ namespace Persistence.CQRS.Notices
                 await _context.SaveChangesAsync();
             }
 
-            var addedLinks = await _context.Link.Where(b => unavailableLinks.Select(e => e.Value).Contains(b.Value)).ToListAsync();
+            var addedLinks = await _context.Link.Where(b => unavailableLinks.Select(e => e.Value).Contains(b.Value)).AsNoTracking().ToListAsync();
 
             var newLinks = availableLinks.Select(b => new NewsLink(request.NewsId, b.Id)).ToList();
             newLinks.AddRange(addedLinks.Select(b => new NewsLink(request.NewsId, b.Id)).ToList());
 
             _context.NewsLink.AddRange(newLinks);
 
+            await _context.SaveChangesAsync();
             return CommandResponse.Success();
         }
     }

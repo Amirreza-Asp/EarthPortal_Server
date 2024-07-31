@@ -4,9 +4,9 @@ namespace Domain.Entities.Pages
 {
     public class FooterPage
     {
-        public FooterPage()
+        public FooterPage(Guid id)
         {
-            Id = Guid.NewGuid();
+            Id = id;
             TodaySeen = 1;
             TotalSeen = 1;
             TodayTotalSeen = 1;
@@ -14,6 +14,8 @@ namespace Domain.Entities.Pages
             OnlineUsers = 1;
             Today = DateTime.Now;
         }
+
+        private FooterPage() { }
 
         [Key]
         public Guid Id { get; set; }

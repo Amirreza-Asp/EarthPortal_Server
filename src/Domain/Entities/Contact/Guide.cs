@@ -4,12 +4,14 @@ namespace Domain.Entities.Contact
 {
     public class Guide : BaseEntity
     {
-        public Guide(string title, string content, bool isPort)
+        public Guide(string title, string content, bool isPort) : base(Guid.NewGuid())
         {
             Title = title;
             Content = content;
             IsPort = isPort;
         }
+
+        private Guide() { }
 
         public String Title { get; set; }
         public String Content { get; set; }

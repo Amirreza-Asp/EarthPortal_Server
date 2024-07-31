@@ -5,7 +5,7 @@ namespace Domain.Entities.Contact
 {
     public class AudienceParticipation : BaseEntity
     {
-        public AudienceParticipation(Guid userId, ParticipationType type)
+        public AudienceParticipation(Guid userId, ParticipationType type) : base(Guid.NewGuid())
         {
             UserId = userId;
             Type = type;

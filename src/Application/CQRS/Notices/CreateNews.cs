@@ -1,6 +1,7 @@
 ﻿using Application.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.CQRS.Notices
 {
@@ -19,6 +20,7 @@ namespace Application.CQRS.Notices
 
         public List<String>? Links { get; set; }
 
+        [Required(ErrorMessage = "تصویر خبر را وارد کنید")]
         public IFormFile Image { get; set; }
         public int Order { get; set; }
     }

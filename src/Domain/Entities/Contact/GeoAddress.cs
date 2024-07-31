@@ -4,7 +4,7 @@ namespace Domain.Entities.Contact
 {
     public class GeoAddress : BaseEntity
     {
-        public GeoAddress(double lat, double lon, string route, Guid infoId, string routeTitle)
+        public GeoAddress(double lat, double lon, string route, Guid infoId, string routeTitle) : base(Guid.NewGuid())
         {
             Lat = lat;
             Lon = lon;
@@ -12,6 +12,8 @@ namespace Domain.Entities.Contact
             InfoId = infoId;
             RouteTitle = routeTitle;
         }
+
+        private GeoAddress() { }
 
         public double Lat { get; set; }
         public double Lon { get; set; }

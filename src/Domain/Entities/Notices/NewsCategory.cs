@@ -4,7 +4,7 @@ namespace Domain.Entities.Notices
 {
     public class NewsCategory : BaseEntity
     {
-        public NewsCategory(string title, string? description)
+        public NewsCategory(string title, string? description) : base(Guid.NewGuid())
         {
             Title = title;
             Description = description;

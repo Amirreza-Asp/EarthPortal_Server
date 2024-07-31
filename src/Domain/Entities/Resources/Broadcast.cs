@@ -5,7 +5,7 @@ namespace Domain.Entities.Resources
 {
     public class Broadcast : BaseEntity
     {
-        public Broadcast(string title, string? description, string file, DateTime publishDate, Guid authorId, string image, string shortDescription, int pages, Guid translatorId, Guid publicationId)
+        public Broadcast(string title, string? description, string file, DateTime publishDate, Guid authorId, string image, string shortDescription, int pages, Guid translatorId, Guid publicationId) : base(Guid.NewGuid())
         {
             Title = title;
             Description = description;

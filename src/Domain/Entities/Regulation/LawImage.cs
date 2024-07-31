@@ -5,7 +5,7 @@ namespace Domain.Entities.Regulation
 {
     public class LawImage : BaseEntity
     {
-        public LawImage(string path, int order, Guid lawId, LawImageType type)
+        public LawImage(string path, int order, Guid lawId, LawImageType type) : base(Guid.NewGuid())
         {
             Path = path;
             Order = order;

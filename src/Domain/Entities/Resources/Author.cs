@@ -4,7 +4,7 @@ namespace Domain.Entities.Resources
 {
     public class Author : BaseEntity
     {
-        public Author(string fullName)
+        public Author(string fullName) : base(Guid.NewGuid())
         {
             FullName = fullName;
         }

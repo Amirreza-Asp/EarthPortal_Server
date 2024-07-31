@@ -6,7 +6,7 @@ namespace Domain.Entities.Regulation
 {
     public class Law : BaseEntity
     {
-        public Law(string title, Announcement announcement, Newspaper newspaper, string description, DateTime approvalDate, LawType type, bool isOriginal, Guid approvalTypeId, Guid approvalStatusId, Guid executorManagmentId, Guid approvalAuthorityId, Guid lawCategoryId, string pdf)
+        public Law(string title, Announcement announcement, Newspaper newspaper, string description, DateTime approvalDate, LawType type, bool isOriginal, Guid approvalTypeId, Guid approvalStatusId, Guid executorManagmentId, Guid approvalAuthorityId, Guid lawCategoryId, string pdf) : base(Guid.NewGuid())
         {
             Title = title;
             Announcement = announcement;

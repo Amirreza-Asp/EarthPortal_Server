@@ -13,6 +13,8 @@ namespace Domain.Entities.Pages
             Footer = footer;
         }
 
+        private AboutUsPage() { }
+
         [Key]
         public Guid Id { get; set; }
 

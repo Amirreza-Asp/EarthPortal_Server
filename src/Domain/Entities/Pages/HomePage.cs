@@ -2,10 +2,12 @@
 {
     public class HomePage
     {
-        public HomePage()
+        public HomePage(Guid id)
         {
-            Id = Guid.NewGuid();
+            Id = id;
         }
+
+        private HomePage() { }
 
         public Guid Id { get; set; }
         public HomeHeader Header { get; set; }

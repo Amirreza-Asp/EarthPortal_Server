@@ -32,45 +32,57 @@ namespace Persistence.CQRS.Notices
 
         public async Task<CommandResponse> Handle(CreateNewsCommand request, CancellationToken cancellationToken)
         {
-            var shortLink = CreateRandomLink();
-
-            while (await _context.News.AnyAsync(b => b.ShortLink == shortLink))
-                shortLink = CreateRandomLink();
-
-
-            var category = await _context.NewsCategory.FirstOrDefaultAsync(b => b.Title == "نامشخص");
-            if (category == null)
+            try
             {
-                category = new NewsCategory("نامشخص", null);
-                _context.NewsCategory.Add(category);
-            }
+                _context.Database.BeginTransaction();
 
-            var news = new News(request.Title, request.Description, request.Headline, request.Source, request.DateOfRegisration, category.Id, shortLink);
-            news.Order = request.Order;
-            _context.News.Add(news);
+                var shortLink = CreateRandomLink();
 
-            var links = request.Links?.Select(link => new Link(link));
-
-            if (request.Links != null && request.Links.Any())
-                await _mediator.Send(new UpsertNewsLinkCommand(request.Links, news.Id));
+                while (await _context.News.AnyAsync(b => b.ShortLink == shortLink))
+                    shortLink = CreateRandomLink();
 
 
-            var image = new NewsImage(Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName), news.Id, 0);
-            _context.Add(image);
+                var category = await _context.NewsCategory.FirstOrDefaultAsync(b => b.Title == "نامشخص");
+                if (category == null)
+                {
+                    category = new NewsCategory("نامشخص", null);
+                    _context.NewsCategory.Add(category);
+                }
 
-            var upload = _env.WebRootPath + SD.NewsImagePath;
-            if (!Directory.Exists(upload))
-                Directory.CreateDirectory(upload);
+                var news = new News(request.Title, request.Description, request.Headline, request.Source, request.DateOfRegisration, category.Id, shortLink);
+                var image = new NewsImage(Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName), news.Id, 0);
 
-            _photoManager.Save(request.Image, upload + image.Name);
-            if (await _context.SaveChangesAsync() > 0)
-            {
+                var upload = _env.WebRootPath + SD.NewsImagePath;
+                if (!Directory.Exists(upload))
+                    Directory.CreateDirectory(upload);
+
+                _photoManager.Save(request.Image, upload + image.Name);
+
+                news.Order = request.Order;
+                _context.News.Add(news);
+                _context.Add(image);
+
+                var links = request.Links?.Select(link => new Link(Guid.NewGuid(), link));
+
+                if (request.Links != null && request.Links.Any())
+                    await _mediator.Send(new UpsertNewsLinkCommand(request.Links, news.Id));
+
+
+                await _context.SaveChangesAsync();
+
+                _context.Database.CommitTransaction();
 
                 _logger.LogInformation($"News with id {news.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(new { Id = news.Id, Image = news.Images.First().Name, ShortLink = news.ShortLink });
+
+            }
+            catch (Exception ex)
+            {
+                _context.Database.RollbackTransaction();
+                _logger.LogError(ex.Message, ex);
+                return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
             }
 
-            return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }
 
 

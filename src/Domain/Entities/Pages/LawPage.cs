@@ -11,6 +11,8 @@ namespace Domain.Entities.Pages
             WarningContent = warningContent;
         }
 
+        private LawPage() { }
+
         [Key]
         public Guid Id { get; set; }
 

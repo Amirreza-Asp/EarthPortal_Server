@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,22 +25,22 @@ builder.Services.AddMvc(opt =>
 });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Logging.ClearProviders();
+//builder.Logging.ClearProviders();
 builder.Services.AddMemoryCache();
 
-builder.Host.UseSerilog((hostBuilderContext, logConfig) =>
-{
-    if (hostBuilderContext.HostingEnvironment.IsDevelopment())
-    {
-        //logConfig.WriteTo.Console().MinimumLevel.Information();
-        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
-    }
-    else
-    {
-        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
-        //logConfig.WriteTo.Console().MinimumLevel.Error();
-    }
-});
+//builder.Host.UseSerilog((hostBuilderContext, logConfig) =>
+//{
+//    if (hostBuilderContext.HostingEnvironment.IsDevelopment())
+//    {
+//        //logConfig.WriteTo.Console().MinimumLevel.Information();
+//        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
+//    }
+//    else
+//    {
+//        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
+//        //logConfig.WriteTo.Console().MinimumLevel.Error();
+//    }
+//});
 
 
 //.WriteTo.File("logs/myapp.txt", rollingInterval: RollingInterval.Day)

@@ -5,7 +5,7 @@ namespace Domain.Entities.Contact
 {
     public class SystemEvaluationIntroductionMethod : BaseEntity
     {
-        public SystemEvaluationIntroductionMethod(IntroductionMethod introductionMethod, SystemEvaluation systemEvaluation)
+        public SystemEvaluationIntroductionMethod(IntroductionMethod introductionMethod, SystemEvaluation systemEvaluation) : base(Guid.NewGuid())
         {
             IntroductionMethod = introductionMethod;
             SystemEvaluation = systemEvaluation;

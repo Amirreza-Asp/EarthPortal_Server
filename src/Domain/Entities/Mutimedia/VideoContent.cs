@@ -4,7 +4,7 @@ namespace Domain.Entities.Mutimedia
 {
     public class VideoContent : BaseEntity
     {
-        public VideoContent(string title, string description, string video, string link)
+        public VideoContent(string title, string description, string video, string link) : base(Guid.NewGuid())
         {
             Title = title;
             Description = description;

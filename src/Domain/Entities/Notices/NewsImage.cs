@@ -4,7 +4,7 @@ namespace Domain.Entities.Notices
 {
     public class NewsImage : BaseEntity
     {
-        public NewsImage(string name, Guid newsId, int order)
+        public NewsImage(string name, Guid newsId, int order) : base(Guid.NewGuid())
         {
             Name = name;
             NewsId = newsId;

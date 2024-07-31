@@ -4,7 +4,7 @@ namespace Domain.Entities.Contact
 {
     public class Info : BaseEntity
     {
-        public Info(string phoneNumber, string email, string aparatLink, string baleLink, string rubikaLink, string eitaaLink, string gapLink, string iGapLink)
+        public Info(string phoneNumber, string email, string aparatLink, string baleLink, string rubikaLink, string eitaaLink, string gapLink, string iGapLink) : base(Guid.NewGuid())
         {
             PhoneNumber = phoneNumber;
             Email = email;
