@@ -2,6 +2,6 @@
 {
     public interface IUserCounterService
     {
-        Task ExecuteAsync(CancellationToken cancellationToken);
+        void Execute();
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Application.Contracts.Persistence.Services;
 using Application.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 
@@ -21,7 +20,7 @@ namespace Persistence.Services
             _memoryCache = memoryCache;
         }
 
-        public async Task ExecuteAsync(CancellationToken cancellationToken)
+        public void Execute()
         {
             var connectionId = _accessor.HttpContext.Connection.Id;
             //var semaphore = _connectionLocks.GetOrAdd(connectionId, new SemaphoreSlim(1, 1));
@@ -42,9 +41,7 @@ namespace Persistence.Services
 
                 if (!exist)
                 {
-                    await UpdateTotalSeen(_context, cancellationToken);
-                    _memoryCache.TryGetValue<int>("todaySeen", out int todaySeen);
-                    _memoryCache.Set<int>("todaySeen", todaySeen + 1, new DateTimeOffset(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59, TimeSpan.Zero));
+                    UpsertSeen(_context);
                 }
             }
             finally
@@ -59,15 +56,22 @@ namespace Persistence.Services
 
         }
 
-
-        async Task UpdateTotalSeen(ApplicationDbContext context, CancellationToken cancellationToken)
+        void UpsertSeen(ApplicationDbContext context)
         {
-            var footer =
-                      await _context.FooterPage.FirstAsync();
+            var statistics = context.Statistics.Where(b => b.Date.Date == DateTime.Now.Date).FirstOrDefault();
 
-            footer.TotalSeen += 1;
-            _context.FooterPage.Update(footer);
-            _context.SaveChanges();
+            if (statistics == null)
+            {
+                statistics = new Domain.Entities.Contact.Statistics(Guid.NewGuid(), 1, DateTime.Now.Date);
+                context.Statistics.Add(statistics);
+            }
+            else
+            {
+                statistics.Seen = statistics.Seen + 1;
+                context.Statistics.Update(statistics);
+            }
+
+            context.SaveChanges();
         }
     }
 }

@@ -41,42 +41,6 @@ namespace Persistence.Utilities
 
         public async Task Execute()
         {
-            //await _context.Database.EnsureDeletedAsync();
-
-            //var newsList = _context.News.ToList();
-            //newsList.ForEach(item =>
-            //{
-            //    item.Headline = item.Description.Split(".")[0];
-            //});
-            //_context.News.UpdateRange(newsList);
-
-
-
-
-            //var lawss = _context.Law.ToList();
-
-
-
-            //_context.RemoveRange(lawss);
-
-            //var appAuth = _context.ApprovalAuthority.ToList();
-            //_context.RemoveRange(appAuth);
-
-            //var appStatus = _context.ApprovalStatus.ToList();
-            //_context.RemoveRange(appStatus);
-
-            //var appType = _context.ApprovalType.ToList();
-            //_context.RemoveRange(appType);
-
-            //var lawCategories = _context.LawCategory.ToList();
-            //_context.RemoveRange(lawCategories);
-
-            //var em = _context.ExecutorManagment.ToList();
-            //_context.RemoveRange(em);
-
-            //_context.SaveChanges();
-
-
             try
             {
                 if (_context.Database.GetPendingMigrations().Any())
@@ -86,6 +50,22 @@ namespace Persistence.Utilities
             }
             catch (Exception ex)
             {
+            }
+
+
+            if (!_context.Statistics.Any())
+            {
+                var statistics = new Statistics(Guid.NewGuid(), 3005, DateTime.Now.Date);
+                var statisticsMonth = new Statistics(Guid.NewGuid(), 75878 + 2786, DateTime.Now.AddDays(-1).Date);
+                var statisticsYear = new Statistics(Guid.NewGuid(), 886586, DateTime.Now.AddMonths(-1).AddDays(-1).Date);
+                var statisticsTotal = new Statistics(Guid.NewGuid(), 3479810, DateTime.Now.AddYears(-1).AddDays(-1).Date);
+
+                _context.Statistics.Add(statistics);
+                _context.Statistics.Add(statisticsMonth);
+                _context.Statistics.Add(statisticsYear);
+                _context.Statistics.Add(statisticsTotal);
+
+                await _context.SaveChangesAsync();
             }
 
             return;

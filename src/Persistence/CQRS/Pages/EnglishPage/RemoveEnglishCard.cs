@@ -37,6 +37,16 @@ namespace Persistence.CQRS.Pages.EnglishPage
 
             otherCards.ForEach(c => c.Order = (byte)(c.Order - 1));
 
+
+            var sibling =
+                await _context.EnglishCard.Where(b => b.SiblingId == request.Id).FirstOrDefaultAsync(cancellationToken);
+
+            if (sibling != null)
+            {
+                sibling.SiblingId = null;
+                _context.EnglishCard.Update(sibling);
+            }
+
             _context.EnglishCard.Remove(card);
             _context.EnglishCard.UpdateRange(otherCards);
 

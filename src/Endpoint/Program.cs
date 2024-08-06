@@ -199,7 +199,6 @@ app.Use(async (context, next) =>
 });
 
 app.MapControllers();
-//app.MapHub<OnlineHub>("/Online");
 app.Run();
 
 

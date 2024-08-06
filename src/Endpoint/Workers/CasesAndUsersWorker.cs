@@ -31,9 +31,9 @@ namespace Endpoint.BackgroundServices
 
                 var result = await _homePageRepo.UpdateCasesAndUsersAsync(data);
                 if (result.Status == 200)
-                    await Task.Delay(1000 * 60 * 60, stoppingToken);
+                    await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
                 else
-                    await Task.Delay(1000 * 60 * 5, stoppingToken);
+                    await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
             }
         }
     }

@@ -29,7 +29,7 @@ namespace Persistence.CQRS.Pages.EnglishPage
         {
             var lastOrderNumber =
                 await _context.EnglishCard
-                   .Where(b => b.Type == request.Cards[0].Type)
+                   .Where(b => b.Type == request.Type)
                    .OrderByDescending(b => b.Order)
                    .Select(b => b.Order)
                    .FirstOrDefaultAsync(cancellationToken);
@@ -39,33 +39,33 @@ namespace Persistence.CQRS.Pages.EnglishPage
                     .Select(b => b.Id)
                     .FirstAsync(cancellationToken);
 
-            var data = new List<EnglishCard>();
-
+            var createdCards = new List<EnglishCard>();
             foreach (var item in request.Cards)
             {
                 var card = new EnglishCard
                 {
-                    Id = item.Id,
+                    Id = Guid.NewGuid(),
                     Color = item.Color,
                     Content = item.Content,
-                    Line = item.Line,
-                    Order = (byte)(lastOrderNumber + 1),
+                    Line = !createdCards.Any() && request.Line,
+                    Order = (byte)(lastOrderNumber + 1 + createdCards.Count),
                     Title = item.Title,
-                    Type = item.Type,
+                    Type = request.Type,
                     EnglishPageId = englishPageId,
-                    SiblingId = item.SiblingId
                 };
 
-                data.Add(card);
-                _context.EnglishCard.Add(card);
+                createdCards.Add(card);
             }
 
+            if (createdCards.Count > 1)
+                (createdCards[0].SiblingId, createdCards[1].SiblingId) = (createdCards[1].Id, createdCards[0].Id);
+
+            _context.EnglishCard.AddRange(createdCards);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-
                 _logger.LogInformation($"New Card  added to english page by {_userAccessor.GetUserName()} in {DateTime.Now}");
-                return CommandResponse.Success(new { data = _mapper.Map<List<EnglishCardDto>>(data) });
+                return CommandResponse.Success(_mapper.Map<List<EnglishCardDto>>(createdCards));
             }
             return CommandResponse.Failure(400, "The operation failed");
         }

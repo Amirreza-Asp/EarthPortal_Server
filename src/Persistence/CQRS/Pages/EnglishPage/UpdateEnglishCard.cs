@@ -32,8 +32,6 @@ namespace Persistence.CQRS.Pages.EnglishPage
 
             card.Content = request.Content;
             card.Title = request.Title;
-            card.Color = request.Color;
-            card.Type = request.Type;
 
             _context.EnglishCard.Update(card);
 

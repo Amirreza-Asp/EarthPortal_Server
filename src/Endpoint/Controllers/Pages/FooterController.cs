@@ -15,34 +15,34 @@ namespace Endpoint.Controllers.Pages
         private readonly IRepository<FooterPage> _footerRepo;
         private readonly IMemoryCache _memoryCache;
         private readonly IUserCounterService _userCounterService;
+        private readonly IStatisticsRepository _statisticsRepository;
 
-        public FooterController(IRepository<FooterPage> footerRepo, IMemoryCache memoryCache, IUserCounterService userCounterService)
+        public FooterController(IRepository<FooterPage> footerRepo, IMemoryCache memoryCache, IUserCounterService userCounterService, IStatisticsRepository statisticsRepository)
         {
             _footerRepo = footerRepo;
             _memoryCache = memoryCache;
             _userCounterService = userCounterService;
+            _statisticsRepository = statisticsRepository;
         }
 
         [Route("[action]")]
         [HttpGet]
         public async Task<FooterSummary> Get(CancellationToken cancellationToken)
         {
-            await _userCounterService.ExecuteAsync(default);
+            _userCounterService.Execute();
             var footer = await _footerRepo.FirstOrDefaultAsync(b => true, cancellationToken: cancellationToken);
 
-            List<OnlineUserData> onlineUsers;
-
-            _memoryCache.TryGetValue<int>("todaySeen", out int todaySeen);
-            _memoryCache.TryGetValue<List<OnlineUserData>>("onlineUsers", out onlineUsers);
-
+            _memoryCache.TryGetValue("onlineUsers", out List<OnlineUserData>? onlineUsers);
 
             var ip = HttpContext.Request.Headers["X-Forwarded-For"].ToString().Split(",")[0];
+
+            var todaySeen = await _statisticsRepository.GetTodaySeen();
+            var totalSeen = await _statisticsRepository.GetTotalSeen();
 
             return new FooterSummary
             {
                 TodaySeen = Math.Max(todaySeen, 1),
-                TodayTotalSeen = 0,
-                TotalSeen = footer.TotalSeen,
+                TotalSeen = Math.Max(totalSeen, 1),
                 UpdateAt = footer.LastUpdate,
                 Ip = ip,
                 OnlineUsers = onlineUsers == null ? 1 : onlineUsers.Count

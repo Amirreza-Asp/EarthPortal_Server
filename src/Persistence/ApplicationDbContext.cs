@@ -67,6 +67,7 @@ namespace Persistence
         public DbSet<SystemEvaluation> SystemEvaluation { get; set; }
         public DbSet<SystemEvaluationIntroductionMethod> IntroductionMethod { get; set; }
         public DbSet<SystemEvaluationPage> SystemEvaluationPage { get; set; }
+        public DbSet<Statistics> Statistics { get; set; }
         #endregion
 
         #region Resources

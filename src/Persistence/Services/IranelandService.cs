@@ -27,7 +27,7 @@ namespace Persistence.Services
 
                 byte[] iv = Encoding.UTF8.GetBytes(SD.IranelandIV);
 
-                var date = DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString("00") + DateTime.Now.Day.ToString("00") + DateTime.Now.AddHours(1).Hour + "1994";
+                var date = DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString("00") + DateTime.Now.Day.ToString("00") + DateTime.Now.AddHours(2).Hour.ToString("00") + "1994";
                 var dateNumber = Convert.ToInt64(date) * 11;
 
                 byte[] cryptKey = SHA256.HashData(Encoding.UTF8.GetBytes(SD.IranelandSecretKey));
@@ -39,7 +39,7 @@ namespace Persistence.Services
                 var values = new Dictionary<string, string> { { "token", encryptedData } };
                 var content = new FormUrlEncodedContent(values);
 
-                var response = await client.PostAsync($"https://iraneland.ir/ow/service/ow/portalStatisticService", content);
+                var response = await client.PostAsync($"https://Zamin.gov.ir/ow/service/ow/portalStatisticService", content);
 
                 if (response.IsSuccessStatusCode)
                 {

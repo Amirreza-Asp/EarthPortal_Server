@@ -62,16 +62,27 @@ namespace Persistence.Repositories
                     }
                     else
                     {
-                        var sibling = cards.Where(b => b.Id == card.SiblingId).First();
+                        var sibling = cards.Where(b => b.Id == card.SiblingId).FirstOrDefault();
 
-                        data.Add(
-                            new EnglishCardContainerDto
-                            {
-                                Cards = new List<EnglishCardDto> {
+                        if (sibling != null)
+                        {
+                            data.Add(
+                                new EnglishCardContainerDto
+                                {
+                                    Cards = new List<EnglishCardDto> {
                                             _mapper.Map<EnglishCardDto>(card),
                                             _mapper.Map<EnglishCardDto>(sibling)
-                                }.OrderBy(b => b.Order).ToList()
+                                    }.OrderBy(b => b.Order).ToList()
+                                });
+                        }
+                        else
+                        {
+                            data.Add(
+                            new EnglishCardContainerDto
+                            {
+                                Cards = new List<EnglishCardDto> { _mapper.Map<EnglishCardDto>(card) }
                             });
+                        }
                     }
                 }
             }
