@@ -81,7 +81,7 @@ builder.Services.AddCors(options =>
         policy
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .WithOrigins("http://localhost:4173", "https://zamin.gov.ir", "http://localhost:5173", "https://newportal.iraneland.ir", "http://192.168.142.49:3000", "http://newportal.iraneland.ir", "http://172.33.21.101:3000", "https://localhost:7121", "https://840f-2a09-bac5-41dc-505-00-80-ec.ngrok-free.app/", "http://localhost:5174", "https://earth-portal-client.vercel.app")
+            .WithOrigins("https://sinic.iraneland.ir/", "https://zamin.gov.ir/", "http://localhost:5173", "https://newportal.iraneland.ir")
             .AllowCredentials();
     });
 });
