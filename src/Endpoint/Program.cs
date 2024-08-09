@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,29 +25,22 @@ builder.Services.AddMvc(opt =>
     opt.Filters.Add(new RemoveServerInfoFilter());
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 //builder.Logging.ClearProviders();
 builder.Services.AddMemoryCache();
 
-//builder.Host.UseSerilog((hostBuilderContext, logConfig) =>
-//{
-//    if (hostBuilderContext.HostingEnvironment.IsDevelopment())
-//    {
-//        //logConfig.WriteTo.Console().MinimumLevel.Information();
-//        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
-//    }
-//    else
-//    {
-//        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
-//        //logConfig.WriteTo.Console().MinimumLevel.Error();
-//    }
-//});
-
-
-//.WriteTo.File("logs/myapp.txt", rollingInterval: RollingInterval.Day)
-
-//.ReadFrom.Configuration(ctx.Configuration));
-
+builder.Host.UseSerilog((hostBuilderContext, logConfig) =>
+{
+    if (hostBuilderContext.HostingEnvironment.IsDevelopment())
+    {
+        //logConfig.WriteTo.Console().MinimumLevel.Information();
+        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
+    }
+    else
+    {
+        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
+        //logConfig.WriteTo.Console().MinimumLevel.Error();
+    }
+});
 
 
 builder.Services.AddDistributedMemoryCache();
@@ -55,7 +49,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-builder.Services.AddMemoryCache();
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
 builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
@@ -171,7 +164,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseStaticFiles();
-//app.UseCustomExceptionHandler();
+
 app.UseCustomHeaderHandler();
 
 

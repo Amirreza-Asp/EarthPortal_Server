@@ -1,8 +1,8 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Application.Utilities;
 using Domain;
+using Domain.Entities.Account;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Persistence;
 using System.Security.Claims;
@@ -22,16 +22,16 @@ namespace Infrastructure.Services
 
         public async Task Execute(TokenValidatedContext context)
         {
-            var authInfoJsonDecript = context.Request.Cookies[SD.AuthToken];
+            var encryptedAuthInfoJson = context.Request.Cookies[SD.AuthToken];
 
-            if (String.IsNullOrEmpty(authInfoJsonDecript))
+            if (String.IsNullOrEmpty(encryptedAuthInfoJson))
             {
                 context.Fail("احراز هویت نامعتبر می باشد");
                 return;
             }
 
 
-            var token = ProtectorData.Decrypt(authInfoJsonDecript);
+            var token = ProtectorData.Decrypt(encryptedAuthInfoJson);
 
             var claimsIdentity = context.Principal.Identity as ClaimsIdentity;
             if (claimsIdentity?.Claims == null || !claimsIdentity.Claims.Any())
@@ -43,28 +43,14 @@ namespace Infrastructure.Services
             var username = JWTokenService.GetTokenUserName(claimsIdentity);
 
             String userCacheKey = $"user-{username}";
-            var user = new Domain.Entities.Account.User();
 
-            if (!_memoryCache.TryGetValue(userCacheKey, out user))
-            {
-                user = await _context.User
-                    .Include(b => b.Role)
-                    .FirstOrDefaultAsync(x => x.UserName == username);
-
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(1));
-
-                _memoryCache.Set(userCacheKey, user, cacheEntryOptions);
-            }
-
-            if (user == null || user.IsActive == false)
+            if (!_memoryCache.TryGetValue(userCacheKey, out User user))
             {
                 context.Fail("احراز هویت نامعتبر می باشد");
                 return;
             }
 
-
-            if (JWTokenService.GetTokenExpirationTime(claimsIdentity) <= DateTime.UtcNow)
+            if (user == null || user.IsActive == false)
             {
                 context.Fail("احراز هویت نامعتبر می باشد");
                 return;

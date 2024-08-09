@@ -16,13 +16,12 @@ namespace Endpoint.CustomeAttributes
 
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-
             var role = context.HttpContext.User.FindFirstValue(AppClaims.Role);
 
             if (role == null)
-                context.Result = new BadRequestObjectResult("به این صفحه دسترسی ندارید");
+                context.Result = new UnauthorizedObjectResult("نشست شما به پایان رسیده");
             else if (role != Role)
-                context.Result = new BadRequestObjectResult("به این صفحه دسترسی ندارید");
+                context.Result = new StatusCodeResult(403);
 
             await base.OnActionExecutionAsync(context, next);
         }

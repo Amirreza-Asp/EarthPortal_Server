@@ -22,38 +22,33 @@ namespace Persistence.Services
 
         public void Execute()
         {
-            var connectionId = _accessor.HttpContext.Connection.Id;
-            //var semaphore = _connectionLocks.GetOrAdd(connectionId, new SemaphoreSlim(1, 1));
+            var connectionId = _accessor.HttpContext.Request.Cookies["CustomConnectionId"] ?? Guid.NewGuid().ToString();
 
-            //await semaphore.WaitAsync(cancellationToken);
-            try
+            if (!_memoryCache.TryGetValue("onlineUsers", out List<OnlineUserData>? onlineUsers))
             {
-                _memoryCache.TryGetValue<List<OnlineUserData>>("onlineUsers", out List<OnlineUserData>? onlineUsers);
+                onlineUsers = new List<OnlineUserData>();
+            }
 
-                if (onlineUsers == null)
-                    onlineUsers = new List<OnlineUserData>();
+            bool exist = onlineUsers.Any(x => x.IsValid && x.Id == connectionId);
 
-                var exist = onlineUsers.Any(x => x.IsValid && x.Id == connectionId);
+            onlineUsers.RemoveAll(b => !b.IsValid || b.Id == connectionId);
 
-                onlineUsers = onlineUsers.Where(b => b.IsValid && b.Id != connectionId).ToList();
-                onlineUsers.Add(new OnlineUserData(connectionId));
-                _memoryCache.Set<List<OnlineUserData>>("onlineUsers", onlineUsers, DateTimeOffset.MaxValue);
+            onlineUsers.Add(new OnlineUserData(connectionId));
 
-                if (!exist)
+            _memoryCache.Set("onlineUsers", onlineUsers, DateTimeOffset.MaxValue);
+
+            if (!exist)
+            {
+                UpsertSeen(_context);
+                _accessor.HttpContext.Response.Cookies.Append("CustomConnectionId", connectionId, new CookieOptions()
                 {
-                    UpsertSeen(_context);
-                }
+                    Expires = DateTime.Now.AddHours(2),
+                    HttpOnly = true,
+                    Secure = true,
+                    IsEssential = true,
+                    SameSite = SameSiteMode.None
+                });
             }
-            finally
-            {
-                //semaphore.Release();
-                // Clean up the semaphore if it's no longer needed
-                //if (_connectionLocks.TryRemove(connectionId, out var existingSemaphore))
-                //{
-                //    existingSemaphore.Dispose();
-                //}
-            }
-
         }
 
         void UpsertSeen(ApplicationDbContext context)
