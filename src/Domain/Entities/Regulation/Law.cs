@@ -6,7 +6,7 @@ namespace Domain.Entities.Regulation
 {
     public class Law : BaseEntity
     {
-        public Law(string title, Announcement announcement, Newspaper newspaper, string description, DateTime approvalDate, LawType type, bool isOriginal, Guid approvalTypeId, Guid approvalStatusId, Guid executorManagmentId, Guid approvalAuthorityId, Guid lawCategoryId, string pdf) : base(Guid.NewGuid())
+        public Law(string title, Announcement? announcement, Newspaper? newspaper, string description, DateTime approvalDate, LawType type, bool isOriginal, Guid approvalTypeId, Guid approvalStatusId, Guid executorManagmentId, Guid approvalAuthorityId, Guid lawCategoryId, string pdf, string? article) : base(Guid.NewGuid())
         {
             Title = title;
             Announcement = announcement;
@@ -21,18 +21,20 @@ namespace Domain.Entities.Regulation
             ApprovalAuthorityId = approvalAuthorityId;
             LawCategoryId = lawCategoryId;
             Pdf = pdf;
+            Article = article;
         }
 
         private Law() { }
 
         public String Title { get; set; }
-        public Announcement Announcement { get; set; }
-        public Newspaper Newspaper { get; set; }
+        public Announcement? Announcement { get; set; }
+        public Newspaper? Newspaper { get; set; }
         public String Description { get; set; }
         public DateTime ApprovalDate { get; set; }
         public LawType Type { get; set; }
         public bool IsOriginal { get; set; } = true;
         public String Pdf { get; set; }
+        public String? Article { get; set; }
 
         public Guid ApprovalTypeId { get; set; }
         public Guid ApprovalStatusId { get; set; }
@@ -47,6 +49,18 @@ namespace Domain.Entities.Regulation
         public ExecutorManagment? ExecutorManagment { get; set; }
         public ApprovalAuthority? ApprovalAuthority { get; set; }
         public LawCategory? LawCategory { get; set; }
+
+
+        public override bool Equals(object? obj)
+        {
+            var other = obj as Law;
+
+            if (other == null) return false;
+
+            return Title.Trim() == other.Title.Trim() && ApprovalDate.Date == other.ApprovalDate.Date &&
+                        ApprovalTypeId == other.ApprovalTypeId && ApprovalStatusId == other.ApprovalStatusId &&
+                        Article == other.Article && Type == other.Type && IsOriginal == other.IsOriginal && Newspaper?.Number == other.Newspaper?.Number;
+        }
 
     }
 }

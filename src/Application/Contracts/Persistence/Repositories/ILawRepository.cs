@@ -7,6 +7,6 @@ namespace Application.Contracts.Persistence.Repositories
 {
     public interface ILawRepository : IRepository<Law>
     {
-        Task<ListActionResult<LawSummary>> PagenationSummaryAsync(LawPagenationQuery query, CancellationToken cancellationToken);
+        Task<ListActionResult<LawSummary>> PaginationSummaryAsync(LawPagenationQuery query, CancellationToken cancellationToken);
     }
 }

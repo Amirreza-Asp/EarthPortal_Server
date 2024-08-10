@@ -41,7 +41,7 @@ namespace Persistence.CQRS.Regulation.Laws
 
             var law = new Law(request.Title, new Announcement(request.AnnouncementNumber, request.AnnouncementDate), Newspaper.Create(request.AnnouncementNumber, request.NewspaperDate),
                              request.Description, request.ApprovalDate, request.Type == 0 ? LawType.Rule : LawType.Regulation, request.IsOriginal, request.ApprovalTypeId, request.ApprovalStatusId,
-                             request.ExecutorManagmentId, request.ApprovalAuthorityId, request.LawCategoryId, fileName);
+                             request.ExecutorManagmentId, request.ApprovalAuthorityId, request.LawCategoryId, fileName, request.Article);
 
             law.Order = request.Order;
             _context.Law.Add(law);

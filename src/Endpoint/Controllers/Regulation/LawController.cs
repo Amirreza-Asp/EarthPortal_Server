@@ -35,7 +35,7 @@ namespace Endpoint.Controllers.Regulation
         [Route("PagenationSpecificQuery")]
         [HttpPost]
         public async Task<ListActionResult<LawSummary>> PagenationSpecificQuery([FromBody] LawPagenationQuery query, CancellationToken cancellationToken) =>
-            await _lawRepository.PagenationSummaryAsync(query, cancellationToken);
+            await _lawRepository.PaginationSummaryAsync(query, cancellationToken);
 
         [Route("PagenationSummary")]
         [HttpPost]

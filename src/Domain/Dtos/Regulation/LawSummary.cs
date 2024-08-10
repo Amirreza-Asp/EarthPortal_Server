@@ -10,5 +10,8 @@
         public String Pdf { get; set; }
         public int Order { get; set; }
         public String NewspaperNumber { get; set; }
+        public String? Article { get; set; }
+        public String ApprovalStatus { get; set; }
+        public String ApprovalType { get; set; }
     }
 }

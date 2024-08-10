@@ -982,6 +982,9 @@ namespace Persistence.Migrations
                     b.Property<Guid>("ApprovalTypeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Article")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -1728,8 +1731,7 @@ namespace Persistence.Migrations
                                 .HasForeignKey("LawId");
                         });
 
-                    b.Navigation("Announcement")
-                        .IsRequired();
+                    b.Navigation("Announcement");
 
                     b.Navigation("ApprovalAuthority");
 
@@ -1741,8 +1743,7 @@ namespace Persistence.Migrations
 
                     b.Navigation("LawCategory");
 
-                    b.Navigation("Newspaper")
-                        .IsRequired();
+                    b.Navigation("Newspaper");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.LawImage", b =>

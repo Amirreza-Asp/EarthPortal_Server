@@ -15,6 +15,7 @@ namespace Application.CQRS.Regulation.Laws
         public DateTime ApprovalDate { get; set; }
         public int Type { get; set; }
         public bool IsOriginal { get; set; }
+        public String? Article { get; set; }
 
         public IFormFile Pdf { get; set; }
 

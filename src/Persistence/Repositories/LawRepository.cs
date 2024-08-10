@@ -7,7 +7,6 @@ using Domain.Dtos.Regulation;
 using Domain.Entities.Regulation;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Utilities;
-using System.Linq.Expressions;
 
 namespace Persistence.Repositories
 {
@@ -17,24 +16,75 @@ namespace Persistence.Repositories
         {
         }
 
-        public async Task<ListActionResult<LawSummary>> PagenationSummaryAsync(LawPagenationQuery query, CancellationToken cancellationToken)
+        public async Task<ListActionResult<LawSummary>> PaginationSummaryAsync(LawPagenationQuery query, CancellationToken cancellationToken)
         {
             IQueryable<Law> queryContext = _context.Law;
 
-            var searchFilter = GetSearchFilter(query);
-            var lawTypeFilter = GetLawTypeFilter(query);
-            var relationsFilter = GetRelationsFilter(query);
-            var datesFilter = GetDatesFilter(query);
+            if (!String.IsNullOrEmpty(query.Text) && query.SearchProps != null && query.SearchProps.Count != 0)
+            {
+                queryContext =
+                    queryContext.Where(b =>
+                         query.SearchProps.Contains("title") && b.Title.Contains(query.Text) ||
+                         query.SearchProps.Contains("description") && b.Description.Contains(query.Text));
+            }
+
+            if (query.LawType != null)
+            {
+                queryContext = queryContext.Where(b => query.LawType.Contains((int)b.Type));
+            }
+
+            if (query.ApprovalAuthorityIds != null && query.ApprovalAuthorityIds.Count != 0)
+            {
+                queryContext = queryContext.Where(b => query.ApprovalAuthorityIds.Contains(b.ApprovalAuthorityId));
+            }
+
+            if (query.ApprovalStatusIds != null && query.ApprovalStatusIds.Count != 0)
+            {
+                queryContext = queryContext.Where(b => query.ApprovalStatusIds.Contains(b.ApprovalStatusId));
+            }
+
+            if (query.ExecutorManagmentIds != null && query.ExecutorManagmentIds.Count != 0)
+            {
+                queryContext = queryContext.Where(b => query.ExecutorManagmentIds.Contains(b.ExecutorManagmentId));
+            }
+
+            if (query.LawCategoryIds != null && query.LawCategoryIds.Count != 0)
+            {
+                queryContext = queryContext.Where(b => query.LawCategoryIds.Contains(b.LawCategoryId));
+            }
+
+            if (query.ApprovalTypeIds != null && query.ApprovalTypeIds.Count != 0)
+            {
+                queryContext = queryContext.Where(b => query.ApprovalTypeIds.Contains(b.ApprovalTypeId));
+            }
+
+            if (query.ApprovalDate.HasValue)
+            {
+                queryContext = queryContext.Where(b => query.ApprovalDate.Value.Date == b.ApprovalDate.Date);
+            }
+
+            if (query.NewspaperDate.HasValue)
+            {
+                queryContext = queryContext.Where(b => query.NewspaperDate.Value.Date == b.Newspaper.Date.Date);
+            }
+
+            if (query.ApprovalDate.HasValue)
+            {
+                queryContext = queryContext.Where(b => query.AnnouncementDate.Value.Date == b.Announcement.Date);
+            }
+
+            if (query.IsOriginal != -1)
+            {
+                if (query.IsOriginal == 0)
+                    queryContext = queryContext.Where(b => b.IsOriginal);
+                else
+                    queryContext = queryContext.Where(b => !b.IsOriginal);
+            }
 
             queryContext =
                 queryContext
-                    .Where(searchFilter)
-                    .Where(lawTypeFilter)
-                    .Where(relationsFilter)
-                    .Where(datesFilter)
                     .Where(
                         law =>
-                            query.IsOriginal == -1 ? true : query.IsOriginal == 0 ? !law.IsOriginal : law.IsOriginal &&
                             String.IsNullOrEmpty(query.AnnouncementNumber) || law.Announcement.Number.Equals(query.AnnouncementNumber) &&
                             String.IsNullOrEmpty(query.NewspaperNumber) || law.Newspaper.Number.Equals(query.NewspaperNumber)
                     );
@@ -60,39 +110,9 @@ namespace Persistence.Repositories
                     Page = query.Page,
                     Size = query.Size
                 };
+
         }
 
-
-
-        private Expression<Func<Law, bool>> GetSearchFilter(LawPagenationQuery query)
-        {
-            return b => String.IsNullOrEmpty(query.Text) ? true :
-                        query.SearchProps == null || !query.SearchProps.Any() ? false :
-                         query.SearchProps.Contains("title") && b.Title.Contains(query.Text) ||
-                         query.SearchProps.Contains("description") && b.Description.Contains(query.Text);
-        }
-        private Expression<Func<Law, bool>> GetLawTypeFilter(LawPagenationQuery query)
-        {
-            return b => query.LawType == null ? false : query.LawType.Contains((int)b.Type);
-        }
-        private Expression<Func<Law, bool>> GetRelationsFilter(LawPagenationQuery query)
-        {
-            return
-                law =>
-                    !query.ApprovalAuthorityIds.Any() ? true : query.ApprovalAuthorityIds.Contains(law.ApprovalAuthorityId) &&
-                    !query.ApprovalStatusIds.Any() ? true : query.ApprovalStatusIds.Contains(law.ApprovalStatusId) &&
-                    !query.ExecutorManagmentIds.Any() ? true : query.ExecutorManagmentIds.Contains(law.ExecutorManagmentId) &&
-                    !query.LawCategoryIds.Any() ? true : query.LawCategoryIds.Contains(law.LawCategoryId) &&
-                    !query.ApprovalTypeIds.Any() ? true : query.ApprovalTypeIds.Contains(law.ApprovalTypeId);
-        }
-        private Expression<Func<Law, bool>> GetDatesFilter(LawPagenationQuery query)
-        {
-            return
-                law =>
-                    (!query.ApprovalDate.HasValue || query.ApprovalDate == null || query.ApprovalDate.Value.Date == law.ApprovalDate.Date) &&
-                    (!query.NewspaperDate.HasValue || query.NewspaperDate == null || query.NewspaperDate.Value.Date == law.Newspaper.Date.Date) &&
-                    (!query.AnnouncementDate.HasValue || query.AnnouncementDate == null || query.AnnouncementDate.Value.Date == law.Announcement.Date);
-        }
         private Func<IQueryable<Law>, IOrderedQueryable<Law>> GetOrderBy(LawPagenationQuery query)
         {
             switch (query.SortBy)

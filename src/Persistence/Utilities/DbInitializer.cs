@@ -10,10 +10,12 @@ using Domain.Entities.Regulation;
 using Domain.Entities.Regulation.Enums;
 using Domain.Entities.Regulation.ValueObjects;
 using Domain.Entities.Resources;
+using Domain.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
+using System.Globalization;
 using System.Text.Json;
 
 namespace Persistence.Utilities
@@ -68,162 +70,147 @@ namespace Persistence.Utilities
                 await _context.SaveChangesAsync();
             }
 
-            return;
             #region Regulation
-            //var lawss = _context.Law.ToList();
+            LawCleaner(_context);
 
-            //var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/lawData.json");
-            //var lawData = JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
+            var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/lawData.json");
+            var lawData = JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
 
-
-            //foreach (var l in lawss)
-            //{
-            //    if (lawData.Any(b => b.Title == l.Title && !String.IsNullOrEmpty(b.File)))
-            //    {
-            //        l.Pdf = lawData.Find(b => b.Title == l.Title && !String.IsNullOrEmpty(b.File)).File.Replace("فایل", "") + ".pdf";
-            //        _context.Law.Update(l);
-            //    }
-            //}
-
-            //_context.SaveChanges();
-            //return;
-
-            //if (!_context.ApprovalAuthority.Any())
-            //{
-            //    var approvalAuthorities =
-            //        lawData.Select(b => b.Reference)
-            //        .Where(b => !String.IsNullOrEmpty(b))
-            //        .Distinct()
-            //        .Select(b => new ApprovalAuthority(b))
-            //        .ToList();
-
-            //    _context.ApprovalAuthority.AddRange(approvalAuthorities);
-            //    _context.ApprovalAuthority.Add(new ApprovalAuthority("نامشخص"));
-            //    await _context.SaveChangesAsync();
-            //}
-
-            //if (!_context.ApprovalStatus.Any())
-            //{
-            //    _context.ApprovalStatus.AddRange(ApprovalStatuses);
-            //    _context.ApprovalStatus.Add(new ApprovalStatus("نامشخص"));
-            //    await _context.SaveChangesAsync();
-            //}
-
-            //if (!_context.ApprovalType.Any())
-            //{
-            //    var approvalTypes =
-            //        lawData.Select(b => b.Type)
-            //        .Where(b => !String.IsNullOrEmpty(b))
-            //        .Distinct()
-            //        .Select(b => new ApprovalType(b))
-            //        .ToList();
-
-            //    _context.ApprovalType.AddRange(approvalTypes);
-            //    _context.ApprovalType.Add(new ApprovalType("نامشخص"));
-            //    await _context.SaveChangesAsync();
-            //}
-
-            //if (!_context.ExecutorManagment.Any())
-            //{
-            //    var executorManagements =
-            //        lawData.Select(b => b.Presenter)
-            //        .Where(b => !String.IsNullOrEmpty(b))
-            //        .Distinct()
-            //        .Select(b => new ExecutorManagment(b))
-            //        .ToList();
-
-            //    _context.ExecutorManagment.AddRange(executorManagements);
-            //    _context.ExecutorManagment.Add(new ExecutorManagment("نامشخص"));
-            //    await _context.SaveChangesAsync();
-            //}
-
-            //if (!_context.LawCategory.Any())
-            //{
-            //    _context.LawCategory.AddRange(LawCategories);
-            //    _context.LawCategory.Add(new LawCategory("نامشخص"));
-            //    await _context.SaveChangesAsync();
-            //}
-
-            //if (!_context.Law.Any())
-            //{
-            //    var categories = await _context.LawCategory.ToListAsync();
-            //    var approvalAuthority = await _context.ApprovalAuthority.ToListAsync();
-            //    var approvalStatus = await _context.ApprovalStatus.ToListAsync();
-            //    var approvalType = await _context.ApprovalType.ToListAsync();
-            //    var executorManagment = await _context.ExecutorManagment.ToListAsync();
-
-            //    try
-            //    {
-            //        var pc = new PersianCalendar();
-            //        var laws = new List<Law>();
+            foreach (var item in lawData)
+            {
+                item.Presenter = item.Presenter.ConvertPersianToEnglish();
+                item.File = item.File.ConvertPersianToEnglish();
+                item.CommunicatedNumber = item.CommunicatedNumber.ConvertPersianToEnglish();
+                item.CommunicatedDate = item.CommunicatedDate.ConvertPersianToEnglish();
+                item.NewspaperDate = item.NewspaperDate.ConvertPersianToEnglish();
+                item.NewspaperNumber = item.NewspaperNumber.ConvertPersianToEnglish();
+                item.LawText = item.LawText.ConvertPersianToEnglish();
+                item.Title = item.Title.ConvertPersianToEnglish();
+                item.Date = item.Date.ConvertPersianToEnglish();
+                item.Articles = item.Articles.ConvertPersianToEnglish();
+                item.Reference = item.Reference.ConvertPersianToEnglish();
+                item.Type = item.Type.ConvertPersianToEnglish();
+            }
 
 
-            //        foreach (var b in lawData.DistinctBy(b => b.Title).Where(b => !String.IsNullOrEmpty(b.Date) && !String.IsNullOrEmpty(b.CommunicatedDate) && !String.IsNullOrEmpty(b.NewspaperDate)))
-            //        {
-            //            try
-            //            {
-            //                var nd = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.NewspaperDate);
-            //                var ad = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.CommunicatedDate);
-            //                var date = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.Date);
-            //                var newsPaper = Newspaper.Create(Convert.ToString(b.NewspaperNumber), nd);
+            if (!_context.ApprovalAuthority.Any())
+            {
+                var approvalAuthorities =
+                    lawData.Select(b => b.Reference)
+                    .Where(b => !String.IsNullOrEmpty(b))
+                    .Distinct()
+                    .Select(b => new ApprovalAuthority(b))
+                    .ToList();
 
-            //                var entity =
-            //                     new Law(
-            //                         title: b.Title,
-            //                         announcement: new Announcement(Convert.ToString(b.CommunicatedNumber), ad),
-            //                         newspaper: newsPaper,
-            //                         description: b.LawText,
-            //                         approvalDate: date,
-            //                         type: b.Type == "آیین‌نامه" ? LawType.Rule : LawType.Regulation,
-            //                         isOriginal: true,
-            //                         approvalTypeId: String.IsNullOrEmpty(b.Type) ? approvalType.First(s => s.Value == "نامشخص").Id : approvalType.First(s => s.Value == b.Type).Id,
-            //                         approvalStatusId: approvalStatus.First(s => s.Status == "نامشخص").Id,
-            //                         executorManagmentId: String.IsNullOrEmpty(b.Presenter) ? executorManagment.First(s => s.Name == "نامشخص").Id : executorManagment.First(s => s.Name == b.Presenter).Id,
-            //                         approvalAuthorityId: String.IsNullOrEmpty(b.Reference) ? approvalAuthority.First(s => s.Name == "نامشخص").Id : approvalAuthority.First(s => s.Name == b.Reference).Id,
-            //                         lawCategoryId: categories.First(s => s.Title == "نامشخص").Id,
-            //                         pdf: String.IsNullOrEmpty(b.File) ? Guid.NewGuid() + ".pdf" : b.File.Replace("فایل", "") + ".pdf"
-            //                     );
+                _context.ApprovalAuthority.AddRange(approvalAuthorities);
+                _context.ApprovalAuthority.Add(new ApprovalAuthority("نامشخص"));
+                await _context.SaveChangesAsync();
+            }
 
-            //                laws.Add(entity);
+            if (!_context.ApprovalStatus.Any())
+            {
+                _context.ApprovalStatus.AddRange(ApprovalStatuses);
+                _context.ApprovalStatus.Add(new ApprovalStatus("نامشخص"));
+                await _context.SaveChangesAsync();
+            }
 
-            //                _context.Law.Add(entity);
-            //            }
-            //            catch (Exception ex)
-            //            {
-            //                Console.WriteLine(ex.ToString());
-            //            }
-            //        }
+            if (!_context.ApprovalType.Any())
+            {
+                var approvalTypes =
+                    lawData.Select(b => b.Type)
+                    .Where(b => !String.IsNullOrEmpty(b))
+                    .Distinct()
+                    .Select(b => new ApprovalType(b))
+                    .ToList();
 
-            //        if (await _context.SaveChangesAsync() > 0)
-            //        {
-            //            if (!Directory.Exists(_env.WebRootPath + SD.LawPdfPath))
-            //                Directory.CreateDirectory(_env.WebRootPath + SD.LawPdfPath);
+                _context.ApprovalType.AddRange(approvalTypes);
+                _context.ApprovalType.Add(new ApprovalType("نامشخص"));
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.ExecutorManagment.Any())
+            {
+                var executorManagements =
+                    lawData.Select(b => b.Presenter)
+                    .Where(b => !String.IsNullOrEmpty(b))
+                    .Distinct()
+                    .Select(b => new ExecutorManagment(b))
+                    .ToList();
+
+                _context.ExecutorManagment.AddRange(executorManagements);
+                _context.ExecutorManagment.Add(new ExecutorManagment("نامشخص"));
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.LawCategory.Any())
+            {
+                _context.LawCategory.AddRange(LawCategories);
+                _context.LawCategory.Add(new LawCategory("نامشخص"));
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Law.Any())
+            {
+                var categories = await _context.LawCategory.ToListAsync();
+                var approvalAuthority = await _context.ApprovalAuthority.ToListAsync();
+                var approvalStatus = await _context.ApprovalStatus.ToListAsync();
+                var approvalType = await _context.ApprovalType.ToListAsync();
+                var executorManagment = await _context.ExecutorManagment.ToListAsync();
+
+                try
+                {
+                    var pc = new PersianCalendar();
+
+                    var laws = new List<Law>();
+                    foreach (var b in lawData)
+                    {
+                        try
+                        {
+                            var date = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.Date);
 
 
-            //            foreach (var item in laws)
-            //            {
-            //                try
-            //                {
-            //                    var ld = lawData.FirstOrDefault(b => b.Title == item.Title);
-            //                    if (ld != null && !String.IsNullOrEmpty(ld.File) && File.Exists(_env.WebRootPath + SD.LawPdfPath + ld.File.Replace("فایل", "") + ".pdf"))
-            //                        continue;
-            //                    else if (!File.Exists(_env.WebRootPath + SD.LawPdfPath + item.Pdf))
-            //                        _fileManager.ConvertHtmlToPdf(item.Description, _env.WebRootPath + SD.LawPdfPath + item.Pdf);
-            //                }
-            //                catch (Exception ex)
-            //                {
-            //                    _context.Law.Remove(item);
-            //                }
-            //            };
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Console.WriteLine(ex);
-            //    }
-            //}
+
+                            var entity =
+                                 new Law(
+                                     title: b.Title,
+                                     announcement: b.CommunicatedDate == null || b.CommunicatedDate.ToString() == "-" || b.CommunicatedNumber == "-" || b.CommunicatedNumber == null ? null : new Announcement(Convert.ToString(b.CommunicatedNumber), DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.CommunicatedDate)),
+                                     newspaper: b.NewspaperDate == null || b.NewspaperDate.ToString() == "-" || b.NewspaperNumber == "-" || b.NewspaperNumber == null ? null : Newspaper.Create(Convert.ToString(b.NewspaperNumber), DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.NewspaperDate)),
+                                     description: b.LawText,
+                                     approvalDate: date,
+                                     type: b.Type == "آیین‌نامه" ? LawType.Rule : LawType.Regulation,
+                                     isOriginal: true,
+                                     approvalTypeId: String.IsNullOrEmpty(b.Type) ? approvalType.First(s => s.Value == "نامشخص").Id : approvalType.First(s => s.Value == b.Type).Id,
+                                     approvalStatusId: approvalStatus.First(s => s.Status == "نامشخص").Id,
+                                     executorManagmentId: String.IsNullOrEmpty(b.Presenter) ? executorManagment.First(s => s.Name == "نامشخص").Id : executorManagment.First(s => s.Name == b.Presenter).Id,
+                                     approvalAuthorityId: String.IsNullOrEmpty(b.Reference) ? approvalAuthority.First(s => s.Name == "نامشخص").Id : approvalAuthority.First(s => s.Name == b.Reference).Id,
+                                     lawCategoryId: categories.First(s => s.Title == "نامشخص").Id,
+                                     article: b.Articles,
+                                     pdf: b.File + ".pdf"
+                                 );
+
+
+                            if (!laws.Any(law => law.Equals(entity)))
+                            {
+                                laws.Add(entity);
+                                _context.Law.Add(entity);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
             #endregion
 
+            return;
             #region Multimedia
             //if (!_context.Gallery.Any())
             //{
@@ -964,7 +951,7 @@ namespace Persistence.Utilities
                 new ApprovalStatus("معتبر"),
             };
 
-        private List<ApprovalType> approvalTypes =>
+        private List<ApprovalType> ApprovalTypes =>
             new List<ApprovalType>
             {
                 new ApprovalType("موافقتنامه"),
@@ -1017,22 +1004,29 @@ namespace Persistence.Utilities
                 new LawCategory("تحولات مراجع وضع"),
             };
 
-        private List<Law> Laws =>
-            new List<Law>
-            {
-                new Law("آیین نامه اجرایی قانون اصلاح قانون حفظ کاربری اراضی زراعی و باغها" , new Announcement("44545" , DateTime.Now.AddDays(-20)),  Newspaper.Create("58653" , DateTime.Now.AddDays(-53)) ,
-                        lorem , DateTime.Now.AddDays(-5) , LawType.Regulation , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty , "test.pdf"),
-                new Law("اختصاص اعتبار به وزارت نيرو به منظور تثبيت و ايمن سازي آبراهه هاي مشرف به محدوده سد امير كبير و لايروبي و رسوب برداري رودخانه پايين دست و جبران خسارات ناشي از بارندگي شديد و سيلاب مورخ 1402/03/18 در محور كرج - چالوس حد فاصل تونل هاي (2- الف) و (2-ب)" , new Announcement("44545" , DateTime.Now.AddDays(-27)), Newspaper.Create("58653" , DateTime.Now.AddDays(-43)) ,
-                        lorem , DateTime.Now.AddDays(-23) , LawType.Rule , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
-                new Law(" آيين نامه شناسايي و صيانت از وسيله هاي نقليه تاريخي" , new Announcement("44545" , DateTime.Now.AddDays(-73)), Newspaper.Create("58653" , DateTime.Now.AddYears(-86)) ,
-                        lorem , DateTime.Now.AddMonths(-2) , LawType.Regulation , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
-                new Law("همتراز شدن دبيركل كميسيون ملي يونسكو با مقامات موضوع بند (هـ) ماده (71) قانون مديريت خدمات كشوري" , new Announcement("44545" , DateTime.Now.AddDays(-55)),Newspaper.Create("58653" , DateTime.Now.AddDays(-120)) ,
-                        lorem , DateTime.Now.AddDays(-125) , LawType.Rule , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
-                new Law("تخصيص اعتبار به مبلغ سيصد ميليارد (300/000/000/000) ريال براي تامين مواد مصرفي آزمايشگاهي به منظور خريد تجهيزات براي شناسايي و تشخيص هويت متوفيان ناشي از وقوع حوادث غيرمترقبه در اختيار سازمان پزشكي قانوني كشور" , new Announcement("44545" , DateTime.Now.AddDays(-2)), Newspaper.Create("58653" , DateTime.Now.AddDays(-155)) ,
-                        lorem , DateTime.Now.AddDays(-50) , LawType.Rule , true ,  Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
-                new Law(" \tتعيين صفر درصد سود بازرگاني قطعات گوشت مرغ ا" , new Announcement("44545" , DateTime.Now.AddDays(-23)),  Newspaper.Create("58653" , DateTime.Now.AddDays(-17)) ,
-                        lorem , DateTime.Now.AddDays(-20) , LawType.Regulation , true , Guid.Empty , Guid.Empty , Guid.Empty , Guid.Empty ,Guid.Empty, "test.pdf"),
-            };
+
+        private void LawCleaner(ApplicationDbContext context)
+        {
+            var laws = context.Law.ToList();
+            context.Law.RemoveRange(laws);
+
+            var approvalAuthorities = context.ApprovalAuthority.ToList();
+            context.ApprovalAuthority.RemoveRange(approvalAuthorities);
+
+            var approvalStatuses = context.ApprovalStatus.ToList();
+            context.ApprovalStatus.RemoveRange(approvalStatuses);
+
+            var approvalTypes = context.ApprovalType.ToList();
+            context.ApprovalType.RemoveRange(approvalTypes);
+
+            var executorManagements = context.ExecutorManagment.ToList();
+            context.ExecutorManagment.RemoveRange(executorManagements);
+
+            var lawCategories = context.LawCategory.ToList();
+            context.LawCategory.RemoveRange(lawCategories);
+
+            context.SaveChanges();
+        }
         #endregion
 
         #region Multimedia
@@ -1166,8 +1160,8 @@ namespace Persistence.Utilities
 
     class LawData
     {
-        [JsonProperty("File", NullValueHandling = NullValueHandling.Ignore)]
-        public string? File { get; set; }
+        [JsonProperty("File")]
+        public string File { get; set; }
 
         [JsonProperty("Row")]
         public long Row { get; set; }

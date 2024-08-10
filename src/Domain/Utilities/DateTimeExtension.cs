@@ -6,6 +6,8 @@ namespace Domain.Utilities
     {
         public static DateTime ConvertShamsiStringToMiladiDateTime(String shamsiDate)
         {
+            if (String.IsNullOrEmpty(shamsiDate))
+                return DateTime.MinValue;
 
             var pc = new PersianCalendar();
             var parts = shamsiDate.Split('/');
