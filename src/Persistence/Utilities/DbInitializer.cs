@@ -96,7 +96,7 @@ namespace Persistence.Utilities
             if (!_context.ApprovalAuthority.Any())
             {
                 var approvalAuthorities =
-                    lawData.Select(b => b.Reference)
+                    lawData.Select(b => b.Reference.Trim())
                     .Where(b => !String.IsNullOrEmpty(b))
                     .Distinct()
                     .Select(b => new ApprovalAuthority(b))
@@ -117,7 +117,7 @@ namespace Persistence.Utilities
             if (!_context.ApprovalType.Any())
             {
                 var approvalTypes =
-                    lawData.Select(b => b.Type)
+                    lawData.Select(b => b.Type.Trim())
                     .Where(b => !String.IsNullOrEmpty(b))
                     .Distinct()
                     .Select(b => new ApprovalType(b))
@@ -131,7 +131,7 @@ namespace Persistence.Utilities
             if (!_context.ExecutorManagment.Any())
             {
                 var executorManagements =
-                    lawData.Select(b => b.Presenter)
+                    lawData.Select(b => b.Presenter.Trim())
                     .Where(b => !String.IsNullOrEmpty(b))
                     .Distinct()
                     .Select(b => new ExecutorManagment(b))

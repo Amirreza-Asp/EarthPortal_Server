@@ -1,7 +1,9 @@
 ﻿using Application.Contracts.Persistence.Repositories;
 using Application.CQRS.Pages.LawPage;
 using Application.Models;
+using Domain.Dtos.Pages;
 using Domain.Entities.Pages;
+using Domain.Entities.Regulation;
 using Endpoint.CustomeAttributes;
 using Endpoint.Utilities;
 using MediatR;
@@ -14,18 +16,24 @@ namespace Endpoint.Controllers.Pages
     public class LawPageController : ControllerBase
     {
         private readonly IRepository<LawPage> _repo;
+        private readonly IRepository<Law> _lawRepo;
         private readonly IMediator _mediator;
 
-        public LawPageController(IRepository<LawPage> repo, IMediator mediator)
+        public LawPageController(IRepository<LawPage> repo, IMediator mediator, IRepository<Law> laws)
         {
             _repo = repo;
             _mediator = mediator;
+            _lawRepo = laws;
         }
 
         [Route("[action]")]
         [HttpGet]
-        public async Task<LawPage> Get(CancellationToken cancellationToken) =>
-            await _repo.FirstOrDefaultAsync<LawPage>(b => true, cancellationToken);
+        public async Task<LawPageDto> Get(CancellationToken cancellationToken)
+        {
+            var data = await _repo.FirstOrDefaultAsync<LawPageDto>(b => true, cancellationToken);
+            data.LawCount = await _lawRepo.CountAsync(b => true, cancellationToken);
+            return data;
+        }
 
         [Route("[action]")]
         [HttpPut]

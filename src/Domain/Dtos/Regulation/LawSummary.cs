@@ -13,5 +13,6 @@
         public String? Article { get; set; }
         public String ApprovalStatus { get; set; }
         public String ApprovalType { get; set; }
+        public bool ShowArticle { get; set; }
     }
 }

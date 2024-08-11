@@ -26,5 +26,17 @@
 
         public int Page { get; set; } = 1;
         public int Size { get; set; } = 10;
+
+        public bool IsFiltered() =>
+            ApprovalAuthorityIds != null && ApprovalAuthorityIds.Any() ||
+            ExecutorManagmentIds != null && ExecutorManagmentIds.Any() ||
+            ApprovalStatusIds != null && ApprovalStatusIds.Any() ||
+            LawCategoryIds != null && LawCategoryIds.Any() ||
+            ApprovalTypeIds != null && ApprovalTypeIds.Any() ||
+            !String.IsNullOrEmpty(AnnouncementNumber) ||
+            AnnouncementDate.HasValue ||
+             !String.IsNullOrEmpty(NewspaperNumber) ||
+            NewspaperDate.HasValue ||
+            ApprovalDate.HasValue;
     }
 }

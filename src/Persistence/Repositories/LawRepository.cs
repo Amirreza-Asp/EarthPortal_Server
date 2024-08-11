@@ -2,7 +2,6 @@
 using Application.Models;
 using Application.Queries;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Domain.Dtos.Regulation;
 using Domain.Entities.Regulation;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +18,8 @@ namespace Persistence.Repositories
         public async Task<ListActionResult<LawSummary>> PaginationSummaryAsync(LawPagenationQuery query, CancellationToken cancellationToken)
         {
             IQueryable<Law> queryContext = _context.Law;
+
+
 
             if (!String.IsNullOrEmpty(query.Text) && query.SearchProps != null && query.SearchProps.Count != 0)
             {
@@ -89,23 +90,46 @@ namespace Persistence.Repositories
                             String.IsNullOrEmpty(query.NewspaperNumber) || law.Newspaper.Number.Equals(query.NewspaperNumber)
                     );
 
-            var total = await queryContext.CountAsync(cancellationToken);
+
 
             var order = GetOrderBy(query);
 
             queryContext = order(queryContext);
 
+            if (!query.IsFiltered())
+            {
+                queryContext = queryContext
+                    .GroupBy(b => b.Title)
+                     .Select(g => g.First());
+            }
+
+            var total = await queryContext.CountAsync(cancellationToken);
+
             var data =
                 await queryContext
                     .Skip((query.Page - 1) * query.Size)
                     .Take(query.Size)
-                    .ProjectTo<LawSummary>(_mapper.ConfigurationProvider)
                     .ToListAsync(cancellationToken);
+
+
+            var approvalAuthorities = await _context.ApprovalAuthority.ToListAsync(cancellationToken);
+            var approvalStatuses = await _context.ApprovalStatus.ToListAsync(cancellationToken);
+            var approvalTypes = await _context.ApprovalType.ToListAsync(cancellationToken);
+
+            foreach (var item in data)
+            {
+                item.ApprovalType = approvalTypes.Where(b => b.Id == item.ApprovalTypeId).First();
+                item.ApprovalStatus = approvalStatuses.Where(b => b.Id == item.ApprovalStatusId).First();
+                item.ApprovalAuthority = approvalAuthorities.Where(b => b.Id == item.ApprovalAuthorityId).First();
+            }
+
+            var convertedData = _mapper.Map<List<LawSummary>>(data);
+            convertedData.ForEach(item => item.ShowArticle = query.IsFiltered());
 
             return
                 new ListActionResult<LawSummary>
                 {
-                    Data = data,
+                    Data = convertedData,
                     Total = total,
                     Page = query.Page,
                     Size = query.Size

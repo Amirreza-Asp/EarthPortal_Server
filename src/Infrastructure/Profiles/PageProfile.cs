@@ -11,6 +11,8 @@ namespace Infrastructure.Profiles
             CreateMap<HomePage, HomePage>();
             CreateMap<AboutUsPage, AboutUsPage>();
             CreateMap<LawPage, LawPage>();
+            CreateMap<LawPage, LawPageDto>()
+                .ForMember(b => b.LawCount, e => e.Ignore());
 
             CreateMap<EnglishCard, EnglishCardDto>()
                 .ForMember(b => b.Type, d => d.MapFrom(e => e.Type.ToString()))

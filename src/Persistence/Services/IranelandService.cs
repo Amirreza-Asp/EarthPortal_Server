@@ -2,6 +2,7 @@
 using Domain;
 using Domain.Dtos.ExternalAPI;
 using Microsoft.Extensions.Caching.Memory;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -39,6 +40,8 @@ namespace Persistence.Services
                 var values = new Dictionary<string, string> { { "token", encryptedData } };
                 var content = new FormUrlEncodedContent(values);
 
+                client.Timeout = TimeSpan.FromSeconds(60);
+                System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
                 var response = await client.PostAsync($"https://zamin.gov.ir/ow/service/ow/portalStatisticService", content);
 
                 if (response.IsSuccessStatusCode)
