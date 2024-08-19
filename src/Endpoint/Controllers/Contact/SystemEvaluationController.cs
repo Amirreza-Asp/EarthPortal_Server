@@ -1,6 +1,7 @@
 ﻿using Application.Contracts.Persistence.Repositories;
 using Application.CQRS.Contact.SystemEvaluations;
 using Application.Models;
+using Domain;
 using Domain.Dtos.Contact;
 using Endpoint.CustomeAttributes;
 using Endpoint.Utilities;
@@ -23,7 +24,7 @@ namespace Endpoint.Controllers.Contact
         }
 
         [HttpGet]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<SystemEvaluationDetails> Get(CancellationToken cancellationToken) =>
             await _repo.GetAsync(cancellationToken);
 

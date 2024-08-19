@@ -5,9 +5,9 @@ namespace Application.CQRS.Contact.Infos
 {
     public class AddGeoAddressCommand : IRequest<CommandResponse>
     {
-        public double Lat { get; set; }
-        public double Lon { get; set; }
+        public String IFrame { get; set; }
         public string RouteTitle { get; set; }
         public string Route { get; set; }
+        public int Order { get; set; }
     }
 }

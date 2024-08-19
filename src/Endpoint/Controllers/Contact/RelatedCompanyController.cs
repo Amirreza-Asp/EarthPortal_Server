@@ -47,20 +47,20 @@ namespace Endpoint.Controllers.Contact
         }
 
         [HttpPost]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Create")]
         public async Task<CommandResponse> Create([FromForm] CreateRelatedCompanyCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("Update")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Update([FromForm] UpdateRelatedCompanyCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("Remove")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Remove([FromQuery] RemoveRelatedCompanyCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
     }

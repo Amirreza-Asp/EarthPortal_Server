@@ -61,6 +61,7 @@ namespace Endpoint.Controllers.Account
 
         [HttpPut]
         [Authorize]
+        [AccessControl(SD.AdminRole)]
         [Route("[action]")]
         public async Task<CommandResponse> ToggleEditContent(CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(new ToggleEditContentCommand(), cancellationToken);
@@ -68,7 +69,7 @@ namespace Endpoint.Controllers.Account
 
         [HttpGet]
         [Route("[action]")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<List<Role>> Roles(CancellationToken cancellationToken) =>
             await _roleRepo.GetAllAsync<Role>(cancellationToken: cancellationToken);
     }

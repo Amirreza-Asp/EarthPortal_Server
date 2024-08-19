@@ -52,13 +52,13 @@ namespace Endpoint.Controllers.Multimedia
 
 
         [HttpPut]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("SetPhotoOrder")]
         public async Task<CommandResponse> SetPhotoOrder([FromBody] SetPhotoOrderCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPost]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Create")]
         public async Task<CommandResponse> Create([FromForm] CreateGalleryCommand command, CancellationToken cancellationToken)
         {
@@ -66,13 +66,13 @@ namespace Endpoint.Controllers.Multimedia
         }
 
         [HttpPut]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Update")]
         public async Task<CommandResponse> Update([FromForm] UpdateGalleryCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Remove")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveGalleryCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);

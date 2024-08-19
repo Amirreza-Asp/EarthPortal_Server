@@ -15,11 +15,12 @@ namespace Application.Utilities
             var claims = new List<Claim>
             {
                 new Claim(AppClaims.UserName , userName),
-                new Claim(AppClaims.PhoneNumber ,phoneNumber),
-                new Claim(AppClaims.Email , email),
+                new Claim(AppClaims.PhoneNumber ,phoneNumber ?? String.Empty),
+                new Claim(AppClaims.Email , email ?? String.Empty),
                 new Claim(AppClaims.Role , role),
                 new Claim(AppClaims.IpAddress , ipAddress),
             };
+
 
             var cred = new SigningCredentials(Key, SecurityAlgorithms.HmacSha256Signature);
 

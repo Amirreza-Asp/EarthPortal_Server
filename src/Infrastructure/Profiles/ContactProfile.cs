@@ -14,8 +14,7 @@ namespace Infrastructure.Profiles
             CreateMap<Guide, GuideSummary>();
 
             CreateMap<Info, InfoSummary>();
-            CreateMap<GeoAddress, GeoAddressSummary>()
-                .ForMember(b => b.Cordinates, d => d.MapFrom(e => new List<double> { e.Lat, e.Lon }));
+            CreateMap<GeoAddress, GeoAddressSummary>();
 
             CreateMap<EducationalVideo, EducationalVideo>();
 

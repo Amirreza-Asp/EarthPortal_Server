@@ -1,6 +1,7 @@
 ﻿using Application.Contracts.Persistence.Repositories;
 using Application.CQRS.Pages.AboutUsPage;
 using Application.Models;
+using Domain;
 using Domain.Entities.Pages;
 using Endpoint.CustomeAttributes;
 using Endpoint.Utilities;
@@ -29,7 +30,7 @@ namespace Endpoint.Controllers.Pages
 
         [Route("[action]")]
         [HttpPost]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Update([FromBody] UpdateAboutUsPageCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
     }

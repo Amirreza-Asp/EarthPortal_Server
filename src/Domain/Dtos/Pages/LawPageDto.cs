@@ -7,5 +7,6 @@
         public String WarningTitle { get; set; }
         public String WarningContent { get; set; }
         public int LawCount { get; set; }
+        public DateTime? LastModifiedAt { get; set; }
     }
 }

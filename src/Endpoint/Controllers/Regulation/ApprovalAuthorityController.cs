@@ -2,6 +2,7 @@
 using Application.CQRS.Regulation.ApprovalAuthorities;
 using Application.Models;
 using Application.Queries;
+using Domain;
 using Domain.Dtos.Shared;
 using Domain.Entities.Regulation;
 using Endpoint.CustomeAttributes;
@@ -31,19 +32,19 @@ namespace Endpoint.Controllers.Regulation
             await _repo.GetAllAsync<SelectListItem>(query, cancellationToken: cancellationToken);
 
         [HttpPost]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole, SD.LegalRole)]
         [Route("Create")]
         public async Task<CommandResponse> Create([FromBody] CreateApprovalAuthorityCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole, SD.LegalRole)]
         [Route("Update")]
         public async Task<CommandResponse> Update([FromBody] UpdateApprovalAuthorityCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole, SD.LegalRole)]
         [Route("Remove")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveApprovalAuthorityCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);

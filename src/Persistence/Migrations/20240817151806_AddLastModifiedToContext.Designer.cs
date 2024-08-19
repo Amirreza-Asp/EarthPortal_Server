@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence;
 
@@ -11,9 +12,11 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240817151806_AddLastModifiedToContext")]
+    partial class AddLastModifiedToContext
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,7 +43,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Translator", (string)null);
+                    b.ToTable("Translator");
                 });
 
             modelBuilder.Entity("Domain.Entities.Account.Role", b =>
@@ -68,7 +71,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Role", (string)null);
+                    b.ToTable("Role");
                 });
 
             modelBuilder.Entity("Domain.Entities.Account.User", b =>
@@ -110,7 +113,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("User", (string)null);
+                    b.ToTable("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.AboutUs", b =>
@@ -141,7 +144,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AboutUs", (string)null);
+                    b.ToTable("AboutUs");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.EducationalVideo", b =>
@@ -170,7 +173,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EducationalVideo", (string)null);
+                    b.ToTable("EducationalVideo");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.FrequentlyAskedQuestions", b =>
@@ -195,7 +198,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FrequentlyAskedQuestions", (string)null);
+                    b.ToTable("FrequentlyAskedQuestions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.GeoAddress", b =>
@@ -207,12 +210,14 @@ namespace Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("IFrame")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid>("InfoId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("Lat")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Lon")
+                        .HasColumnType("float");
 
                     b.Property<int>("Order")
                         .HasColumnType("int");
@@ -229,7 +234,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("InfoId");
 
-                    b.ToTable("GeoAddress", (string)null);
+                    b.ToTable("GeoAddress");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.Goal", b =>
@@ -250,7 +255,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Goal", (string)null);
+                    b.ToTable("Goal");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.Guide", b =>
@@ -278,7 +283,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Guide", (string)null);
+                    b.ToTable("Guide");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.Info", b =>
@@ -327,7 +332,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Info", (string)null);
+                    b.ToTable("Info");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.RelatedCompany", b =>
@@ -356,7 +361,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RelatedCompany", (string)null);
+                    b.ToTable("RelatedCompany");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.RelatedLink", b =>
@@ -381,7 +386,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RelatedLink", (string)null);
+                    b.ToTable("RelatedLink");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.Statistics", b =>
@@ -404,7 +409,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Statistics", (string)null);
+                    b.ToTable("Statistics");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.SystemEvaluation", b =>
@@ -428,7 +433,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SystemEvaluation", (string)null);
+                    b.ToTable("SystemEvaluation");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.SystemEvaluationIntroductionMethod", b =>
@@ -453,7 +458,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("SystemEvaluationId");
 
-                    b.ToTable("IntroductionMethod", (string)null);
+                    b.ToTable("IntroductionMethod");
                 });
 
             modelBuilder.Entity("Domain.Entities.Contact.SystemEvaluationPage", b =>
@@ -478,7 +483,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("SystemEvaluationId");
 
-                    b.ToTable("SystemEvaluationPage", (string)null);
+                    b.ToTable("SystemEvaluationPage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Mutimedia.Gallery", b =>
@@ -503,7 +508,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Gallery", (string)null);
+                    b.ToTable("Gallery");
                 });
 
             modelBuilder.Entity("Domain.Entities.Mutimedia.GalleryPhoto", b =>
@@ -529,7 +534,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("GalleryId");
 
-                    b.ToTable("GalleryPhoto", (string)null);
+                    b.ToTable("GalleryPhoto");
                 });
 
             modelBuilder.Entity("Domain.Entities.Mutimedia.Infographic", b =>
@@ -557,7 +562,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Infographic", (string)null);
+                    b.ToTable("Infographic");
                 });
 
             modelBuilder.Entity("Domain.Entities.Mutimedia.VideoContent", b =>
@@ -590,7 +595,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VideoContent", (string)null);
+                    b.ToTable("VideoContent");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notices.Link", b =>
@@ -610,7 +615,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Link", (string)null);
+                    b.ToTable("Link");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notices.News", b =>
@@ -656,7 +661,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("NewsCategoryId");
 
-                    b.ToTable("News", (string)null);
+                    b.ToTable("News");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notices.NewsCategory", b =>
@@ -680,7 +685,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NewsCategory", (string)null);
+                    b.ToTable("NewsCategory");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notices.NewsImage", b =>
@@ -706,7 +711,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("NewsId");
 
-                    b.ToTable("NewsImage", (string)null);
+                    b.ToTable("NewsImage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notices.NewsLink", b =>
@@ -721,7 +726,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("NewsId");
 
-                    b.ToTable("NewsLink", (string)null);
+                    b.ToTable("NewsLink");
                 });
 
             modelBuilder.Entity("Domain.Entities.Pages.AboutUsPage", b =>
@@ -744,7 +749,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AboutUsPage", (string)null);
+                    b.ToTable("AboutUsPage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Pages.EnglishCard", b =>
@@ -782,7 +787,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("EnglishPageId");
 
-                    b.ToTable("EnglishCard", (string)null);
+                    b.ToTable("EnglishCard");
                 });
 
             modelBuilder.Entity("Domain.Entities.Pages.EnglishPage", b =>
@@ -792,7 +797,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EnglishPage", (string)null);
+                    b.ToTable("EnglishPage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Pages.EnglishProblem", b =>
@@ -812,7 +817,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("EnglishPageId");
 
-                    b.ToTable("EnglishPageProblem", (string)null);
+                    b.ToTable("EnglishPageProblem");
                 });
 
             modelBuilder.Entity("Domain.Entities.Pages.EnglishSolution", b =>
@@ -832,7 +837,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("EnglishPageId");
 
-                    b.ToTable("EnglishPageSolution", (string)null);
+                    b.ToTable("EnglishPageSolution");
                 });
 
             modelBuilder.Entity("Domain.Entities.Pages.FooterPage", b =>
@@ -846,7 +851,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FooterPage", (string)null);
+                    b.ToTable("FooterPage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Pages.HomePage", b =>
@@ -856,7 +861,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HomePage", (string)null);
+                    b.ToTable("HomePage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Pages.LawPage", b =>
@@ -875,7 +880,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LawPage", (string)null);
+                    b.ToTable("LawPage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.ApprovalAuthority", b =>
@@ -896,7 +901,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ApprovalAuthority", (string)null);
+                    b.ToTable("ApprovalAuthority");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.ApprovalStatus", b =>
@@ -917,7 +922,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ApprovalStatus", (string)null);
+                    b.ToTable("ApprovalStatus");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.ApprovalType", b =>
@@ -938,7 +943,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ApprovalType", (string)null);
+                    b.ToTable("ApprovalType");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.ExecutorManagment", b =>
@@ -959,7 +964,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ExecutorManagment", (string)null);
+                    b.ToTable("ExecutorManagment");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.Law", b =>
@@ -1028,7 +1033,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("LawCategoryId");
 
-                    b.ToTable("Law", (string)null);
+                    b.ToTable("Law");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.LawCategory", b =>
@@ -1049,7 +1054,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LawCategory", (string)null);
+                    b.ToTable("LawCategory");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.LawImage", b =>
@@ -1078,7 +1083,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("LawId");
 
-                    b.ToTable("LawImage", (string)null);
+                    b.ToTable("LawImage");
                 });
 
             modelBuilder.Entity("Domain.Entities.Resources.Article", b =>
@@ -1135,7 +1140,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TranslatorId");
 
-                    b.ToTable("Article", (string)null);
+                    b.ToTable("Article");
                 });
 
             modelBuilder.Entity("Domain.Entities.Resources.Author", b =>
@@ -1156,7 +1161,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Author", (string)null);
+                    b.ToTable("Author");
                 });
 
             modelBuilder.Entity("Domain.Entities.Resources.Book", b =>
@@ -1213,7 +1218,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TranslatorId");
 
-                    b.ToTable("Book", (string)null);
+                    b.ToTable("Book");
                 });
 
             modelBuilder.Entity("Domain.Entities.Resources.Broadcast", b =>
@@ -1270,7 +1275,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TranslatorId");
 
-                    b.ToTable("Broadcast", (string)null);
+                    b.ToTable("Broadcast");
                 });
 
             modelBuilder.Entity("Domain.Entities.Resources.Publication", b =>
@@ -1291,7 +1296,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Publication", (string)null);
+                    b.ToTable("Publication");
                 });
 
             modelBuilder.Entity("Domain.Entities.Account.User", b =>
@@ -1403,7 +1408,7 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Pages.EnglishPage", b =>
                 {
-                    b.OwnsOne("Domain.Entities.Pages.EnglishPage.CurrentSituation#Domain.Entities.Pages.EnglishCurrentSituation", "CurrentSituation", b1 =>
+                    b.OwnsOne("Domain.Entities.Pages.EnglishCurrentSituation", "CurrentSituation", b1 =>
                         {
                             b1.Property<Guid>("EnglishPageId")
                                 .HasColumnType("uniqueidentifier");
@@ -1425,13 +1430,13 @@ namespace Persistence.Migrations
 
                             b1.HasKey("EnglishPageId");
 
-                            b1.ToTable("EnglishPage", (string)null);
+                            b1.ToTable("EnglishPage");
 
                             b1.WithOwner()
                                 .HasForeignKey("EnglishPageId");
                         });
 
-                    b.OwnsOne("Domain.Entities.Pages.EnglishPage.Header#Domain.Entities.Pages.EnglishHeader", "Header", b1 =>
+                    b.OwnsOne("Domain.Entities.Pages.EnglishHeader", "Header", b1 =>
                         {
                             b1.Property<Guid>("EnglishPageId")
                                 .HasColumnType("uniqueidentifier");
@@ -1448,13 +1453,13 @@ namespace Persistence.Migrations
 
                             b1.HasKey("EnglishPageId");
 
-                            b1.ToTable("EnglishPage", (string)null);
+                            b1.ToTable("EnglishPage");
 
                             b1.WithOwner()
                                 .HasForeignKey("EnglishPageId");
                         });
 
-                    b.OwnsOne("Domain.Entities.Pages.EnglishPage.Intro#Domain.Entities.Pages.EnglishIntro", "Intro", b1 =>
+                    b.OwnsOne("Domain.Entities.Pages.EnglishIntro", "Intro", b1 =>
                         {
                             b1.Property<Guid>("EnglishPageId")
                                 .HasColumnType("uniqueidentifier");
@@ -1471,13 +1476,13 @@ namespace Persistence.Migrations
 
                             b1.HasKey("EnglishPageId");
 
-                            b1.ToTable("EnglishPage", (string)null);
+                            b1.ToTable("EnglishPage");
 
                             b1.WithOwner()
                                 .HasForeignKey("EnglishPageId");
                         });
 
-                    b.OwnsOne("Domain.Entities.Pages.EnglishPage.MainIdea#Domain.Entities.Pages.EnglishMainIdea", "MainIdea", b1 =>
+                    b.OwnsOne("Domain.Entities.Pages.EnglishMainIdea", "MainIdea", b1 =>
                         {
                             b1.Property<Guid>("EnglishPageId")
                                 .HasColumnType("uniqueidentifier");
@@ -1504,13 +1509,13 @@ namespace Persistence.Migrations
 
                             b1.HasKey("EnglishPageId");
 
-                            b1.ToTable("EnglishPage", (string)null);
+                            b1.ToTable("EnglishPage");
 
                             b1.WithOwner()
                                 .HasForeignKey("EnglishPageId");
                         });
 
-                    b.OwnsOne("Domain.Entities.Pages.EnglishPage.Vision#Domain.Entities.Pages.EnglishVision", "Vision", b1 =>
+                    b.OwnsOne("Domain.Entities.Pages.EnglishVision", "Vision", b1 =>
                         {
                             b1.Property<Guid>("EnglishPageId")
                                 .HasColumnType("uniqueidentifier");
@@ -1527,7 +1532,7 @@ namespace Persistence.Migrations
 
                             b1.HasKey("EnglishPageId");
 
-                            b1.ToTable("EnglishPage", (string)null);
+                            b1.ToTable("EnglishPage");
 
                             b1.WithOwner()
                                 .HasForeignKey("EnglishPageId");
@@ -1573,7 +1578,7 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Pages.HomePage", b =>
                 {
-                    b.OwnsOne("Domain.Entities.Pages.HomePage.Header#Domain.Entities.Pages.HomeHeader", "Header", b1 =>
+                    b.OwnsOne("Domain.Entities.Pages.HomeHeader", "Header", b1 =>
                         {
                             b1.Property<Guid>("HomePageId")
                                 .HasColumnType("uniqueidentifier");
@@ -1610,13 +1615,13 @@ namespace Persistence.Migrations
 
                             b1.HasKey("HomePageId");
 
-                            b1.ToTable("HomePage", (string)null);
+                            b1.ToTable("HomePage");
 
                             b1.WithOwner()
                                 .HasForeignKey("HomePageId");
                         });
 
-                    b.OwnsOne("Domain.Entities.Pages.HomePage.Work#Domain.Entities.Pages.HomeWork", "Work", b1 =>
+                    b.OwnsOne("Domain.Entities.Pages.HomeWork", "Work", b1 =>
                         {
                             b1.Property<Guid>("HomePageId")
                                 .HasColumnType("uniqueidentifier");
@@ -1643,7 +1648,7 @@ namespace Persistence.Migrations
 
                             b1.HasKey("HomePageId");
 
-                            b1.ToTable("HomePage", (string)null);
+                            b1.ToTable("HomePage");
 
                             b1.WithOwner()
                                 .HasForeignKey("HomePageId");
@@ -1688,7 +1693,7 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("Domain.Entities.Regulation.Law.Announcement#Domain.Entities.Regulation.ValueObjects.Announcement", "Announcement", b1 =>
+                    b.OwnsOne("Domain.Entities.Regulation.ValueObjects.Announcement", "Announcement", b1 =>
                         {
                             b1.Property<Guid>("LawId")
                                 .HasColumnType("uniqueidentifier");
@@ -1704,13 +1709,13 @@ namespace Persistence.Migrations
 
                             b1.HasKey("LawId");
 
-                            b1.ToTable("Law", (string)null);
+                            b1.ToTable("Law");
 
                             b1.WithOwner()
                                 .HasForeignKey("LawId");
                         });
 
-                    b.OwnsOne("Domain.Entities.Regulation.Law.Newspaper#Domain.Entities.Regulation.ValueObjects.Newspaper", "Newspaper", b1 =>
+                    b.OwnsOne("Domain.Entities.Regulation.ValueObjects.Newspaper", "Newspaper", b1 =>
                         {
                             b1.Property<Guid>("LawId")
                                 .HasColumnType("uniqueidentifier");
@@ -1730,7 +1735,7 @@ namespace Persistence.Migrations
 
                             b1.HasKey("LawId");
 
-                            b1.ToTable("Law", (string)null);
+                            b1.ToTable("Law");
 
                             b1.WithOwner()
                                 .HasForeignKey("LawId");

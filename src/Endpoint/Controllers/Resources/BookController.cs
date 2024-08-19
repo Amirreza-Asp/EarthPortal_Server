@@ -87,23 +87,23 @@ namespace Endpoint.Controllers.Resources
         }
 
 
-        [AccessControl("Admin")]
         [HttpPost]
         [Route("Create")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Create([FromForm] CreateBookCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
-        [AccessControl("Admin")]
         [HttpPut]
         [Route("Update")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Update([FromForm] UpdateBookCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
-        [AccessControl("Admin")]
         [HttpDelete]
         [Route("Remove")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Remove([FromQuery] RemoveBookCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 

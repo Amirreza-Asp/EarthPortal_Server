@@ -8,7 +8,6 @@ using Endpoint.CustomeAttributes;
 using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Persistence;
 
 namespace Endpoint.Controllers.Regulation
@@ -47,34 +46,6 @@ namespace Endpoint.Controllers.Regulation
         public async Task<LawDetails> Find([FromQuery] Guid id, CancellationToken cancellationToken) =>
             await _lawRepository.FirstOrDefaultAsync<LawDetails>(b => b.Id == id, cancellationToken);
 
-        [Route("Test")]
-        [HttpDelete]
-        public async Task<IActionResult> RemoveRepeatedLaws(CancellationToken cancellationToken)
-        {
-            var laws = await _context.Law.ToListAsync();
-            var okLaws = laws.DistinctBy(s => s.Title.Trim()).ToList();
-            var removeLaws = laws.Where(b => !okLaws.Any(s => s.Id == b.Id)).ToList();
-
-            foreach (var item in laws)
-            {
-                if (laws.Count(s => s.Title == item.Title) > 1 &&
-                    okLaws.Select(s => s.Title).Contains(item.Title))
-                    removeLaws.Add(item);
-                else
-                    okLaws.Add(item);
-            }
-
-
-            foreach (var item in removeLaws)
-            {
-                _lawRepository.Remove(item);
-            }
-
-
-            await _lawRepository.SaveAsync();
-            return Ok();
-        }
-
 
         [Route("[action]")]
         [HttpGet]
@@ -89,6 +60,18 @@ namespace Endpoint.Controllers.Regulation
             return File(fileBytes, "application/force-download", law.Title + extension);
         }
 
+        [Route("[action]")]
+        [HttpGet]
+        public async Task<IActionResult> DownloadNewspaperFile([FromQuery] Guid id, CancellationToken cancellationToken)
+        {
+            var law = await _lawRepository.FirstOrDefaultAsync(b => b.Id == id);
+            string upload = _hostEnv.WebRootPath;
+            string path = $"{upload}{SD.LawNewspaperPath}{law.Newspaper?.File}";
+
+            var fileBytes = System.IO.File.ReadAllBytes(path);
+            string extension = Path.GetExtension(law.Pdf);
+            return File(fileBytes, "application/force-download", law.Title + extension);
+        }
 
         [Route("[action]")]
         [HttpGet]
@@ -105,21 +88,21 @@ namespace Endpoint.Controllers.Regulation
 
         [Route("Create")]
         [HttpPost]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole, SD.LegalRole)]
         public async Task<CommandResponse> Create([FromForm] CreateLawCommand command, CancellationToken cancellationToken) =>
            await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
         [Route("Update")]
         [HttpPut]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole, SD.LegalRole)]
         public async Task<CommandResponse> Update([FromForm] UpdateLawCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
         [Route("Remove")]
         [HttpDelete]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole, SD.LegalRole)]
         public async Task<CommandResponse> Remove([FromQuery] RemoveLawCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
     }

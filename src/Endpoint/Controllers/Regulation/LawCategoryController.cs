@@ -2,6 +2,7 @@
 using Application.CQRS.Regulation.Categories;
 using Application.Models;
 using Application.Queries;
+using Domain;
 using Domain.Dtos.Shared;
 using Domain.Entities.Regulation;
 using Endpoint.CustomeAttributes;
@@ -32,19 +33,19 @@ namespace Endpoint.Controllers.Regulation
 
         [HttpPost]
         [Route("Create")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole, SD.LegalRole)]
         public async Task<CommandResponse> Create([FromBody] CreateCategoryCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("Update")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole, SD.LegalRole)]
         public async Task<CommandResponse> Update([FromBody] UpdateCategoryCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("Remove")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole, SD.LegalRole)]
         public async Task<CommandResponse> Remove([FromQuery] RemoveCategoryCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
     }

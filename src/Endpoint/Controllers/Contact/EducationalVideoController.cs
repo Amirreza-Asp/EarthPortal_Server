@@ -2,6 +2,7 @@
 using Application.CQRS.Contact.EducationalVideos;
 using Application.Models;
 using Application.Queries;
+using Domain;
 using Domain.Entities.Contact;
 using Endpoint.CustomeAttributes;
 using Endpoint.Utilities;
@@ -33,19 +34,19 @@ namespace Endpoint.Controllers.Contact
 
 
         [HttpPost]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Create")]
         public async Task<CommandResponse> Create([FromBody] CreateEducationalVideoCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Update")]
         public async Task<CommandResponse> Update([FromBody] UpdateEducationalVideoCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Remove")]
         public async Task<CommandResponse> Remove([FromQuery] RemoveEducationalVideoCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);

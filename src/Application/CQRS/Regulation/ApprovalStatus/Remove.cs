@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.CQRS.Regulation.ApprovalStatus
 {
-    public class RemoveApprovalStatusCommand : IRequest<CommandResponse>
+    public class RemoveApprovalStatusCommand : IRequest<CommandResponse>, IRegulationCommand
     {
         public Guid Id { get; set; }
     }

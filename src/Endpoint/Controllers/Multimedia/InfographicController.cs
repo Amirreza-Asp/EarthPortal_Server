@@ -48,19 +48,19 @@ namespace Endpoint.Controllers.Multimedia
         }
 
         [Route("Create")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [HttpPost]
         public async Task<CommandResponse> Create([FromForm] CreateInfographicCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [Route("[action]")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [HttpPut]
         public async Task<CommandResponse> Update([FromForm] UpdateInfographicCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [Route("Remove")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [HttpDelete]
         public async Task<CommandResponse> Remove([FromQuery] RemoveInfographicCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);

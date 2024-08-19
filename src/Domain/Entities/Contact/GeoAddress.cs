@@ -4,22 +4,22 @@ namespace Domain.Entities.Contact
 {
     public class GeoAddress : BaseEntity
     {
-        public GeoAddress(double lat, double lon, string route, Guid infoId, string routeTitle) : base(Guid.NewGuid())
+        public GeoAddress(String iFrame, string route, Guid infoId, string routeTitle, int order) : base(Guid.NewGuid())
         {
-            Lat = lat;
-            Lon = lon;
+            IFrame = iFrame;
             Route = route;
             InfoId = infoId;
             RouteTitle = routeTitle;
+            Order = order;
         }
 
         private GeoAddress() { }
 
-        public double Lat { get; set; }
-        public double Lon { get; set; }
+        public string IFrame { get; set; }
         public String RouteTitle { get; set; }
         public string Route { get; set; }
         public Guid InfoId { get; set; }
+
 
         public Info Info { get; set; }
     }

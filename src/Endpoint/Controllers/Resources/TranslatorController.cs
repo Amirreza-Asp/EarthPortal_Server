@@ -2,6 +2,7 @@
 using Application.CQRS.Resources.Translators;
 using Application.Models;
 using Application.Queries;
+using Domain;
 using Domain.Dtos.Resources;
 using Domain.Dtos.Shared;
 using Endpoint.CustomeAttributes;
@@ -30,21 +31,21 @@ namespace Endpoint.Controllers.Resources
         public async Task<ListActionResult<SelectListItem>> PaginationSummary([FromBody] GridQuery query, CancellationToken cancellationToken) =>
             await _repo.GetAllAsync<SelectListItem>(query, cancellationToken: cancellationToken);
 
-        [AccessControl("Admin")]
         [HttpPost]
         [Route("Create")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Create([FromBody] CreateTranslatorCommand command, CancellationToken cancellationToken) =>
          await _mediator.HandleRequestAsync(command, cancellationToken);
 
-        [AccessControl("Admin")]
         [HttpPut]
         [Route("Update")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Update([FromBody] UpdateTranslatorCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
-        [AccessControl("Admin")]
         [HttpDelete]
         [Route("Remove")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Remove([FromQuery] RemoveTranslatorCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
     }

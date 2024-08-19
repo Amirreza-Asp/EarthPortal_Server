@@ -89,13 +89,13 @@ namespace Endpoint.Controllers.Resources
 
         [HttpPost]
         [Route("Create")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Create([FromForm] CreateArticleCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
 
         [HttpPut]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Update")]
         public async Task<CommandResponse> Update([FromForm] UpdateArticleCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
@@ -103,7 +103,7 @@ namespace Endpoint.Controllers.Resources
 
         [HttpDelete]
         [Route("Remove")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Remove([FromQuery] RemoveArticleCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
     }

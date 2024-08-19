@@ -7,21 +7,43 @@ namespace Endpoint.CustomeAttributes
 {
     public class AccessControlAttribute : ActionFilterAttribute
     {
-        public dynamic Role { get; set; }
+        public String[] Roles { get; set; }
 
-        public AccessControlAttribute(string role)
+
+
+        public AccessControlAttribute(params string[] roles)
         {
-            Role = role;
+            Roles = roles;
+        }
+
+        public int Sum(params int[] nums)
+        {
+            var res = 0;
+            foreach (var item in nums)
+            {
+                res = item;
+            }
+
+            return res;
         }
 
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            var role = context.HttpContext.User.FindFirstValue(AppClaims.Role);
 
-            if (role == null)
-                context.Result = new UnauthorizedObjectResult("نشست شما به پایان رسیده");
-            else if (role != Role)
-                context.Result = new StatusCodeResult(403);
+
+            if (context.HttpContext.User == null || context.HttpContext.User.Identity == null || !context.HttpContext.User.Identity.IsAuthenticated)
+            {
+                context.Result = new UnauthorizedObjectResult("برای انجام عملیات باید وارد شوید");
+            }
+            else
+            {
+                var role = context.HttpContext.User.FindFirstValue(AppClaims.Role);
+
+                if (role == null)
+                    context.Result = new UnauthorizedObjectResult("نشست شما به پایان رسیده");
+                else if (!Roles.Contains(role))
+                    context.Result = new StatusCodeResult(403);
+            }
 
             await base.OnActionExecutionAsync(context, next);
         }

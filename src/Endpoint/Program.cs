@@ -32,8 +32,8 @@ builder.Host.UseSerilog((hostBuilderContext, logConfig) =>
 {
     if (hostBuilderContext.HostingEnvironment.IsDevelopment())
     {
-        //logConfig.WriteTo.Console().MinimumLevel.Information();
-        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
+        logConfig.WriteTo.Console().MinimumLevel.Information();
+        //logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
     }
     else
     {
@@ -190,6 +190,7 @@ app.Use(async (context, next) =>
 
     await next();
 });
+
 
 app.MapControllers();
 app.Run();

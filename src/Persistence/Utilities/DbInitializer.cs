@@ -1,5 +1,6 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Application.Contracts.Persistence.Utilities;
+using Domain;
 using Domain.Entities.Account;
 using Domain.Entities.Contact;
 using Domain.Entities.Contact.Enums;
@@ -70,8 +71,44 @@ namespace Persistence.Utilities
                 await _context.SaveChangesAsync();
             }
 
+            if (_context.Law.Where(b => b.LastModifiedAt == null).Count() > 0)
+            {
+                var laws = await _context.Law.Where(b => b.LastModifiedAt == null).ToListAsync();
+                laws.ForEach(item => item.LastModifiedAt = DateTime.Now);
+                _context.Law.UpdateRange(laws);
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Role.Any(b => b.Title == SD.LegalRole))
+            {
+                var legalRole = new Role(SD.LegalRole, "ناشر حقوقی", "ویرایش قسمت قوانین");
+                _context.Role.Add(legalRole);
+                await _context.SaveChangesAsync();
+            }
+
+            if (!_context.User.Any(b => b.UserName == "LegalAdmin"))
+            {
+                var role = await _context.Role.Where(b => b.Title == SD.LegalRole).FirstOrDefaultAsync();
+
+                var user = new User(role.Id, "امیررضا", "محمدی", "LegalAdmin", _passManager.HashPassword("LegalAdmin8102"), null, null);
+                _context.User.Add(user);
+
+                await _context.SaveChangesAsync();
+            }
+
+            if (_context.GeoAddress.Any())
+            {
+                var geoAddresses = await _context.GeoAddress.ToListAsync();
+                _context.GeoAddress.RemoveRange(geoAddresses);
+
+                var info = await _context.Info.FirstAsync();
+
+                _context.GeoAddress.Add(new GeoAddress("https://balad.ir/embed?p=4fQxUx7hSCSJbR", "تهران، خیابان شریعتی، نرسیده به پل سیدخندان، ورودی 21", info.Id, " سازمان فناوری اطلاعات ایران", 0));
+                await _context.SaveChangesAsync();
+            }
+
             #region Regulation
-            LawCleaner(_context);
+            //LawCleaner(_context);
 
             var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/lawData.json");
             var lawData = JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
@@ -142,6 +179,7 @@ namespace Persistence.Utilities
                 await _context.SaveChangesAsync();
             }
 
+
             if (!_context.LawCategory.Any())
             {
                 _context.LawCategory.AddRange(LawCategories);
@@ -174,7 +212,7 @@ namespace Persistence.Utilities
                                  new Law(
                                      title: b.Title,
                                      announcement: b.CommunicatedDate == null || b.CommunicatedDate.ToString() == "-" || b.CommunicatedNumber == "-" || b.CommunicatedNumber == null ? null : new Announcement(Convert.ToString(b.CommunicatedNumber), DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.CommunicatedDate)),
-                                     newspaper: b.NewspaperDate == null || b.NewspaperDate.ToString() == "-" || b.NewspaperNumber == "-" || b.NewspaperNumber == null ? null : Newspaper.Create(Convert.ToString(b.NewspaperNumber), DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.NewspaperDate)),
+                                     newspaper: b.NewspaperDate == null || b.NewspaperDate.ToString() == "-" || b.NewspaperNumber == "-" || b.NewspaperNumber == null ? null : Newspaper.Create(Convert.ToString(b.NewspaperNumber), DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.NewspaperDate), String.Empty),
                                      description: b.LawText,
                                      approvalDate: date,
                                      type: b.Type == "آیین‌نامه" ? LawType.Rule : LawType.Regulation,
@@ -185,7 +223,8 @@ namespace Persistence.Utilities
                                      approvalAuthorityId: String.IsNullOrEmpty(b.Reference) ? approvalAuthority.First(s => s.Name == "نامشخص").Id : approvalAuthority.First(s => s.Name == b.Reference).Id,
                                      lawCategoryId: categories.First(s => s.Title == "نامشخص").Id,
                                      article: b.Articles,
-                                     pdf: b.File + ".pdf"
+                                     pdf: b.File + ".pdf",
+                                     lastModifiedAt: DateTime.Now
                                  );
 
 
@@ -357,11 +396,9 @@ namespace Persistence.Utilities
             if (!_context.GeoAddress.Any())
             {
                 var infoId = await _context.Info.Select(b => b.Id).FirstOrDefaultAsync();
-                var geoAddress1 = new GeoAddress(35.690732000445955, 51.38562655309216, $"تهران ، خیابان نواب صفوی ، کوچه شهید صفوی ، ساختمان 2", infoId, "آدرس 1");
-                var geoAddress2 = new GeoAddress(35.680832000445955, 51.37562655309216, $"تهران ، خیابان نواب صفوی ، کوچه شهید صفوی ، ساختمان 2", infoId, "آدرس 2");
+                var geoAddress1 = new GeoAddress("https://balad.ir/embed?p=4fQxUx7hSCSJbR", $"تهران ، خیابان نواب صفوی ، کوچه شهید صفوی ، ساختمان 2", infoId, "آدرس 1", 1);
 
                 _context.GeoAddress.Add(geoAddress1);
-                _context.GeoAddress.Add(geoAddress2);
 
                 await _context.SaveChangesAsync();
             }
@@ -451,14 +488,6 @@ namespace Persistence.Utilities
             #endregion
 
             #region Account
-            if (!_context.Role.Any())
-            {
-                var role = new Role("Admin", "ادمین", "ادمین کل سیستم");
-                var role2 = new Role("Publisher", "ناشر", "ناشر");
-                _context.Role.Add(role);
-                _context.Role.Add(role2);
-                await _context.SaveChangesAsync();
-            }
 
 
             if (!_context.User.Any())

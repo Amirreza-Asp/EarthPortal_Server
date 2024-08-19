@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.CQRS.Regulation.Laws
 {
-    public class UpdateLawCommand : IRequest<CommandResponse>
+    public class UpdateLawCommand : IRequest<CommandResponse>, IRegulationCommand
     {
         public Guid Id { get; set; }
         public String Title { get; set; }
@@ -12,6 +12,7 @@ namespace Application.CQRS.Regulation.Laws
         public DateTime AnnouncementDate { get; set; }
         public string NewspaperNumber { get; set; }
         public DateTime NewspaperDate { get; set; }
+        public IFormFile? NewspaperFile { get; set; }
         public String Description { get; set; }
         public DateTime ApprovalDate { get; set; }
         public bool IsOriginal { get; set; }

@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Persistence.Behavoirs;
 using Persistence.Repositories;
 using Persistence.Services;
 using Persistence.Utilities;
@@ -29,6 +30,7 @@ namespace Persistence
 
             // MediatR
             services.AddMediatR(Assembly.GetExecutingAssembly());
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ClearCacheBehavior<,>));
 
             // Services
             services.AddScoped<IIranelandService, IranelandService>();

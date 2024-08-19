@@ -18,6 +18,7 @@ namespace Infrastructure.Profiles
                 .ForMember(b => b.ApprovalStatus, d => d.MapFrom(e => e.ApprovalStatus.Status))
                 .ForMember(b => b.ApprovalType, d => d.MapFrom(e => e.ApprovalType.Value))
                 .ForMember(b => b.NewspaperNumber, d => d.MapFrom(e => e.Newspaper.Number))
+                .ForMember(b => b.NewspaperFile, d => d.MapFrom(e => e.Newspaper.File))
                 .ForMember(b => b.ShowArticle, d => d.Ignore());
 
             CreateMap<Law, LawDetails>()

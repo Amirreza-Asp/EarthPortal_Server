@@ -2,6 +2,7 @@
 using Application.CQRS.Contact.FAQ;
 using Application.Models;
 using Application.Queries;
+using Domain;
 using Domain.Dtos.Content;
 using Domain.Entities.Contact;
 using Endpoint.CustomeAttributes;
@@ -32,19 +33,19 @@ namespace Endpoint.Controllers.Content
 
         [HttpPost]
         [Route("Create")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Create([FromBody] CreateFAQCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("Update")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Update([FromBody] UpdateFAQCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("Remove")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Remove([FromQuery] RemoveFAQCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 

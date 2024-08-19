@@ -2,6 +2,7 @@
 using Application.CQRS.Contact.Guids;
 using Application.Models;
 using Application.Queries;
+using Domain;
 using Domain.Dtos.Contact;
 using Domain.Entities.Contact;
 using Endpoint.CustomeAttributes;
@@ -48,19 +49,19 @@ namespace Endpoint.Controllers.Contact
 
         [HttpPost]
         [Route("Create")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Create([FromBody] CreateGuideCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("Update")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Update([FromBody] UpdateGuideCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("Remove")]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Remove([FromQuery] RemoveGuideCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
     }

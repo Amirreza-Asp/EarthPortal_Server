@@ -5,123 +5,101 @@ using AutoMapper;
 using Domain.Dtos.Regulation;
 using Domain.Entities.Regulation;
 using Microsoft.EntityFrameworkCore;
-using Persistence.Utilities;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Persistence.Repositories
 {
     public class LawRepository : Repository<Law>, ILawRepository
     {
-        public LawRepository(ApplicationDbContext context, IMapper mapper) : base(context, mapper)
+        private readonly IMemoryCache _memoryCache;
+        public LawRepository(ApplicationDbContext context, IMapper mapper, IMemoryCache memoryCache) : base(context, mapper)
         {
+            _memoryCache = memoryCache;
+        }
+
+        public async Task<int> CountAsync(CancellationToken cancellationToken)
+        {
+            return await _context.Law.Select(s => s.Title).Distinct().CountAsync(cancellationToken);
+        }
+
+        public async Task<DateTime?> GetLastModifiedAsync(CancellationToken cancellationToken)
+        {
+            return await _context.Law.OrderByDescending(b => b.LastModifiedAt).Select(b => b.LastModifiedAt).FirstOrDefaultAsync(cancellationToken);
         }
 
         public async Task<ListActionResult<LawSummary>> PaginationSummaryAsync(LawPagenationQuery query, CancellationToken cancellationToken)
         {
-            IQueryable<Law> queryContext = _context.Law;
-
-
-
-            if (!String.IsNullOrEmpty(query.Text) && query.SearchProps != null && query.SearchProps.Count != 0)
+            if (!_memoryCache.TryGetValue("laws", out List<Law>? laws))
             {
-                queryContext =
-                    queryContext.Where(b =>
-                         query.SearchProps.Contains("title") && b.Title.Contains(query.Text) ||
-                         query.SearchProps.Contains("description") && b.Description.Contains(query.Text));
+                laws =
+                    await _context.Law
+                        .Include(b => b.ApprovalAuthority)
+                        .Include(b => b.ApprovalType)
+                        .Include(b => b.ApprovalStatus)
+                        .Include(b => b.ExecutorManagment)
+                        .Include(b => b.LawCategory)
+                        .ToListAsync(cancellationToken);
+
+                _memoryCache.Set("laws", laws, DateTimeOffset.Now + TimeSpan.FromHours(1));
             }
 
-            if (query.LawType != null)
-            {
-                queryContext = queryContext.Where(b => query.LawType.Contains((int)b.Type));
-            }
+            SearchByQuery(laws, query.SearchProps, query.Text);
 
-            if (query.ApprovalAuthorityIds != null && query.ApprovalAuthorityIds.Count != 0)
-            {
-                queryContext = queryContext.Where(b => query.ApprovalAuthorityIds.Contains(b.ApprovalAuthorityId));
-            }
+            laws = laws?.Where(b => query.LawType == null || query.LawType.Contains((int)b.Type)).ToList();
 
-            if (query.ApprovalStatusIds != null && query.ApprovalStatusIds.Count != 0)
-            {
-                queryContext = queryContext.Where(b => query.ApprovalStatusIds.Contains(b.ApprovalStatusId));
-            }
+            FilterBySpecification(laws, query.ApprovalAuthorityIds, b => query.ApprovalAuthorityIds.Contains(b.ApprovalAuthorityId));
+            FilterBySpecification(laws, query.ApprovalStatusIds, b => query.ApprovalStatusIds.Contains(b.ApprovalStatusId));
+            FilterBySpecification(laws, query.ExecutorManagmentIds, b => query.ExecutorManagmentIds.Contains(b.ExecutorManagmentId));
+            FilterBySpecification(laws, query.LawCategoryIds, b => query.LawCategoryIds.Contains(b.LawCategoryId));
+            FilterBySpecification(laws, query.ApprovalTypeIds, b => query.ApprovalTypeIds.Contains(b.ApprovalTypeId));
 
-            if (query.ExecutorManagmentIds != null && query.ExecutorManagmentIds.Count != 0)
-            {
-                queryContext = queryContext.Where(b => query.ExecutorManagmentIds.Contains(b.ExecutorManagmentId));
-            }
-
-            if (query.LawCategoryIds != null && query.LawCategoryIds.Count != 0)
-            {
-                queryContext = queryContext.Where(b => query.LawCategoryIds.Contains(b.LawCategoryId));
-            }
-
-            if (query.ApprovalTypeIds != null && query.ApprovalTypeIds.Count != 0)
-            {
-                queryContext = queryContext.Where(b => query.ApprovalTypeIds.Contains(b.ApprovalTypeId));
-            }
 
             if (query.ApprovalDate.HasValue)
             {
-                queryContext = queryContext.Where(b => query.ApprovalDate.Value.Date == b.ApprovalDate.Date);
+                laws = laws?.Where(b => query.ApprovalDate.Value.Date == b.ApprovalDate.Date).ToList();
             }
 
             if (query.NewspaperDate.HasValue)
             {
-                queryContext = queryContext.Where(b => query.NewspaperDate.Value.Date == b.Newspaper.Date.Date);
+                laws = laws?.Where(b => query.NewspaperDate.Value.Date == b.Newspaper?.Date.Date).ToList();
             }
 
             if (query.ApprovalDate.HasValue)
             {
-                queryContext = queryContext.Where(b => query.AnnouncementDate.Value.Date == b.Announcement.Date);
+                laws = laws?.Where(b => query.AnnouncementDate.Value.Date == b.Announcement?.Date.Date).ToList();
             }
 
             if (query.IsOriginal != -1)
             {
                 if (query.IsOriginal == 0)
-                    queryContext = queryContext.Where(b => b.IsOriginal);
+                    laws = laws?.Where(b => b.IsOriginal).ToList();
                 else
-                    queryContext = queryContext.Where(b => !b.IsOriginal);
+                    laws = laws?.Where(b => !b.IsOriginal).ToList();
             }
 
-            queryContext =
-                queryContext
+            laws =
+                laws?
                     .Where(
                         law =>
-                            String.IsNullOrEmpty(query.AnnouncementNumber) || law.Announcement.Number.Equals(query.AnnouncementNumber) &&
-                            String.IsNullOrEmpty(query.NewspaperNumber) || law.Newspaper.Number.Equals(query.NewspaperNumber)
-                    );
-
-
-
-            var order = GetOrderBy(query);
-
-            queryContext = order(queryContext);
+                            String.IsNullOrEmpty(query.AnnouncementNumber) || law.Announcement?.Number == query.AnnouncementNumber &&
+                            String.IsNullOrEmpty(query.NewspaperNumber) || law.Newspaper?.Number == query.NewspaperNumber
+                    )
+                    .ToList();
 
             if (!query.IsFiltered())
             {
-                queryContext = queryContext
-                    .GroupBy(b => b.Title)
-                     .Select(g => g.First());
+                laws = laws?.DistinctBy(b => b.Title).ToList();
             }
 
-            var total = await queryContext.CountAsync(cancellationToken);
+            laws = GetOrderBy(laws, query.SortBy, query.ascSort);
+
+            var total = laws?.Count();
 
             var data =
-                await queryContext
+               laws?
                     .Skip((query.Page - 1) * query.Size)
                     .Take(query.Size)
-                    .ToListAsync(cancellationToken);
-
-
-            var approvalAuthorities = await _context.ApprovalAuthority.ToListAsync(cancellationToken);
-            var approvalStatuses = await _context.ApprovalStatus.ToListAsync(cancellationToken);
-            var approvalTypes = await _context.ApprovalType.ToListAsync(cancellationToken);
-
-            foreach (var item in data)
-            {
-                item.ApprovalType = approvalTypes.Where(b => b.Id == item.ApprovalTypeId).First();
-                item.ApprovalStatus = approvalStatuses.Where(b => b.Id == item.ApprovalStatusId).First();
-                item.ApprovalAuthority = approvalAuthorities.Where(b => b.Id == item.ApprovalAuthorityId).First();
-            }
+                    .ToList();
 
             var convertedData = _mapper.Map<List<LawSummary>>(data);
             convertedData.ForEach(item => item.ShowArticle = query.IsFiltered());
@@ -130,25 +108,43 @@ namespace Persistence.Repositories
                 new ListActionResult<LawSummary>
                 {
                     Data = convertedData,
-                    Total = total,
+                    Total = total.HasValue ? total.Value : 0,
                     Page = query.Page,
                     Size = query.Size
                 };
-
         }
 
-        private Func<IQueryable<Law>, IOrderedQueryable<Law>> GetOrderBy(LawPagenationQuery query)
+        public List<Law>? SearchByQuery(List<Law>? laws, List<String> searchProps, String? query)
         {
-            switch (query.SortBy)
-            {
-                case "approvaldate": return b => b.DynamicOrderBy(law => law.ApprovalDate, query.ascSort);
-                case "approvalauthority": return b => b.DynamicOrderBy(law => law.ApprovalAuthority.Name, query.ascSort);
-                case "title": return b => b.DynamicOrderBy(law => law.Title, query.ascSort);
-                case "regulation": return b => b.DynamicOrderBy(law => law.Id, query.ascSort);
-                case "status": return b => b.DynamicOrderBy(law => law.ApprovalStatus.Status, query.ascSort);
-            }
+            return laws?.Where(b =>
+                           String.IsNullOrEmpty(query) ||
+                           (searchProps.Contains("title") && b.Title.Contains(query)) ||
+                           (searchProps.Contains("description") && b.Description.Contains(query)))
+                        .ToList();
+        }
 
-            return b => b.DynamicOrderBy(law => law.ApprovalDate, query.ascSort);
+        public List<Law>? FilterBySpecification(List<Law>? laws, List<Guid>? filterItems, Func<Law, bool> filter)
+        {
+            if (filterItems != null && filterItems.Count > 0)
+                laws = laws?.Where(filter).ToList();
+
+            return laws;
+        }
+
+        private List<Law>? GetOrderBy(List<Law>? laws, string? sortBy, bool asc)
+        {
+            Func<Law, object?> orderBySelector = sortBy?.ToLower() switch
+            {
+                "approvalauthority" => law => law.ApprovalAuthority?.Name,
+                "title" => law => law.Title,
+                "regulation" => law => law.Id,
+                "status" => law => law.ApprovalStatus.Status,
+                _ => law => law.ApprovalDate
+            };
+
+            return asc
+                ? laws?.OrderBy(orderBySelector).ToList()
+                : laws?.OrderByDescending(orderBySelector).ToList();
         }
 
     }

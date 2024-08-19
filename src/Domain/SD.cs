@@ -16,10 +16,13 @@
         public const String AboutUsPath = "/contact/aboutUs/";
         public const String FooterImagePath = "/contact/footer/";
         public const String LawPdfPath = "/regulation/law/";
+        public const String LawNewspaperPath = "/regulation/newspaper/";
         public const String EnglishPageCurrentSituationImage = "/pages/english/";
 
         public const String AuthToken = "AuthToken";
 
+        public const String LegalRole = "Legal";
+        public const String AdminRole = "Admin";
 
 
         public const String IranelandSecretKey = "Kcv2$5%^Hew#Er@1";

@@ -12,6 +12,7 @@
         public String NewspaperNumber { get; set; }
         public String? Article { get; set; }
         public String ApprovalStatus { get; set; }
+        public String? NewspaperFile { get; set; }
         public String ApprovalType { get; set; }
         public bool ShowArticle { get; set; }
     }

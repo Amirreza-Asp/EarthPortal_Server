@@ -124,20 +124,20 @@ namespace Endpoint.Controllers.Notices
 
 
         [HttpDelete]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Remove")]
         public async Task<CommandResponse> Remove([FromQuery] Guid id, CancellationToken cancellationToken) =>
              await _mediator.HandleRequestAsync(new RemoveNewsCommand(id), cancellationToken);
 
 
         [HttpPost]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Create")]
         public async Task<CommandResponse> Create([FromForm] CreateNewsCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
-        [AccessControl("Admin")]
+        [AccessControl(SD.AdminRole)]
         [Route("Update")]
         public async Task<CommandResponse> Update([FromForm] UpdateNewsCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);

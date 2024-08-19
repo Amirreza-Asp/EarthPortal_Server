@@ -32,13 +32,17 @@ namespace Persistence.CQRS.Regulation.Laws
         {
             var law = await _context.Law.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
 
-            var upload = _env.WebRootPath;
+            var pdfUpload = _env.WebRootPath + SD.LawPdfPath;
+            var newspaperUpload = _env.WebRootPath + SD.LawNewspaperPath;
 
             if (law == null)
                 return CommandResponse.Failure(400, "قانون انتخاب شده در سیستم وجود ندارد");
 
-            if (!Directory.Exists(upload))
-                Directory.CreateDirectory(upload);
+            if (!Directory.Exists(pdfUpload))
+                Directory.CreateDirectory(pdfUpload);
+
+            if (!Directory.Exists(newspaperUpload))
+                Directory.CreateDirectory(newspaperUpload);
 
             String oldFileName = "";
             String newFileName = "";
@@ -50,9 +54,17 @@ namespace Persistence.CQRS.Regulation.Laws
 
                 law.Pdf = newFileName;
 
-                await _fileManager.SaveFileAsync(request.Pdf, upload + SD.LawPdfPath + newFileName);
+                await _fileManager.SaveFileAsync(request.Pdf, pdfUpload + newFileName);
             }
 
+            var newspaperFile = String.Empty;
+            var oldNewspaperFileName = law?.Newspaper?.File;
+
+            if (request.NewspaperFile != null)
+            {
+                newspaperFile = Guid.NewGuid() + Path.GetExtension(request.NewspaperFile.FileName);
+                await _fileManager.SaveFileAsync(request.NewspaperFile, newspaperUpload + newspaperFile);
+            }
 
             law.Order = request.Order;
             law.ApprovalDate = request.ApprovalDate;
@@ -65,8 +77,9 @@ namespace Persistence.CQRS.Regulation.Laws
             law.Description = request.Description;
             law.IsOriginal = request.IsOriginal;
             law.Announcement = new Announcement(request.AnnouncementNumber, request.AnnouncementDate);
-            law.Newspaper = Newspaper.Create(request.NewspaperNumber, request.NewspaperDate);
+            law.Newspaper = Newspaper.Create(request.NewspaperNumber, request.NewspaperDate, newspaperFile);
             law.Type = request.Type == 0 ? LawType.Rule : LawType.Regulation;
+            law.LastModifiedAt = DateTime.Now;
 
             _context.Law.Update(law);
 
@@ -74,10 +87,12 @@ namespace Persistence.CQRS.Regulation.Laws
             {
                 if (request.Pdf != null)
                 {
-                    if (File.Exists(upload + SD.LawPdfPath + oldFileName))
-                        File.Delete(upload + SD.LawPdfPath + oldFileName);
+                    if (File.Exists(pdfUpload + SD.LawPdfPath + oldFileName))
+                        File.Delete(pdfUpload + SD.LawPdfPath + oldFileName);
                 }
 
+                if (request.NewspaperFile != null && File.Exists(SD.LawPdfPath + oldNewspaperFileName))
+                    File.Delete(SD.LawPdfPath + oldNewspaperFileName);
 
                 _logger.LogInformation($"Law with id {law.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
 

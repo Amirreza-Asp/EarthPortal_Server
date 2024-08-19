@@ -2,6 +2,7 @@
 using Application.CQRS.Account.User;
 using Application.Models;
 using Application.Queries;
+using Domain;
 using Domain.Dtos.Account;
 using Domain.Entities.Account;
 using Endpoint.CustomeAttributes;
@@ -32,16 +33,19 @@ namespace Endpoint.Controllers.Account
 
         [HttpPost]
         [Route("[action]")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Create([FromBody] CreateUserCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("[action]")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Update([FromBody] UpdateUserCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("[action]")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> Remove([FromQuery] RemoveUserCommand command, CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(command, cancellationToken);
     }

@@ -18,6 +18,7 @@ namespace Persistence.FluentConfig
             {
                 b.Property(e => e.Number).HasColumnName("NewspaperNumber");
                 b.Property(e => e.Date).HasColumnName("NewspaperDate");
+                b.Property(e => e.File).HasColumnName("NewspaperFile").IsRequired(false);
             });
         }
     }

@@ -21,7 +21,7 @@ namespace Application.Contracts.Persistence.Repositories
           GridQuery query,
           Expression<Func<TEntity, bool>>? filters = null,
           CancellationToken cancellationToken = default) where TDto : class;
-        
+
         Task<List<TDto>> GetAllAsync<TDto>(
           Expression<Func<TEntity, bool>>? filters = null,
           CancellationToken cancellationToken = default) where TDto : class;
