@@ -108,7 +108,7 @@ namespace Persistence.Utilities
             }
 
             #region Regulation
-            //LawCleaner(_context);
+            LawCleaner(_context);
 
             var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/lawData.json");
             var lawData = JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
