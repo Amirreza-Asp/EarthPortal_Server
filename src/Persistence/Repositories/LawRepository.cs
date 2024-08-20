@@ -43,15 +43,15 @@ namespace Persistence.Repositories
                 _memoryCache.Set("laws", laws, DateTimeOffset.Now + TimeSpan.FromHours(1));
             }
 
-            SearchByQuery(laws, query.SearchProps, query.Text);
+            laws = SearchByQuery(laws, query.SearchProps, query.Text);
 
             laws = laws?.Where(b => query.LawType == null || query.LawType.Contains((int)b.Type)).ToList();
 
-            FilterBySpecification(laws, query.ApprovalAuthorityIds, b => query.ApprovalAuthorityIds.Contains(b.ApprovalAuthorityId));
-            FilterBySpecification(laws, query.ApprovalStatusIds, b => query.ApprovalStatusIds.Contains(b.ApprovalStatusId));
-            FilterBySpecification(laws, query.ExecutorManagmentIds, b => query.ExecutorManagmentIds.Contains(b.ExecutorManagmentId));
-            FilterBySpecification(laws, query.LawCategoryIds, b => query.LawCategoryIds.Contains(b.LawCategoryId));
-            FilterBySpecification(laws, query.ApprovalTypeIds, b => query.ApprovalTypeIds.Contains(b.ApprovalTypeId));
+            laws = FilterBySpecification(laws, query.ApprovalAuthorityIds, b => query.ApprovalAuthorityIds.Contains(b.ApprovalAuthorityId));
+            laws = FilterBySpecification(laws, query.ApprovalStatusIds, b => query.ApprovalStatusIds.Contains(b.ApprovalStatusId));
+            laws = FilterBySpecification(laws, query.ExecutorManagmentIds, b => query.ExecutorManagmentIds.Contains(b.ExecutorManagmentId));
+            laws = FilterBySpecification(laws, query.LawCategoryIds, b => query.LawCategoryIds.Contains(b.LawCategoryId));
+            laws = FilterBySpecification(laws, query.ApprovalTypeIds, b => query.ApprovalTypeIds.Contains(b.ApprovalTypeId));
 
 
             if (query.ApprovalDate.HasValue)

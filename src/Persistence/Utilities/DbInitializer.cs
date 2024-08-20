@@ -103,12 +103,14 @@ namespace Persistence.Utilities
 
                 var info = await _context.Info.FirstAsync();
 
-                _context.GeoAddress.Add(new GeoAddress("https://balad.ir/embed?p=4fQxUx7hSCSJbR", "تهران، خیابان شریعتی، نرسیده به پل سیدخندان، ورودی 21", info.Id, " سازمان فناوری اطلاعات ایران", 0));
+
+                _context.GeoAddress.Add(new GeoAddress("<iframe src=\"https://balad.ir/embed?p=4fQxUx7hSCSJbR\" title=\"مشاهده «سازمان فناوری اطلاعات ایران» روی نقشه بلد\" width=\"600\" height=\"450\" frameborder=\"0\" style=\"border:0;\" allowfullscreen=\"\" aria-hidden=\"false\" tabindex=\"0\"></iframe>", "تهران، خیابان شریعتی، نرسیده به پل سیدخندان، ورودی 21", info.Id, " سازمان فناوری اطلاعات ایران", 0));
+                _context.GeoAddress.Add(new GeoAddress("<iframe src=\"https://balad.ir/embed?p=1cUMRd22DKc4Vn\" title=\"مشاهده «سازمان منابع طبیعی و آبخیزداری کشور» روی نقشه بلد\" width=\"600\" height=\"450\" frameborder=\"0\" style=\"border:0;\" allowfullscreen=\"\" aria-hidden=\"false\" tabindex=\"0\"></iframe>", "تهران، خیابان شریعتی، نرسیده به پل سیدخندان، ورودی 22", info.Id, "سازمان منابع طبیعی و آبخیزداری کشور", 2));
                 await _context.SaveChangesAsync();
             }
 
             #region Regulation
-            LawCleaner(_context);
+            //LawCleaner(_context);
 
             var lawJsonData = File.ReadAllText(_env.WebRootPath + "/regulation/file/lawData.json");
             var lawData = JsonConvert.DeserializeObject<List<LawData>>(lawJsonData);
@@ -205,8 +207,6 @@ namespace Persistence.Utilities
                         try
                         {
                             var date = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.Date);
-
-
 
                             var entity =
                                  new Law(

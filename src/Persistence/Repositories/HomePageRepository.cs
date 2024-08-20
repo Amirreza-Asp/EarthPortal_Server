@@ -5,6 +5,7 @@ using Application.Models;
 using Domain.Dtos.ExternalAPI;
 using Domain.Entities.Pages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Persistence.Repositories
@@ -15,13 +16,16 @@ namespace Persistence.Repositories
         private readonly ILogger<HomePageRepository> _logger;
         private readonly IUserAccessor _userAccessor;
         private readonly IIranelandService _iranelandService;
+        private readonly IMemoryCache _memoryCache;
+        private static string _cacheKey = "HomePageKey";
 
-        public HomePageRepository(ApplicationDbContext context, IIranelandService iranelandService, ILogger<HomePageRepository> logger, IUserAccessor userAccessor)
+        public HomePageRepository(ApplicationDbContext context, IIranelandService iranelandService, ILogger<HomePageRepository> logger, IUserAccessor userAccessor, IMemoryCache memoryCache)
         {
             _context = context;
             _iranelandService = iranelandService;
             _logger = logger;
             _userAccessor = userAccessor;
+            _memoryCache = memoryCache;
         }
 
         public async Task<CommandResponse> ChangeHeaderAsync(HomeHeaderDto header, CancellationToken cancellationToken)
@@ -36,7 +40,11 @@ namespace Persistence.Repositories
             _context.HomePage.Update(page);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
+            {
+                _memoryCache.Remove(_cacheKey);
+                _logger.LogInformation($"HomePage Updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
+            }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }
@@ -51,6 +59,7 @@ namespace Persistence.Repositories
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
+                _memoryCache.Remove(_cacheKey);
                 _logger.LogInformation($"HomePage Updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
             }
@@ -60,7 +69,14 @@ namespace Persistence.Repositories
 
         public async Task<HomePage> GetAsync(CancellationToken cancellationToken)
         {
-            return await _context.HomePage.FirstAsync(cancellationToken);
+            if (!_memoryCache.TryGetValue(_cacheKey, out HomePage data))
+            {
+                data = await _context.HomePage.FirstAsync(cancellationToken); ;
+
+                _memoryCache.Set(_cacheKey, data);
+            }
+
+            return data;
         }
 
         public async Task<CommandResponse> UpdateCasesAndUsersAsync(CasesAndUsersResponse model)
@@ -81,8 +97,9 @@ namespace Persistence.Repositories
 
                 if (await _context.SaveChangesAsync() > 0)
                 {
-
+                    _memoryCache.Remove(_cacheKey);
                     _logger.LogInformation($"HomePage Updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+
                     return CommandResponse.Success();
                 }
 

@@ -74,7 +74,7 @@ builder.Services.AddCors(options =>
         policy
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .WithOrigins("https://sinic.iraneland.ir", "https://zamin.gov.ir", "http://localhost:5173", "https://newportal.iraneland.ir")
+            .WithOrigins("https://sinic.iraneland.ir", "http://localhost:3000", "https://zamin.gov.ir", "http://localhost:5173", "https://newportal.iraneland.ir")
             .AllowCredentials();
     });
 });
