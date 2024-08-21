@@ -109,6 +109,16 @@ namespace Persistence.Utilities
                 await _context.SaveChangesAsync();
             }
 
+            _context.RelatedCompany.RemoveRange(_context.RelatedCompany.ToList());
+            foreach (var organization in organizations)
+            {
+                var order = organization.AText == "وزارت ارتباطات و فناوری اطلاعات" || organization.AText == "سازمان جنگلها مراتع و آبخیزداری کشور" ? -1 : 0;
+                var relatedCompany = new RelatedCompany(organization.AText, organization.ImageSrc, order);
+                relatedCompany.Link = organization.AHref;
+                _context.RelatedCompany.Add(relatedCompany);
+            }
+
+            await _context.SaveChangesAsync();
             #region Regulation
             //LawCleaner(_context);
 
@@ -1148,14 +1158,244 @@ namespace Persistence.Utilities
                 new RelatedLink("سازمان فناوری اطلاعات ایران" , "#",4),
                 new RelatedLink("ستاد هماهنگی مبارزه با مفاسد اقتصادی" , "#",5)
             };
+
+
+        public class Organization
+        {
+            public string ImageSrc { get; set; }
+            public string AHref { get; set; }
+            public string AText { get; set; }
+        }
+
+        static List<Organization> organizations = new List<Organization>
+        {
+            new Organization
+            {
+                ImageSrc = "organization01.png",
+                AHref = "https://www.nww.ir/",
+                AText = "شرکت سهامی مادرتخصصی مهندسی آب و فاضلاب کشور"
+            },
+            new Organization
+            {
+                ImageSrc = "organization02.png",
+                AHref = "https://www.mop.ir",
+                AText = "وزارت نفت"
+            },
+            new Organization
+            {
+                ImageSrc = "organization03.png",
+                AHref = "https://www.ict.gov.ir",
+                AText = "وزارت ارتباطات و فناوری اطلاعات"
+            },
+            new Organization
+            {
+                ImageSrc = "organization04.png",
+                AHref = "https://moi.ir",
+                AText = "وزارت کشور"
+            },
+            new Organization
+            {
+                ImageSrc = "organization05.png",
+                AHref = "https://www.laoi.ir",
+                AText = "سازمان امور اراضی"
+            },
+            new Organization
+            {
+                ImageSrc = "organization37.png",
+                AHref = "https://www.airport.ir/",
+                AText = "شرکت فرودگاه‌ها و ناوبری هوایی ایران"
+            },
+            new Organization
+            {
+                ImageSrc = "organization07.png",
+                AHref = "https://www.sabteahval.ir/Home",
+                AText = "سازمان ثبت احوال کشور"
+            },
+            new Organization
+            {
+                ImageSrc = "organization08.png",
+                AHref = "https://aro.gov.ir",
+                AText = "سازمان اداری و استخدامی کشور"
+            },
+            new Organization
+            {
+                ImageSrc = "organization09.png",
+                AHref = "https://www.mimt.gov.ir/",
+                AText = "وزارت صنعت، معدن و تجارت"
+            },
+            new Organization
+            {
+                ImageSrc = "organization10.png",
+                AHref = "http://ngo-iran.ir",
+                AText = "سازمان جغرافیایی نیروهای مسلح"
+            },
+            new Organization
+            {
+                ImageSrc = "organization11.png",
+                AHref = "https://www.post.ir/",
+                AText = "شرکت ملی پست جمهوری اسلامی ایران"
+            },
+            new Organization
+            {
+                ImageSrc = "organization12.png",
+                AHref = "https://www.wrm.ir/",
+                AText = "شرکت سهامی مادر تخصصی مدیریت منابع آب ایران"
+            },
+            new Organization
+            {
+                ImageSrc = "organization13.png",
+                AHref = "https://www.ssaa.ir",
+                AText = "سازمان ثبت اسناد و املاک کشور"
+            },
+            new Organization
+            {
+                ImageSrc = "organization14.png",
+                AHref = "https://www.ntdc.ir/",
+                AText = "شرکت مادر تخصصی عمران شهرهای جدید"
+            },
+            new Organization
+            {
+                ImageSrc = "organization15.png",
+                AHref = "https://www.mporg.ir/",
+                AText = "سازمان برنامه و بودجه کشور"
+            },
+            new Organization
+            {
+                ImageSrc = "organization16.png",
+                AHref = "https://www.mcth.ir/",
+                AText = "وزارت میراث فرهنگی، صنایع دستی و گردشگری"
+            },
+            new Organization
+            {
+                ImageSrc = "organization17.png",
+                AHref = "https://isipo.ir/",
+                AText = "سازمان صنایع کوچک و شهرکهای صنعتی ایران"
+            },
+            new Organization
+            {
+                ImageSrc = "organization18.png",
+                AHref = "https://bme.ir",
+                AText = "بنیاد مسکن انقلاب اسلامی"
+            },
+            new Organization
+            {
+                ImageSrc = "organization19.png",
+                AHref = "https://my.oghaf.ir",
+                AText = "سازمان اوقاف و امور خیریه"
+            },
+            new Organization
+            {
+                ImageSrc = "organization20.png",
+                AHref = "https://www.tavanir.org.ir/",
+                AText = "شرکت سهامی مادر تخصصی تولید، انتقال و توزیع نیروی برق ایران"
+            },
+            new Organization
+            {
+                ImageSrc = "organization21.png",
+                AHref = "https://www.ncc.gov.ir/",
+                AText = "سازمان نقشه برداری کشور"
+            },
+            new Organization
+            {
+                ImageSrc = "organization22.png",
+                AHref = "https://www.maj.ir/",
+                AText = "وزارت جهاد کشاورزی"
+            },
+            new Organization
+            {
+                ImageSrc = "organization23.png",
+                AHref = "https://ito.gov.ir",
+                AText = "سازمان فناوری اطلاعات ایران"
+            },
+            new Organization
+            {
+                ImageSrc = "organization24.png",
+                AHref = "https://frw.ir",
+                AText = "سازمان جنگلها مراتع و آبخیزداری کشور"
+            },
+            new Organization
+            {
+                ImageSrc = "organization25.png",
+                AHref = "https://www.nlho.ir/",
+                AText = "سازمان ملی زمین و مسکن"
+            },
+            new Organization
+            {
+                ImageSrc = "organization26.png",
+                AHref = "https://www.mrud.ir/",
+                AText = "وزارت راه و شهرسازی"
+            },
+            new Organization
+            {
+                ImageSrc = "organization27.png",
+                AHref = "https://isa.ir/",
+                AText = "سازمان فضایی ایران"
+            },
+            new Organization
+            {
+                ImageSrc = "organization29.png",
+                AHref = "https://smartcard.rmto.ir",
+                AText = "سازمان راهداری و حمل و نقل جاده ای"
+            },
+            new Organization
+            {
+                ImageSrc = "organization30.png",
+                AHref = "https://www.doe.ir",
+                AText = "سازمان حفاظت محیط زیست"
+            },
+            new Organization
+            {
+                ImageSrc = "organization31.png",
+                AHref = "https://www.mrud.ir",
+                AText = "دبیرخانه شورای عالی معماری و شهرسازی"
+            },
+            new Organization
+            {
+                ImageSrc = "organization32.png",
+                AHref = "https://www.tci.ir/",
+                AText = "شرکت ملی مخابرات ایران"
+            },
+            new Organization
+            {
+                ImageSrc = "organization33.png",
+                AHref = "https://www.cra.ir/",
+                AText = "سازمان تنظیم مقررات و ارتباطات رادیویی"
+            },
+            new Organization
+            {
+                ImageSrc = "organization34.png",
+                AHref = "https://www.rai.ir/",
+                AText = "شرکت راه‌آهن جمهوری اسلامی ایران"
+            },
+            new Organization
+            {
+                ImageSrc = "organization35.png",
+                AHref = "https://www.tic.ir/",
+                AText = "شرکت ارتباطات زیرساخت"
+            },
+            new Organization
+            {
+                ImageSrc = "organization36.png",
+                AHref = "https://www.pmo.ir/",
+                AText = "سازمان بنادر و دریانوردی"
+            },
+            new Organization
+            {
+                ImageSrc = "organization06.png",
+                AHref = "https://imo.org.ir/",
+                AText = "سازمان شهرداری‌ها و دهیاری‌های کشور"
+            }
+        };
+
+
         #endregion
 
         #region Resources
         public List<Author> Authors =>
-            new List<Author>
-            {
+                new List<Author>
+                {
                 new Author("دوئیس اِ. داندیس")
-            };
+                };
         #endregion
 
         private String lorem = "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.";
