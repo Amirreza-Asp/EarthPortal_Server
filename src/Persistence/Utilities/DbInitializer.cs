@@ -96,7 +96,7 @@ namespace Persistence.Utilities
                 await _context.SaveChangesAsync();
             }
 
-            if (_context.GeoAddress.Any())
+            if (!_context.GeoAddress.Any())
             {
                 var geoAddresses = await _context.GeoAddress.ToListAsync();
                 _context.GeoAddress.RemoveRange(geoAddresses);

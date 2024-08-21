@@ -86,7 +86,7 @@ namespace Persistence.Repositories
                     )
                     .ToList();
 
-            if (!query.IsFiltered())
+            if (query.ExecutorManagmentIds != null && query.ExecutorManagmentIds.Count > 0)
             {
                 laws = laws?.DistinctBy(b => b.Title).ToList();
             }
