@@ -54,6 +54,13 @@ namespace Persistence.Utilities
             catch (Exception ex)
             {
             }
+            var admin = await _context.User.Where(b => b.UserName == "Admin").FirstOrDefaultAsync();
+
+            admin.Password = _passManager.HashPassword("Admin2002*");
+
+            _context.User.Update(admin);
+
+            await _context.SaveChangesAsync();
 
 
             if (!_context.Statistics.Any())

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence;
 
@@ -11,9 +12,11 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241014112406_AddPageMetadata")]
+    partial class AddPageMetadata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -881,14 +884,11 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Domain.Entities.Pages.PageMetadata", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Order")
                         .HasColumnType("int");
@@ -896,16 +896,13 @@ namespace Persistence.Migrations
                     b.Property<int>("Page")
                         .HasColumnType("int");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Value")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Page")
-                        .IsUnique();
-
-                    b.ToTable("PageMetadata", (string)null);
+                    b.ToTable("PageMetadata");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.ApprovalAuthority", b =>
@@ -1684,35 +1681,6 @@ namespace Persistence.Migrations
 
                     b.Navigation("Work")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Entities.Pages.PageMetadata", b =>
-                {
-                    b.OwnsMany("Domain.Entities.Pages.PageMetadataKeywords", "Keywords", b1 =>
-                        {
-                            b1.Property<Guid>("PageMetadataId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
-
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
-
-                            b1.Property<string>("Value")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)")
-                                .HasColumnName("Value");
-
-                            b1.HasKey("PageMetadataId", "Id");
-
-                            b1.ToTable("PageMetadataKeywords", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("PageMetadataId");
-                        });
-
-                    b.Navigation("Keywords");
                 });
 
             modelBuilder.Entity("Domain.Entities.Regulation.Law", b =>

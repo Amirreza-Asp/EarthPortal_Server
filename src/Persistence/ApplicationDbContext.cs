@@ -90,6 +90,8 @@ namespace Persistence
         public DbSet<EnglishSolution> EnglishPageSolution { get; set; }
         public DbSet<EnglishCard> EnglishCard { get; set; }
         public DbSet<FooterPage> FooterPage { get; set; }
+
+        public DbSet<PageMetadata> PageMetadata { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

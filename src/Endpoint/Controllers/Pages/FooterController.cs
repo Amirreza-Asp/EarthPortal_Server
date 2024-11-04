@@ -38,11 +38,15 @@ namespace Endpoint.Controllers.Pages
 
             var todaySeen = await _statisticsRepository.GetTodaySeen();
             var totalSeen = await _statisticsRepository.GetTotalSeen();
+            var yearSeen = await _statisticsRepository.GetYearSeen();
+            var MonthSeen = await _statisticsRepository.GetMonthSeen();
 
             return new FooterSummary
             {
                 TodaySeen = Math.Max(todaySeen, 1),
                 TotalSeen = Math.Max(totalSeen, 1),
+                YearSeen = Math.Max(yearSeen, 1),
+                MonthSeen = Math.Max(MonthSeen, 1),
                 UpdateAt = footer.LastUpdate,
                 Ip = ip,
                 OnlineUsers = onlineUsers == null ? 1 : onlineUsers.Count

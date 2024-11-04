@@ -14,6 +14,9 @@ namespace Infrastructure.Profiles
             CreateMap<LawPage, LawPageDto>()
                 .ForMember(b => b.LawCount, e => e.Ignore());
 
+            CreateMap<PageMetadata, PageMetadataSummary>()
+                .ForMember(b => b.Keywords, e => e.MapFrom(b => b.Keywords.Select(b => b.Value)));
+
             CreateMap<EnglishCard, EnglishCardDto>()
                 .ForMember(b => b.Type, d => d.MapFrom(e => e.Type.ToString()))
                 .ForMember(b => b.Color, d => d.MapFrom(e => e.Color.ToString()));

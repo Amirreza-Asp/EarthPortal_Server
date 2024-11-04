@@ -16,21 +16,9 @@ namespace Endpoint.CustomeAttributes
             Roles = roles;
         }
 
-        public int Sum(params int[] nums)
-        {
-            var res = 0;
-            foreach (var item in nums)
-            {
-                res = item;
-            }
-
-            return res;
-        }
 
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-
-
             if (context.HttpContext.User == null || context.HttpContext.User.Identity == null || !context.HttpContext.User.Identity.IsAuthenticated)
             {
                 context.Result = new UnauthorizedObjectResult("برای انجام عملیات باید وارد شوید");
