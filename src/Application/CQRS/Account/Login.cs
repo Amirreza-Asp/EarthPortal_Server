@@ -7,6 +7,8 @@ namespace Application.CQRS.Account
     {
         public String UserName { get; set; }
         public String Password { get; set; }
+        public String Captcha { get; set; }
+
     }
 
 

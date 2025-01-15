@@ -73,6 +73,7 @@ namespace Endpoint.Controllers.Contact
 
         [HttpPut]
         [Route("[action]")]
+        [AccessControl(SD.AdminRole)]
         public async Task<CommandResponse> ReplaceFooterImage([FromForm] ReplaceFooterImageCommand command, CancellationToken cancellationToken)
         {
             if (command.Image == null)

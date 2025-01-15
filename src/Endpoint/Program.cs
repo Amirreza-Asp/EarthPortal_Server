@@ -48,14 +48,14 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddOptions();
 
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
 builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
 builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
-builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
-
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddInMemoryRateLimiting();
 
 builder.Services
@@ -150,9 +150,12 @@ app.Lifetime.ApplicationStarted.Register(() =>
     initializer.Execute();
 });
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-app.UseSwagger();
-app.UseSwaggerUI();
 
 app.UseIpRateLimiting();
 

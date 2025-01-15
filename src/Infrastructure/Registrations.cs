@@ -2,6 +2,7 @@
 using Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using Infrastructure.Services.Session;
 
 namespace Infrastructure
 {
@@ -17,6 +18,7 @@ namespace Infrastructure
             services.AddScoped<IFileManager, FileManager>();
             services.AddScoped<ITokenValidate, TokenValidate>();
             services.AddScoped<IUserAccessor, UserAccessor>();
+            services.AddScoped<ISessionService, SessionService>();
 
             return services;
         }
