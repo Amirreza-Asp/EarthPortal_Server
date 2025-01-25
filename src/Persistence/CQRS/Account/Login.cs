@@ -33,11 +33,11 @@ namespace Persistence.CQRS.Account
             if (string.IsNullOrEmpty(captchaSession) || (captchaSession != request.Captcha))
                 return CommandResponse.Failure(400, "کد امنیتی نامعتبر است");
 
-            if (!await _userRepository.AnyAsync(b => b.UserName == request.UserName))
+            if (!await _userRepository.AnyAsync(b => b.UserName == request.UserName, cancellationToken))
                 return CommandResponse.Failure(400, "نام کاربری یا رمز عبور وارد شده نا معتبر است");
 
             var user =
-                await _userRepository.FirstOrDefaultAsync(b => b.UserName == request.UserName, include: source => source.Include(b => b.Role));
+                await _userRepository.FirstOrDefaultAsync(b => b.UserName == request.UserName, include: source => source.Include(b => b.Role), cancellationToken: cancellationToken);
 
             if (user == null)
                 return CommandResponse.Failure(400, "نام کاربری یا رمز عبور وارد شده نا معتبر است");
@@ -46,7 +46,7 @@ namespace Persistence.CQRS.Account
                 return CommandResponse.Failure(400, "نام کاربری یا رمز عبور وارد شده نا معتبر است");
 
             var setCookiesNotification = new SetAuthCookiesNotification(user.UserName);
-            await _mediator.Publish(setCookiesNotification);
+            await _mediator.Publish(setCookiesNotification, cancellationToken);
 
             _logger.LogInformation($"User with username : {request.UserName} logged in {DateTime.Now}");
 

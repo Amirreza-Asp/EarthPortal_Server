@@ -58,6 +58,8 @@ builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddInMemoryRateLimiting();
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services
     .AddApplicationRegistrations()
     .AddPersistencsRegistrations(builder.Configuration)
@@ -65,7 +67,6 @@ builder.Services
 
 builder.Services.AddHostedService<CasesAndUsersWorker>();
 
-builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddCors(options =>
 {
@@ -82,9 +83,13 @@ builder.Services.AddCors(options =>
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.Cookie.Name = "MyApp.Session";
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.None;
+    
+    
 });
 
 
@@ -142,7 +147,6 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-app.UseSession();
 
 app.Lifetime.ApplicationStarted.Register(() =>
 {
@@ -157,10 +161,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
 app.UseIpRateLimiting();
 
 app.UseCors("CorsPolicy");
+app.UseSession();
 
 app.UseHttpsRedirection();
 
