@@ -19,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
 builder.Services.AddMvc(opt =>
 {
     opt.Filters.Add(new RemoveServerInfoFilter());
@@ -28,19 +28,19 @@ builder.Services.AddMvc(opt =>
 //builder.Logging.ClearProviders();
 builder.Services.AddMemoryCache();
 
-builder.Host.UseSerilog((hostBuilderContext, logConfig) =>
-{
-    if (hostBuilderContext.HostingEnvironment.IsDevelopment())
-    {
-        logConfig.WriteTo.Console().MinimumLevel.Information();
-        //logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
-    }
-    else
-    {
-        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
-        //logConfig.WriteTo.Console().MinimumLevel.Error();
-    }
-});
+//builder.Host.UseSerilog((hostBuilderContext, logConfig) =>
+//{
+//    if (hostBuilderContext.HostingEnvironment.IsDevelopment())
+//    {
+//        logConfig.WriteTo.Console().MinimumLevel.Information();
+//        //logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
+//    }
+//    else
+//    {
+//        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
+//        //logConfig.WriteTo.Console().MinimumLevel.Error();
+//    }
+//});
 
 
 builder.Services.AddDistributedMemoryCache();
@@ -90,6 +90,12 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.None;
     
     
+});
+
+builder.Services.AddSpaStaticFiles(configuration =>
+{
+    configuration.RootPath = "clientapp/dist";
+
 });
 
 
@@ -163,6 +169,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseIpRateLimiting();
 
+app.UseRouting();
+
 app.UseCors("CorsPolicy");
 app.UseSession();
 
@@ -171,6 +179,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseSpaStaticFiles();
 app.UseStaticFiles();
 
 app.UseCustomHeaderHandler();
@@ -200,7 +209,25 @@ app.Use(async (context, next) =>
 });
 
 
-app.MapControllers();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}"
+    ).RequireCors("CorsPolicy");
+
+});
+
+app.UseSpa(config =>
+{
+    config.Options.SourcePath = "clientapp";
+    if (app.Environment.IsDevelopment())
+    {
+        config.UseProxyToSpaDevelopmentServer(new Uri("http://localhost:5173"));
+    }
+});
+
 app.Run();
 
 
