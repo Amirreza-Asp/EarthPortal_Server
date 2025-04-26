@@ -107,6 +107,16 @@ namespace Persistence.Utilities
                 await _context.SaveChangesAsync();
             }
 
+            if (!_context.User.Any(b => b.UserName == "Mansour"))
+            {
+                var role = await _context.Role.Where(b => b.Title == SD.AdminRole).FirstOrDefaultAsync();
+
+                var user = new User(role.Id, "منصور", "بیجاد", "Mansour", _passManager.HashPassword("ManoBijo@1997"), null, null);
+                _context.User.Add(user);
+
+                await _context.SaveChangesAsync();
+            }
+
             if (!_context.GeoAddress.Any())
             {
                 var geoAddresses = await _context.GeoAddress.ToListAsync();

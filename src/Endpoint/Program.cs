@@ -88,8 +88,8 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.None;
-    
-    
+
+
 });
 
 builder.Services.AddSpaStaticFiles(configuration =>
@@ -174,13 +174,13 @@ app.UseRouting();
 app.UseCors("CorsPolicy");
 app.UseSession();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSpaStaticFiles();
-app.UseStaticFiles();
+// app.UseStaticFiles();
 
 app.UseCustomHeaderHandler();
 
