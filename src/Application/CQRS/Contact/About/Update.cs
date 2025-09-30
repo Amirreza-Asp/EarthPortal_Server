@@ -12,7 +12,7 @@ namespace Application.CQRS.Contact.About
         public IFormFile? Image { get; set; }
         public string? Video { get; set; }
         public bool IsVideo { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime AccomplishedDate { get; set; }
         public int Order { get; set; }
     }
 }

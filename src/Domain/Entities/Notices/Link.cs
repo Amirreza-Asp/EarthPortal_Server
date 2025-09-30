@@ -14,5 +14,6 @@ namespace Domain.Entities.Notices
         public String Value { get; set; }
 
         public ICollection<NewsLink> NewsLinks { get; set; }
+        public ICollection<NoticeLink> NoticeLinks { get; set; }
     }
 }

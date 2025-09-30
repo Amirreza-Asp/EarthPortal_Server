@@ -49,9 +49,8 @@ namespace Persistence.CQRS.Contact.About
 
                     _photoManager.Save(request.Image, upload + imgName);
 
-                    var about = new AboutUs(request.Title, request.Description, null, imgName);
+                    var about = new AboutUs(request.Title, request.Description, null, imgName, request.AccomplishedDate);
                     about.Order = request.Order;
-                    about.CreatedAt = request.CreatedAt;
                     _context.AboutUs.Add(about);
 
 
@@ -63,7 +62,7 @@ namespace Persistence.CQRS.Contact.About
                 }
                 else
                 {
-                    var about = new AboutUs(request.Title, request.Description, request.Video, null);
+                    var about = new AboutUs(request.Title, request.Description, request.Video, null, request.AccomplishedDate);
                     about.Order = request.Order;
                     _context.AboutUs.Add(about);
 

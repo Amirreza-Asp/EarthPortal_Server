@@ -22,6 +22,6 @@ namespace Application.CQRS.Notices
 
         [Required(ErrorMessage = "تصویر خبر را وارد کنید")]
         public IFormFile Image { get; set; }
-        public int Order { get; set; }
+        //public int Order { get; set; }
     }
 }

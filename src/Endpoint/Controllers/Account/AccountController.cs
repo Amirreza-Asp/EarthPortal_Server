@@ -37,7 +37,15 @@ namespace Endpoint.Controllers.Account
         [Route("Logout")]
         public CommandResponse Logout()
         {
-            HttpContext.Response.Cookies.Delete(SD.AuthToken);
+            HttpContext.Response.Cookies.Delete(SD.AuthToken, new CookieOptions
+            {
+                Path = "/",
+                Secure = true,
+                HttpOnly = true,
+                SameSite = SameSiteMode.None,
+                IsEssential = true
+            });
+
             return CommandResponse.Success();
         }
 

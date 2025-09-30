@@ -6,6 +6,7 @@
         public const String VideoContentPath = "/multimedia/video content/";
         public const String InfographicPath = "/multimedia/infographic/";
         public const String NewsImagePath = "/notices/news image/";
+        public const String NoticeImagePath = "/notices/notices image/";
         public const String BookImagePath = "/resources/book image/";
         public const String BookFilePath = "/resources/book file/";
         public const String BroadcastImagePath = "/resources/broadcast image/";

@@ -119,6 +119,9 @@ namespace Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime>("AccomplishedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -722,6 +725,120 @@ namespace Persistence.Migrations
                     b.HasIndex("NewsId");
 
                     b.ToTable("NewsLink");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Notices.Notice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateOfRegisration")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Headline")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("NoticeCategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Seen")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ShortLink")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NoticeCategoryId");
+
+                    b.ToTable("Notices");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Notices.NoticeCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("NoticeCategory");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Notices.NoticeImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("NoticeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NoticeId");
+
+                    b.ToTable("NoticeImage");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Notices.NoticeLink", b =>
+                {
+                    b.Property<Guid>("LinkId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("NoticeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("LinkId", "NoticeId");
+
+                    b.HasIndex("NoticeId");
+
+                    b.ToTable("NoticeLink");
                 });
 
             modelBuilder.Entity("Domain.Entities.Pages.AboutUsPage", b =>
@@ -1420,6 +1537,47 @@ namespace Persistence.Migrations
                     b.Navigation("News");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Notices.Notice", b =>
+                {
+                    b.HasOne("Domain.Entities.Notices.NoticeCategory", "NoticeCategory")
+                        .WithMany()
+                        .HasForeignKey("NoticeCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NoticeCategory");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Notices.NoticeImage", b =>
+                {
+                    b.HasOne("Domain.Entities.Notices.Notice", "Notices")
+                        .WithMany("Images")
+                        .HasForeignKey("NoticeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Notices");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Notices.NoticeLink", b =>
+                {
+                    b.HasOne("Domain.Entities.Notices.Link", "Link")
+                        .WithMany("NoticeLinks")
+                        .HasForeignKey("LinkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Notices.Notice", "Notices")
+                        .WithMany("Links")
+                        .HasForeignKey("NoticeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Link");
+
+                    b.Navigation("Notices");
+                });
+
             modelBuilder.Entity("Domain.Entities.Pages.EnglishCard", b =>
                 {
                     b.HasOne("Domain.Entities.Pages.EnglishPage", "EnglishPage")
@@ -1915,9 +2073,18 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Domain.Entities.Notices.Link", b =>
                 {
                     b.Navigation("NewsLinks");
+
+                    b.Navigation("NoticeLinks");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notices.News", b =>
+                {
+                    b.Navigation("Images");
+
+                    b.Navigation("Links");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Notices.Notice", b =>
                 {
                     b.Navigation("Images");
 

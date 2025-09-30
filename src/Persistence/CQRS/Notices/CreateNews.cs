@@ -58,7 +58,7 @@ namespace Persistence.CQRS.Notices
 
                 _photoManager.Save(request.Image, upload + image.Name);
 
-                news.Order = request.Order;
+                news.Order = 0;
                 _context.News.Add(news);
                 _context.Add(image);
 

@@ -8,6 +8,7 @@
         public String? Image { get; set; }
         public String? Video { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime AccomplishedDate { get; set; }
         public bool HaveVideo { get; set; }
         public int Order { get; set; }
     }

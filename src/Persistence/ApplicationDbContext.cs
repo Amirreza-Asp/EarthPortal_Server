@@ -44,10 +44,14 @@ namespace Persistence
 
         #region Notices
         public DbSet<NewsCategory> NewsCategory { get; set; }
+        public DbSet<NoticeCategory> NoticeCategory { get; set; }
         public DbSet<News> News { get; set; }
+        public DbSet<Notice> Notices { get; set; }
         public DbSet<NewsImage> NewsImage { get; set; }
+        public DbSet<NoticeImage> NoticeImage { get; set; }
         public DbSet<Link> Link { get; set; }
         public DbSet<NewsLink> NewsLink { get; set; }
+        public DbSet<NoticeLink> NoticeLink { get; set; }
         #endregion
 
         #region Contact
@@ -100,6 +104,7 @@ namespace Persistence
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
             modelBuilder.Entity<News>().Property(b => b.Id).ValueGeneratedNever();
+            modelBuilder.Entity<Notice>().Property(b => b.Id).ValueGeneratedNever();
             modelBuilder.Entity<Link>().Property(b => b.Id).ValueGeneratedNever();
         }
 
