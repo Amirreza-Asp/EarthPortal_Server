@@ -9,14 +9,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Broadcasts
 {
-    public class RemoveBroadcastCommandHandler : IRequestHandler<RemoveBroadcastCommand, CommandResponse>
+    public class RemoveBroadcastCommandHandler
+        : IRequestHandler<RemoveBroadcastCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly ILogger<RemoveBroadcastCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveBroadcastCommandHandler(ApplicationDbContext context, IHostingEnvironment env, ILogger<RemoveBroadcastCommandHandler> logger, IUserAccessor userAccessor)
+        public RemoveBroadcastCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            ILogger<RemoveBroadcastCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -24,7 +30,10 @@ namespace Persistence.CQRS.Resources.Broadcasts
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(RemoveBroadcastCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveBroadcastCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var entity = await _context.Broadcast.FirstOrDefaultAsync(b => b.Id == request.Id);
             var upload = _env.WebRootPath;
@@ -42,7 +51,9 @@ namespace Persistence.CQRS.Resources.Broadcasts
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"Broadcast with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"Broadcast with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
                 return CommandResponse.Success();
             }
 

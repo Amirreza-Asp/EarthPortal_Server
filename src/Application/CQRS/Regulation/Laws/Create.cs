@@ -7,11 +7,14 @@ namespace Application.CQRS.Regulation.Laws
     public class CreateLawCommand : IRequest<CommandResponse>, IRegulationCommand
     {
         public String Title { get; set; }
+
         public string AnnouncementNumber { get; set; }
         public DateTime AnnouncementDate { get; set; }
+
         public string NewspaperNumber { get; set; }
         public DateTime NewspaperDate { get; set; }
         public IFormFile? NewspaperFile { get; set; }
+
         public String Description { get; set; }
         public DateTime ApprovalDate { get; set; }
         public int Type { get; set; }
@@ -25,6 +28,9 @@ namespace Application.CQRS.Regulation.Laws
         public Guid ExecutorManagmentId { get; set; }
         public Guid ApprovalAuthorityId { get; set; }
         public Guid LawCategoryId { get; set; }
+
         public int Order { get; set; }
+
+        public IReadOnlyCollection<Guid> LawContentIds { get; set; } = Array.Empty<Guid>();
     }
 }

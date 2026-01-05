@@ -14,12 +14,18 @@ namespace Persistence.CQRS.Regulation.Laws
     public class UpdateLawCommandHandler : IRequestHandler<UpdateLawCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IFileManager _fileManager;
         private readonly ILogger<UpdateLawCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateLawCommandHandler(ApplicationDbContext context, IFileManager fileManager, IHostingEnvironment env, ILogger<UpdateLawCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateLawCommandHandler(
+            ApplicationDbContext context,
+            IFileManager fileManager,
+            IWebHostEnvironment env,
+            ILogger<UpdateLawCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _fileManager = fileManager;
@@ -28,9 +34,14 @@ namespace Persistence.CQRS.Regulation.Laws
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateLawCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateLawCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var law = await _context.Law.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var law = await _context
+                .Law.Include(x => x.LawLawContents)
+                .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
             var pdfUpload = _env.WebRootPath + SD.LawPdfPath;
             var newspaperUpload = _env.WebRootPath + SD.LawNewspaperPath;
@@ -63,7 +74,10 @@ namespace Persistence.CQRS.Regulation.Laws
             if (request.NewspaperFile != null)
             {
                 newspaperFile = Guid.NewGuid() + Path.GetExtension(request.NewspaperFile.FileName);
-                await _fileManager.SaveFileAsync(request.NewspaperFile, newspaperUpload + newspaperFile);
+                await _fileManager.SaveFileAsync(
+                    request.NewspaperFile,
+                    newspaperUpload + newspaperFile
+                );
             }
 
             law.Order = request.Order;
@@ -76,12 +90,37 @@ namespace Persistence.CQRS.Regulation.Laws
             law.Title = request.Title;
             law.Description = request.Description;
             law.IsOriginal = request.IsOriginal;
-            law.Announcement = new Announcement(request.AnnouncementNumber, request.AnnouncementDate);
-            law.Newspaper = Newspaper.Create(request.NewspaperNumber, request.NewspaperDate, newspaperFile);
+            law.Announcement = new Announcement(
+                request.AnnouncementNumber,
+                request.AnnouncementDate
+            );
+            law.Newspaper = Newspaper.Create(
+                request.NewspaperNumber,
+                request.NewspaperDate,
+                newspaperFile
+            );
             law.Type = request.Type == 0 ? LawType.Rule : LawType.Regulation;
             law.LastModifiedAt = DateTime.Now;
 
-            _context.Law.Update(law);
+            var requestedIds = request.LawContentIds.Distinct().ToHashSet();
+
+            var toRemove = law
+                .LawLawContents.Where(x => !requestedIds.Contains(x.LawContentId))
+                .ToList();
+
+            foreach (var item in toRemove)
+            {
+                law.LawLawContents.Remove(item);
+            }
+
+            var existingIds = law.LawLawContents.Select(x => x.LawContentId).ToHashSet();
+
+            foreach (var id in requestedIds.Except(existingIds))
+            {
+                law.LawLawContents.Add(new Domain.Entities.Regulation.LawLawContent(law.Id, id));
+            }
+
+            //_context.Law.Update(law);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
@@ -91,10 +130,15 @@ namespace Persistence.CQRS.Regulation.Laws
                         File.Delete(pdfUpload + SD.LawPdfPath + oldFileName);
                 }
 
-                if (request.NewspaperFile != null && File.Exists(SD.LawPdfPath + oldNewspaperFileName))
+                if (
+                    request.NewspaperFile != null
+                    && File.Exists(SD.LawPdfPath + oldNewspaperFileName)
+                )
                     File.Delete(SD.LawPdfPath + oldNewspaperFileName);
 
-                _logger.LogInformation($"Law with id {law.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"Law with id {law.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
 
                 return CommandResponse.Success();
             }

@@ -6,7 +6,24 @@ namespace Domain.Entities.Regulation
 {
     public class Law : BaseEntity
     {
-        public Law(string title, Announcement? announcement, Newspaper? newspaper, string description, DateTime approvalDate, LawType type, bool isOriginal, Guid approvalTypeId, Guid approvalStatusId, Guid executorManagmentId, Guid approvalAuthorityId, Guid lawCategoryId, string pdf, string? article, DateTime lastModifiedAt) : base(Guid.NewGuid())
+        public Law(
+            string title,
+            Announcement? announcement,
+            Newspaper? newspaper,
+            string description,
+            DateTime approvalDate,
+            LawType type,
+            bool isOriginal,
+            Guid approvalTypeId,
+            Guid approvalStatusId,
+            Guid executorManagmentId,
+            Guid approvalAuthorityId,
+            Guid lawCategoryId,
+            string pdf,
+            string? article,
+            DateTime lastModifiedAt
+        )
+            : base(Guid.NewGuid())
         {
             Title = title;
             Announcement = announcement;
@@ -44,25 +61,29 @@ namespace Domain.Entities.Regulation
         public Guid ApprovalAuthorityId { get; set; }
         public Guid LawCategoryId { get; set; }
 
-
-
         public ApprovalType? ApprovalType { get; set; }
         public ApprovalStatus? ApprovalStatus { get; set; }
         public ExecutorManagment? ExecutorManagment { get; set; }
         public ApprovalAuthority? ApprovalAuthority { get; set; }
         public LawCategory? LawCategory { get; set; }
-
+        public ICollection<LawLawContent> LawLawContents { get; private set; } =
+            new List<LawLawContent>();
 
         public override bool Equals(object? obj)
         {
             var other = obj as Law;
 
-            if (other == null) return false;
+            if (other == null)
+                return false;
 
-            return Title.Trim() == other.Title.Trim() && ApprovalDate.Date == other.ApprovalDate.Date &&
-                        ApprovalTypeId == other.ApprovalTypeId && ApprovalStatusId == other.ApprovalStatusId &&
-                        Article == other.Article && Type == other.Type && IsOriginal == other.IsOriginal && Newspaper?.Number == other.Newspaper?.Number;
+            return Title.Trim() == other.Title.Trim()
+                && ApprovalDate.Date == other.ApprovalDate.Date
+                && ApprovalTypeId == other.ApprovalTypeId
+                && ApprovalStatusId == other.ApprovalStatusId
+                && Article == other.Article
+                && Type == other.Type
+                && IsOriginal == other.IsOriginal
+                && Newspaper?.Number == other.Newspaper?.Number;
         }
-
     }
 }

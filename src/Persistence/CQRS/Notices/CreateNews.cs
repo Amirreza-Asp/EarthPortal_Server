@@ -13,14 +13,20 @@ namespace Persistence.CQRS.Notices
     public class CreateNewsCommandHandler : IRequestHandler<CreateNewsCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IMediator _mediator;
         private readonly IPhotoManager _photoManager;
         private readonly ILogger<CreateNewsCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-
-        public CreateNewsCommandHandler(ApplicationDbContext context, IMediator mediator, IPhotoManager photoManager, IHostingEnvironment env, ILogger<CreateNewsCommandHandler> logger, IUserAccessor userAccessor)
+        public CreateNewsCommandHandler(
+            ApplicationDbContext context,
+            IMediator mediator,
+            IPhotoManager photoManager,
+            IWebHostEnvironment env,
+            ILogger<CreateNewsCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _mediator = mediator;
@@ -30,7 +36,10 @@ namespace Persistence.CQRS.Notices
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(CreateNewsCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            CreateNewsCommand request,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
@@ -41,16 +50,29 @@ namespace Persistence.CQRS.Notices
                 while (await _context.News.AnyAsync(b => b.ShortLink == shortLink))
                     shortLink = CreateRandomLink();
 
-
-                var category = await _context.NewsCategory.FirstOrDefaultAsync(b => b.Title == "نامشخص");
+                var category = await _context.NewsCategory.FirstOrDefaultAsync(b =>
+                    b.Title == "نامشخص"
+                );
                 if (category == null)
                 {
                     category = new NewsCategory("نامشخص", null);
                     _context.NewsCategory.Add(category);
                 }
 
-                var news = new News(request.Title, request.Description, request.Headline, request.Source, request.DateOfRegisration, category.Id, shortLink);
-                var image = new NewsImage(Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName), news.Id, 0);
+                var news = new News(
+                    request.Title,
+                    request.Description,
+                    request.Headline,
+                    request.Source,
+                    request.DateOfRegisration,
+                    category.Id,
+                    shortLink
+                );
+                var image = new NewsImage(
+                    Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName),
+                    news.Id,
+                    0
+                );
 
                 var upload = _env.WebRootPath + SD.NewsImagePath;
                 if (!Directory.Exists(upload))
@@ -67,14 +89,21 @@ namespace Persistence.CQRS.Notices
                 if (request.Links != null && request.Links.Any())
                     await _mediator.Send(new UpsertNewsLinkCommand(request.Links, news.Id));
 
-
                 await _context.SaveChangesAsync();
 
                 _context.Database.CommitTransaction();
 
-                _logger.LogInformation($"News with id {news.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
-                return CommandResponse.Success(new { Id = news.Id, Image = news.Images.First().Name, ShortLink = news.ShortLink });
-
+                _logger.LogInformation(
+                    $"News with id {news.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
+                return CommandResponse.Success(
+                    new
+                    {
+                        Id = news.Id,
+                        Image = news.Images.First().Name,
+                        ShortLink = news.ShortLink
+                    }
+                );
             }
             catch (Exception ex)
             {
@@ -82,9 +111,7 @@ namespace Persistence.CQRS.Notices
                 _logger.LogError(ex.Message, ex);
                 return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
             }
-
         }
-
 
         private int CreateRandomLink()
         {

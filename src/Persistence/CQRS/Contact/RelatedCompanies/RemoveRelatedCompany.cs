@@ -9,14 +9,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.RelatedCompanies
 {
-    public class RemoveRelatedCompanyCommandHandler : IRequestHandler<RemoveRelatedCompanyCommand, CommandResponse>
+    public class RemoveRelatedCompanyCommandHandler
+        : IRequestHandler<RemoveRelatedCompanyCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly ILogger<RemoveRelatedCompanyCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveRelatedCompanyCommandHandler(ApplicationDbContext context, IHostingEnvironment env, ILogger<RemoveRelatedCompanyCommandHandler> logger, IUserAccessor userAccessor)
+        public RemoveRelatedCompanyCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            ILogger<RemoveRelatedCompanyCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -24,10 +30,16 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(RemoveRelatedCompanyCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveRelatedCompanyCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var upload = _env.WebRootPath + SD.RelatedCompanyPath;
-            var relatedCompany = await _context.RelatedCompany.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var relatedCompany = await _context.RelatedCompany.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (relatedCompany == null)
                 return CommandResponse.Failure(400, "سازمان همکار در سیستم وجود ندارد");
@@ -39,7 +51,9 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"RelatedCompany with id {relatedCompany.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"RelatedCompany with id {relatedCompany.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
                 return CommandResponse.Success();
             }
 

@@ -5,7 +5,11 @@ namespace Persistence.Utilities
 {
     public static class QueryUtility
     {
-        public static IOrderedQueryable<TEntityType> SortMeDynamically<TEntityType>(this IQueryable<TEntityType> query, string propertyname, bool desc = false)
+        public static IOrderedQueryable<TEntityType> SortMeDynamically<TEntityType>(
+            this IQueryable<TEntityType> query,
+            string propertyname,
+            bool desc = false
+        )
         {
             propertyname = propertyname ?? "CreatedAt";
 
@@ -36,7 +40,11 @@ namespace Persistence.Utilities
             }
         }
 
-        public static IOrderedQueryable<TEntityType> ThenSortMeDynamically<TEntityType>(this IOrderedQueryable<TEntityType> query, string propertyname, bool desc = false)
+        public static IOrderedQueryable<TEntityType> ThenSortMeDynamically<TEntityType>(
+            this IOrderedQueryable<TEntityType> query,
+            string propertyname,
+            bool desc = false
+        )
         {
             propertyname = propertyname ?? "CreatedAt";
 
@@ -67,7 +75,12 @@ namespace Persistence.Utilities
             }
         }
 
-        public static IOrderedQueryable<T> SortBy<T>(this IQueryable<T> query, string by, bool desc = true) where T : class
+        public static IOrderedQueryable<T> SortBy<T>(
+            this IQueryable<T> query,
+            string by,
+            bool desc = true
+        )
+            where T : class
         {
             by = by ?? "ShortLink";
 
@@ -82,8 +95,10 @@ namespace Persistence.Utilities
             return query.OrderBy(o => o.GetType().GetProperty(by).GetValue(o));
         }
 
-
-        public static Expression<Func<T, bool>> FilterExpression<T>(string propertyName, string propertyValue)
+        public static Expression<Func<T, bool>> FilterExpression<T>(
+            string propertyName,
+            string propertyValue
+        )
         {
             if (string.IsNullOrEmpty(propertyName))
                 return null;
@@ -115,46 +130,58 @@ namespace Persistence.Utilities
                     castedPropertyValue = propertyValue;
                 }
 
-
-
                 var parameterExp = Expression.Parameter(typeof(T), "type");
                 var propertyExp = Expression.Property(parameterExp, propertyName);
-
 
                 var someValue = Expression.Constant(castedPropertyValue, propertyType);
 
                 if (propertyType == typeof(int?))
                 {
-
-                    MethodInfo methodbool = propertyType.GetMethod(@operator, new[] { propertyType });
+                    MethodInfo methodbool = propertyType.GetMethod(
+                        @operator,
+                        new[] { propertyType }
+                    );
 
                     var convertedSomeValue = Expression.Convert(someValue, typeof(object));
 
-                    var containsMethodExp = Expression.Call(propertyExp, methodbool, convertedSomeValue);
+                    var containsMethodExp = Expression.Call(
+                        propertyExp,
+                        methodbool,
+                        convertedSomeValue
+                    );
                     return Expression.Lambda<Func<T, bool>>(containsMethodExp, parameterExp);
-
                 }
                 if (propertyType == typeof(Guid?))
                 {
-
-                    MethodInfo methodbool = propertyType.GetMethod(@operator, new[] { propertyType });
+                    MethodInfo methodbool = propertyType.GetMethod(
+                        @operator,
+                        new[] { propertyType }
+                    );
 
                     var convertedSomeValue = Expression.Convert(someValue, typeof(object));
 
-                    var containsMethodExp = Expression.Call(propertyExp, methodbool, convertedSomeValue);
+                    var containsMethodExp = Expression.Call(
+                        propertyExp,
+                        methodbool,
+                        convertedSomeValue
+                    );
                     return Expression.Lambda<Func<T, bool>>(containsMethodExp, parameterExp);
-
                 }
                 if (propertyType == typeof(bool?))
                 {
-
-                    MethodInfo methodbool = propertyType.GetMethod(@operator, new[] { propertyType });
+                    MethodInfo methodbool = propertyType.GetMethod(
+                        @operator,
+                        new[] { propertyType }
+                    );
 
                     var convertedSomeValue = Expression.Convert(someValue, typeof(object));
 
-                    var containsMethodExp = Expression.Call(propertyExp, methodbool, convertedSomeValue);
+                    var containsMethodExp = Expression.Call(
+                        propertyExp,
+                        methodbool,
+                        convertedSomeValue
+                    );
                     return Expression.Lambda<Func<T, bool>>(containsMethodExp, parameterExp);
-
                 }
                 else
                 {
@@ -162,21 +189,18 @@ namespace Persistence.Utilities
 
                     var containsMethodExp = Expression.Call(propertyExp, method, someValue);
                     return Expression.Lambda<Func<T, bool>>(containsMethodExp, parameterExp);
-
                 }
-
-
             }
-            catch (Exception ex)
+            catch
             {
-
                 return null;
             }
-
         }
 
-
-        public static Expression<Func<T, T>> SelectExpression<T>(string propertyName, string propertyValue)
+        public static Expression<Func<T, T>> SelectExpression<T>(
+            string propertyName,
+            string propertyValue
+        )
         {
             if (string.IsNullOrEmpty(propertyName))
                 return null;
@@ -188,37 +212,37 @@ namespace Persistence.Utilities
                 var parameterExp = Expression.Parameter(typeof(T), "type");
                 var propertyExp = Expression.Property(parameterExp, propertyName);
 
-
                 // var someValue = Expression.Constant(castedPropertyValue, propertyType);
                 //var containsMethodExp = Expression.Call(propertyExp, method, someValue);
 
                 return Expression.Lambda<Func<T, T>>(null, parameterExp);
             }
-            catch (Exception ex)
+            catch
             {
-
                 return null;
             }
-
         }
 
         static string GetPropertyExactName(this Type type, string name)
         {
             return type.GetProperties()
-                 .Where(x => x.Name.ToLower() == name.ToLower())
-                 .Select(x => x.Name)
-                 .FirstOrDefault();
+                .Where(x => x.Name.ToLower() == name.ToLower())
+                .Select(x => x.Name)
+                .FirstOrDefault();
         }
 
         static Type GetPropertyType(this Type type, string name)
         {
             return type.GetProperties()
-                 .Where(x => x.Name.ToLower() == name.ToLower())
-                 .Select(x => x.PropertyType)
-                 .FirstOrDefault();
+                .Where(x => x.Name.ToLower() == name.ToLower())
+                .Select(x => x.PropertyType)
+                .FirstOrDefault();
         }
 
-        public static IQueryable<T> SelectDynamic<T>(this IQueryable<T> source, IEnumerable<string> fields)
+        public static IQueryable<T> SelectDynamic<T>(
+            this IQueryable<T> source,
+            IEnumerable<string> fields
+        )
         {
             var fieldNames = new List<string>();
             foreach (var field in fields)
@@ -232,15 +256,20 @@ namespace Persistence.Utilities
             for (int i = 0; i < fields.Count(); i++)
             {
                 var name = fieldNames.ElementAt(i);
-                var binding = Expression.Bind(typeof(T).GetProperty(name), Expression.PropertyOrField(expression, name));
+                var binding = Expression.Bind(
+                    typeof(T).GetProperty(name),
+                    Expression.PropertyOrField(expression, name)
+                );
                 bindings[i] = binding;
             }
 
             ParameterExpression[] parameters = new ParameterExpression[] { expression };
-            var lambda = Expression.Lambda<Func<T, T>>(Expression.MemberInit(Expression.New(typeof(T)), bindings), parameters);
+            var lambda = Expression.Lambda<Func<T, T>>(
+                Expression.MemberInit(Expression.New(typeof(T)), bindings),
+                parameters
+            );
 
             return source.Select(lambda);
         }
-
     }
 }

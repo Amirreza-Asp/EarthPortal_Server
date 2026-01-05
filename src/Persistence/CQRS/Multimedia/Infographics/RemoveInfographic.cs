@@ -8,14 +8,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Infographics
 {
-    public class RemoveInfographicCommandHandler : IRequestHandler<RemoveInfographicCommand, CommandResponse>
+    public class RemoveInfographicCommandHandler
+        : IRequestHandler<RemoveInfographicCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly ILogger<RemoveInfographicCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveInfographicCommandHandler(ApplicationDbContext context, IHostingEnvironment env, ILogger<RemoveInfographicCommandHandler> logger, IUserAccessor userAccessor)
+        public RemoveInfographicCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            ILogger<RemoveInfographicCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -23,9 +29,15 @@ namespace Persistence.CQRS.Multimedia.Infographics
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(RemoveInfographicCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveInfographicCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var infographic = await _context.Infographic.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var infographic = await _context.Infographic.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (infographic == null)
                 return CommandResponse.Failure(400, "اینفوگرافیک انتخاب شده در سیستم وجود ندارد");
@@ -34,7 +46,9 @@ namespace Persistence.CQRS.Multimedia.Infographics
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"Infographic with id {infographic.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"Infographic with id {infographic.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
                 return CommandResponse.Success();
             }
 

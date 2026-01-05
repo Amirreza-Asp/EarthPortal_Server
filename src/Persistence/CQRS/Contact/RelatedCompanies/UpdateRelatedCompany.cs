@@ -9,15 +9,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.RelatedCompanies
 {
-    public class UpdateRelatedCompanyCommandHandler : IRequestHandler<UpdateRelatedCompanyCommand, CommandResponse>
+    public class UpdateRelatedCompanyCommandHandler
+        : IRequestHandler<UpdateRelatedCompanyCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly IPhotoManager _photoManager;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly ILogger<UpdateRelatedCompanyCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateRelatedCompanyCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env, ILogger<UpdateRelatedCompanyCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateRelatedCompanyCommandHandler(
+            ApplicationDbContext context,
+            IPhotoManager photoManager,
+            IWebHostEnvironment env,
+            ILogger<UpdateRelatedCompanyCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _photoManager = photoManager;
@@ -26,10 +33,16 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateRelatedCompanyCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateRelatedCompanyCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var upload = _env.WebRootPath + SD.RelatedCompanyPath;
-            var relatedCompany = await _context.RelatedCompany.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var relatedCompany = await _context.RelatedCompany.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (relatedCompany == null)
                 return CommandResponse.Failure(400, "سازمان همکار در سیستم وجود ندارد");
@@ -37,7 +50,6 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
             relatedCompany.Name = request.Name;
             relatedCompany.Order = request.Order;
             relatedCompany.Link = request.Link;
-
 
             if (!Directory.Exists(upload))
                 Directory.CreateDirectory(upload);
@@ -60,14 +72,14 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
                 if (request.Image != null && File.Exists(upload + oldImage))
                     File.Delete(upload + oldImage);
 
-
-                _logger.LogInformation($"RelatedCompany with id {relatedCompany.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"RelatedCompany with id {relatedCompany.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
 
                 return CommandResponse.Success(imgName);
             }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }
-
     }
 }

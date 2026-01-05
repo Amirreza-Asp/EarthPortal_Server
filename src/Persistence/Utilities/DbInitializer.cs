@@ -1,4 +1,6 @@
-﻿using Application.Contracts.Infrastructure.Services;
+﻿using System.Globalization;
+using System.Text.Json;
+using Application.Contracts.Infrastructure.Services;
 using Application.Contracts.Persistence.Utilities;
 using Domain;
 using Domain.Entities.Account;
@@ -16,8 +18,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
-using System.Globalization;
-using System.Text.Json;
 
 namespace Persistence.Utilities
 {
@@ -26,12 +26,19 @@ namespace Persistence.Utilities
         private readonly ApplicationDbContext _context;
         private readonly Random rnd;
         private readonly IPasswordManager _passManager;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IPhotoManager _photoManager;
         private readonly IFileManager _fileManager;
         private readonly IMemoryCache _memoryCache;
 
-        public DbInitializer(ApplicationDbContext context, IPasswordManager passManager, IHostingEnvironment env, IPhotoManager photoManager, IFileManager fileManager, IMemoryCache memoryCache)
+        public DbInitializer(
+            ApplicationDbContext context,
+            IPasswordManager passManager,
+            IWebHostEnvironment env,
+            IPhotoManager photoManager,
+            IFileManager fileManager,
+            IMemoryCache memoryCache
+        )
         {
             _context = context;
             rnd = new Random();
@@ -51,12 +58,12 @@ namespace Persistence.Utilities
                     await _context.Database.MigrateAsync();
                 }
             }
-            catch (Exception ex)
-            {
-            }
-            var admin = await _context.User.Where(b => b.UserName == "LegalAdmin").FirstOrDefaultAsync();
+            catch { }
+            var admin = await _context
+                .User.Where(b => b.UserName == "LegalAdmin")
+                .FirstOrDefaultAsync();
 
-            if (admin!=null)
+            if (admin != null)
             {
                 admin.Password = _passManager.HashPassword("Admin2002*");
 
@@ -64,15 +71,25 @@ namespace Persistence.Utilities
 
                 await _context.SaveChangesAsync();
             }
-          
-
 
             if (!_context.Statistics.Any())
             {
                 var statistics = new Statistics(Guid.NewGuid(), 3005, DateTime.Now.Date);
-                var statisticsMonth = new Statistics(Guid.NewGuid(), 75878 + 2786, DateTime.Now.AddDays(-1).Date);
-                var statisticsYear = new Statistics(Guid.NewGuid(), 886586, DateTime.Now.AddMonths(-1).AddDays(-1).Date);
-                var statisticsTotal = new Statistics(Guid.NewGuid(), 3479810, DateTime.Now.AddYears(-1).AddDays(-1).Date);
+                var statisticsMonth = new Statistics(
+                    Guid.NewGuid(),
+                    75878 + 2786,
+                    DateTime.Now.AddDays(-1).Date
+                );
+                var statisticsYear = new Statistics(
+                    Guid.NewGuid(),
+                    886586,
+                    DateTime.Now.AddMonths(-1).AddDays(-1).Date
+                );
+                var statisticsTotal = new Statistics(
+                    Guid.NewGuid(),
+                    3479810,
+                    DateTime.Now.AddYears(-1).AddDays(-1).Date
+                );
 
                 _context.Statistics.Add(statistics);
                 _context.Statistics.Add(statisticsMonth);
@@ -99,9 +116,19 @@ namespace Persistence.Utilities
 
             if (!_context.User.Any(b => b.UserName == "LegalAdmin"))
             {
-                var role = await _context.Role.Where(b => b.Title == SD.LegalRole).FirstOrDefaultAsync();
+                var role = await _context
+                    .Role.Where(b => b.Title == SD.LegalRole)
+                    .FirstOrDefaultAsync();
 
-                var user = new User(role.Id, "امیررضا", "محمدی", "LegalAdmin", _passManager.HashPassword("LegalAdmin8102"), null, null);
+                var user = new User(
+                    role.Id,
+                    "امیررضا",
+                    "محمدی",
+                    "LegalAdmin",
+                    _passManager.HashPassword("LegalAdmin8102"),
+                    null,
+                    null
+                );
                 _context.User.Add(user);
 
                 await _context.SaveChangesAsync();
@@ -109,9 +136,19 @@ namespace Persistence.Utilities
 
             if (!_context.User.Any(b => b.UserName == "Mansour"))
             {
-                var role = await _context.Role.Where(b => b.Title == SD.AdminRole).FirstOrDefaultAsync();
+                var role = await _context
+                    .Role.Where(b => b.Title == SD.AdminRole)
+                    .FirstOrDefaultAsync();
 
-                var user = new User(role.Id, "منصور", "بیجاد", "Mansour", _passManager.HashPassword("ManoBijo@1997"), null, null);
+                var user = new User(
+                    role.Id,
+                    "منصور",
+                    "بیجاد",
+                    "Mansour",
+                    _passManager.HashPassword("ManoBijo@1997"),
+                    null,
+                    null
+                );
                 _context.User.Add(user);
 
                 await _context.SaveChangesAsync();
@@ -124,17 +161,40 @@ namespace Persistence.Utilities
 
                 var info = await _context.Info.FirstAsync();
 
-
-                _context.GeoAddress.Add(new GeoAddress("<iframe src=\"https://balad.ir/embed?p=4fQxUx7hSCSJbR\" title=\"مشاهده «سازمان فناوری اطلاعات ایران» روی نقشه بلد\" width=\"600\" height=\"450\" frameborder=\"0\" style=\"border:0;\" allowfullscreen=\"\" aria-hidden=\"false\" tabindex=\"0\"></iframe>", "تهران، خیابان شریعتی، نرسیده به پل سیدخندان، ورودی 21", info.Id, " سازمان فناوری اطلاعات ایران", 0));
-                _context.GeoAddress.Add(new GeoAddress("<iframe src=\"https://balad.ir/embed?p=1cUMRd22DKc4Vn\" title=\"مشاهده «سازمان منابع طبیعی و آبخیزداری کشور» روی نقشه بلد\" width=\"600\" height=\"450\" frameborder=\"0\" style=\"border:0;\" allowfullscreen=\"\" aria-hidden=\"false\" tabindex=\"0\"></iframe>", "تهران، خیابان شریعتی، نرسیده به پل سیدخندان، ورودی 22", info.Id, "سازمان منابع طبیعی و آبخیزداری کشور", 2));
+                _context.GeoAddress.Add(
+                    new GeoAddress(
+                        "<iframe src=\"https://balad.ir/embed?p=4fQxUx7hSCSJbR\" title=\"مشاهده «سازمان فناوری اطلاعات ایران» روی نقشه بلد\" width=\"600\" height=\"450\" frameborder=\"0\" style=\"border:0;\" allowfullscreen=\"\" aria-hidden=\"false\" tabindex=\"0\"></iframe>",
+                        "تهران، خیابان شریعتی، نرسیده به پل سیدخندان، ورودی 21",
+                        info.Id,
+                        " سازمان فناوری اطلاعات ایران",
+                        0
+                    )
+                );
+                _context.GeoAddress.Add(
+                    new GeoAddress(
+                        "<iframe src=\"https://balad.ir/embed?p=1cUMRd22DKc4Vn\" title=\"مشاهده «سازمان منابع طبیعی و آبخیزداری کشور» روی نقشه بلد\" width=\"600\" height=\"450\" frameborder=\"0\" style=\"border:0;\" allowfullscreen=\"\" aria-hidden=\"false\" tabindex=\"0\"></iframe>",
+                        "تهران، خیابان شریعتی، نرسیده به پل سیدخندان، ورودی 22",
+                        info.Id,
+                        "سازمان منابع طبیعی و آبخیزداری کشور",
+                        2
+                    )
+                );
                 await _context.SaveChangesAsync();
             }
 
             _context.RelatedCompany.RemoveRange(_context.RelatedCompany.ToList());
             foreach (var organization in organizations)
             {
-                var order = organization.AText == "وزارت ارتباطات و فناوری اطلاعات" || organization.AText == "سازمان جنگلها مراتع و آبخیزداری کشور" ? -1 : 0;
-                var relatedCompany = new RelatedCompany(organization.AText, organization.ImageSrc, order);
+                var order =
+                    organization.AText == "وزارت ارتباطات و فناوری اطلاعات"
+                    || organization.AText == "سازمان جنگلها مراتع و آبخیزداری کشور"
+                        ? -1
+                        : 0;
+                var relatedCompany = new RelatedCompany(
+                    organization.AText,
+                    organization.ImageSrc,
+                    order
+                );
                 relatedCompany.Link = organization.AHref;
                 _context.RelatedCompany.Add(relatedCompany);
             }
@@ -162,11 +222,10 @@ namespace Persistence.Utilities
                 item.Type = item.Type.ConvertPersianToEnglish();
             }
 
-
             if (!_context.ApprovalAuthority.Any())
             {
-                var approvalAuthorities =
-                    lawData.Select(b => b.Reference.Trim())
+                var approvalAuthorities = lawData
+                    .Select(b => b.Reference.Trim())
                     .Where(b => !String.IsNullOrEmpty(b))
                     .Distinct()
                     .Select(b => new ApprovalAuthority(b))
@@ -186,8 +245,8 @@ namespace Persistence.Utilities
 
             if (!_context.ApprovalType.Any())
             {
-                var approvalTypes =
-                    lawData.Select(b => b.Type.Trim())
+                var approvalTypes = lawData
+                    .Select(b => b.Type.Trim())
                     .Where(b => !String.IsNullOrEmpty(b))
                     .Distinct()
                     .Select(b => new ApprovalType(b))
@@ -200,8 +259,8 @@ namespace Persistence.Utilities
 
             if (!_context.ExecutorManagment.Any())
             {
-                var executorManagements =
-                    lawData.Select(b => b.Presenter.Trim())
+                var executorManagements = lawData
+                    .Select(b => b.Presenter.Trim())
                     .Where(b => !String.IsNullOrEmpty(b))
                     .Distinct()
                     .Select(b => new ExecutorManagment(b))
@@ -211,7 +270,6 @@ namespace Persistence.Utilities
                 _context.ExecutorManagment.Add(new ExecutorManagment("نامشخص"));
                 await _context.SaveChangesAsync();
             }
-
 
             if (!_context.LawCategory.Any())
             {
@@ -237,27 +295,56 @@ namespace Persistence.Utilities
                     {
                         try
                         {
-                            var date = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.Date);
+                            var date = DateTimeExtension.ConvertShamsiStringToMiladiDateTime(
+                                b.Date
+                            );
 
-                            var entity =
-                                 new Law(
-                                     title: b.Title,
-                                     announcement: b.CommunicatedDate == null || b.CommunicatedDate.ToString() == "-" || b.CommunicatedNumber == "-" || b.CommunicatedNumber == null ? null : new Announcement(Convert.ToString(b.CommunicatedNumber), DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.CommunicatedDate)),
-                                     newspaper: b.NewspaperDate == null || b.NewspaperDate.ToString() == "-" || b.NewspaperNumber == "-" || b.NewspaperNumber == null ? null : Newspaper.Create(Convert.ToString(b.NewspaperNumber), DateTimeExtension.ConvertShamsiStringToMiladiDateTime(b.NewspaperDate), String.Empty),
-                                     description: b.LawText,
-                                     approvalDate: date,
-                                     type: b.Type == "آیین‌نامه" ? LawType.Rule : LawType.Regulation,
-                                     isOriginal: true,
-                                     approvalTypeId: String.IsNullOrEmpty(b.Type) ? approvalType.First(s => s.Value == "نامشخص").Id : approvalType.First(s => s.Value == b.Type).Id,
-                                     approvalStatusId: approvalStatus.First(s => s.Status == "نامشخص").Id,
-                                     executorManagmentId: String.IsNullOrEmpty(b.Presenter) ? executorManagment.First(s => s.Name == "نامشخص").Id : executorManagment.First(s => s.Name == b.Presenter).Id,
-                                     approvalAuthorityId: String.IsNullOrEmpty(b.Reference) ? approvalAuthority.First(s => s.Name == "نامشخص").Id : approvalAuthority.First(s => s.Name == b.Reference).Id,
-                                     lawCategoryId: categories.First(s => s.Title == "نامشخص").Id,
-                                     article: b.Articles,
-                                     pdf: b.File + ".pdf",
-                                     lastModifiedAt: DateTime.Now
-                                 );
-
+                            var entity = new Law(
+                                title: b.Title,
+                                announcement: b.CommunicatedDate == null
+                                || b.CommunicatedDate.ToString() == "-"
+                                || b.CommunicatedNumber == "-"
+                                || b.CommunicatedNumber == null
+                                    ? null
+                                    : new Announcement(
+                                        Convert.ToString(b.CommunicatedNumber),
+                                        DateTimeExtension.ConvertShamsiStringToMiladiDateTime(
+                                            b.CommunicatedDate
+                                        )
+                                    ),
+                                newspaper: b.NewspaperDate == null
+                                || b.NewspaperDate.ToString() == "-"
+                                || b.NewspaperNumber == "-"
+                                || b.NewspaperNumber == null
+                                    ? null
+                                    : Newspaper.Create(
+                                        Convert.ToString(b.NewspaperNumber),
+                                        DateTimeExtension.ConvertShamsiStringToMiladiDateTime(
+                                            b.NewspaperDate
+                                        ),
+                                        String.Empty
+                                    ),
+                                description: b.LawText,
+                                approvalDate: date,
+                                type: b.Type == "آیین‌نامه" ? LawType.Rule : LawType.Regulation,
+                                isOriginal: true,
+                                approvalTypeId: String.IsNullOrEmpty(b.Type)
+                                    ? approvalType.First(s => s.Value == "نامشخص").Id
+                                    : approvalType.First(s => s.Value == b.Type).Id,
+                                approvalStatusId: approvalStatus
+                                    .First(s => s.Status == "نامشخص")
+                                    .Id,
+                                executorManagmentId: String.IsNullOrEmpty(b.Presenter)
+                                    ? executorManagment.First(s => s.Name == "نامشخص").Id
+                                    : executorManagment.First(s => s.Name == b.Presenter).Id,
+                                approvalAuthorityId: String.IsNullOrEmpty(b.Reference)
+                                    ? approvalAuthority.First(s => s.Name == "نامشخص").Id
+                                    : approvalAuthority.First(s => s.Name == b.Reference).Id,
+                                lawCategoryId: categories.First(s => s.Title == "نامشخص").Id,
+                                article: b.Articles,
+                                pdf: b.File + ".pdf",
+                                lastModifiedAt: DateTime.Now
+                            );
 
                             if (!laws.Any(law => law.Equals(entity)))
                             {
@@ -427,7 +514,13 @@ namespace Persistence.Utilities
             if (!_context.GeoAddress.Any())
             {
                 var infoId = await _context.Info.Select(b => b.Id).FirstOrDefaultAsync();
-                var geoAddress1 = new GeoAddress("https://balad.ir/embed?p=4fQxUx7hSCSJbR", $"تهران ، خیابان نواب صفوی ، کوچه شهید صفوی ، ساختمان 2", infoId, "آدرس 1", 1);
+                var geoAddress1 = new GeoAddress(
+                    "https://balad.ir/embed?p=4fQxUx7hSCSJbR",
+                    $"تهران ، خیابان نواب صفوی ، کوچه شهید صفوی ، ساختمان 2",
+                    infoId,
+                    "آدرس 1",
+                    1
+                );
 
                 _context.GeoAddress.Add(geoAddress1);
 
@@ -438,8 +531,11 @@ namespace Persistence.Utilities
             {
                 for (int i = 0; i < 10; i++)
                 {
-                    var video = new EducationalVideo($"عنوان ${i + 1}", "درگاه متقاضیان خدمات زمین با هدف کاهش سردرگمی در فرآیندهای دریافت خدمات حوزه زمین و کاهش هزینه و زمان ارائه این خدمات، ثبت و پیگیری درخواست متقاضیان از طریق درگاه ارتباطی متقاضیان خدمات زمین را فراهم می‌کند",
-                        "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: calc(57% + 65px)\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/tL4gz/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>");
+                    var video = new EducationalVideo(
+                        $"عنوان ${i + 1}",
+                        "درگاه متقاضیان خدمات زمین با هدف کاهش سردرگمی در فرآیندهای دریافت خدمات حوزه زمین و کاهش هزینه و زمان ارائه این خدمات، ثبت و پیگیری درخواست متقاضیان از طریق درگاه ارتباطی متقاضیان خدمات زمین را فراهم می‌کند",
+                        "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: calc(57% + 65px)\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/tL4gz/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>"
+                    );
 
                     _context.EducationalVideo.Add(video);
                 }
@@ -450,7 +546,11 @@ namespace Persistence.Utilities
             if (!_context.RelatedCompany.Any())
             {
                 var items = RelatedCompanies;
-                items.ForEach(item => { item.Image = $"comp{item.Image}"; item.Link = "#"; });
+                items.ForEach(item =>
+                {
+                    item.Image = $"comp{item.Image}";
+                    item.Link = "#";
+                });
                 _context.RelatedCompany.AddRange(items);
                 await _context.SaveChangesAsync();
             }
@@ -469,12 +569,19 @@ namespace Persistence.Utilities
             {
                 for (int i = 1; i < 6; i++)
                 {
-                    var aboutUs = new AboutUs("لورم ایپسوم متن", "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع.", null, null, DateTime.Now);
+                    var aboutUs = new AboutUs(
+                        "لورم ایپسوم متن",
+                        "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع.",
+                        null,
+                        null,
+                        DateTime.Now
+                    );
 
                     if (i % 2 == 0)
                         aboutUs.Image = "1.jpg";
                     else
-                        aboutUs.Video = "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/QUrRF/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>";
+                        aboutUs.Video =
+                            "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/QUrRF/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>";
 
                     _context.AboutUs.Add(aboutUs);
                 }
@@ -502,7 +609,10 @@ namespace Persistence.Utilities
                     for (int j = 0; j < methodsCount; j++)
                     {
                         var methods = rnd.Next(1, 6);
-                        var seMethod = new SystemEvaluationIntroductionMethod((IntroductionMethod)(methods * 10), se);
+                        var seMethod = new SystemEvaluationIntroductionMethod(
+                            (IntroductionMethod)(methods * 10),
+                            se
+                        );
 
                         _context.IntroductionMethod.Add(seMethod);
                     }
@@ -524,13 +634,36 @@ namespace Persistence.Utilities
             if (!_context.User.Any())
             {
                 var role = await _context.Role.FirstOrDefaultAsync(b => b.Title == "Admin");
-                var user = new User(role.Id, "امیررضا", "محمدی", "Admin", _passManager.HashPassword("Admin2002"), "amirrezamohammadi8102@gmail.com", "09211573936");
+                var user = new User(
+                    role.Id,
+                    "امیررضا",
+                    "محمدی",
+                    "Admin",
+                    _passManager.HashPassword("Admin2002"),
+                    "amirrezamohammadi8102@gmail.com",
+                    "09211573936"
+                );
 
                 _context.User.Add(user);
 
-
-                var motorchi = new User(role.Id, "", "موتورچی", "Motorchi", _passManager.HashPassword("Motorchi1234"), null, null);
-                var keshavarz = new User(role.Id, "علی", "کشاورز", "Keshavarz", _passManager.HashPassword("Keshavarz1234"), null, null);
+                var motorchi = new User(
+                    role.Id,
+                    "",
+                    "موتورچی",
+                    "Motorchi",
+                    _passManager.HashPassword("Motorchi1234"),
+                    null,
+                    null
+                );
+                var keshavarz = new User(
+                    role.Id,
+                    "علی",
+                    "کشاورز",
+                    "Keshavarz",
+                    _passManager.HashPassword("Keshavarz1234"),
+                    null,
+                    null
+                );
 
                 _context.User.Add(motorchi);
                 _context.User.Add(keshavarz);
@@ -617,23 +750,24 @@ namespace Persistence.Utilities
             {
                 var homePage = new HomePage(Guid.NewGuid())
                 {
-                    Header =
-                        new HomeHeader
-                        {
-                            AppBtnEnable = true,
-                            PortBtnEnable = true,
-                            Title = "سامانه پنجره واحد مدیریت زمین",
-                            Content = "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان. "
-                        },
-                    Work =
-                        new HomeWork
-                        {
-                            Title = "کار ما چیست؟",
-                            Content = "سامانه پنجره واحد مدیریت زمین به عنوان یکی از 23 پروژه اولویت‌دار دولت الکترونیک و با دو هدف کلی پیشگیری از مفاسد زمین‌خواری و ساماندهی نحوه ارائه خدمات حوزه زمین و ساختمان راه‌اندازی شده است. ",
-                            App = "همچنین یکی از مهم‌ترین اهداف ترسیم شده پروژه، در میان‌مدت شامل تسهیل و ساماندهی خدمات حوزه زمین با ابزارهای دولت الکترونیک و در بلندمدت شامل هدایت مناسب سرمایه‌گذاران و متقاضیان به بهره‌برداری از اراضی کشور بر مبنای ضوابط و اصول آمایش سرزمین می‌گردد. تحقق زیرساخت‌های لازم جهت جاری‌سازی اصول آمایش سرزمین بر بهره‌برداری اراضی کشور به عنوان مهمترین افق توسعه پایدار و بهره‌برداری کارآمد از اراضی کشور محسوب می‌گردد که با ابزارهای مکان‌محور و مدیریت سیستمی شاخص‌های آمایشی فراهم می‌گردد. ",
-                            Port = "این سامانه از یک‌سو قابلیت شناسایی تخلفات زمین‌خواری و ساخت‌وسازهای غیرمجاز در اراضی حساس کشور را با استفاده از تصاویر ماهواره‌ای فراهم نموده که به عنوان بستری برای معرفی موارد زمین‌خواری و نظارت بر عملکرد دستگاه‌های اجرایی ذی‌ربط قابل استفاده می‌باشد. از سوی دیگر سامانه با فراهم نمودن زیرساخت‌های الکترونیکی مدیریت هوشمندانه و سیستمی فرایندهای بین دستگاهی جهت ارائه مجوزها و استعلامات حوزه زمین و ساختمان، سازوکارهای مناسبی را جهت پیشگیری از بروز مفاسد و مشکلاتی نظیر جعل استعلامات و مجوزها ، تبانی و ارتشا توسط زمین‌خواران، تداخل وظایف بین‌دستگاهی و عدم شفافیت در تصمیم‌گیری‌های کمیسیون‌ها و شوراها فراهمی‌نماید."
-                        }
-
+                    Header = new HomeHeader
+                    {
+                        AppBtnEnable = true,
+                        PortBtnEnable = true,
+                        Title = "سامانه پنجره واحد مدیریت زمین",
+                        Content =
+                            "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان. "
+                    },
+                    Work = new HomeWork
+                    {
+                        Title = "کار ما چیست؟",
+                        Content =
+                            "سامانه پنجره واحد مدیریت زمین به عنوان یکی از 23 پروژه اولویت‌دار دولت الکترونیک و با دو هدف کلی پیشگیری از مفاسد زمین‌خواری و ساماندهی نحوه ارائه خدمات حوزه زمین و ساختمان راه‌اندازی شده است. ",
+                        App =
+                            "همچنین یکی از مهم‌ترین اهداف ترسیم شده پروژه، در میان‌مدت شامل تسهیل و ساماندهی خدمات حوزه زمین با ابزارهای دولت الکترونیک و در بلندمدت شامل هدایت مناسب سرمایه‌گذاران و متقاضیان به بهره‌برداری از اراضی کشور بر مبنای ضوابط و اصول آمایش سرزمین می‌گردد. تحقق زیرساخت‌های لازم جهت جاری‌سازی اصول آمایش سرزمین بر بهره‌برداری اراضی کشور به عنوان مهمترین افق توسعه پایدار و بهره‌برداری کارآمد از اراضی کشور محسوب می‌گردد که با ابزارهای مکان‌محور و مدیریت سیستمی شاخص‌های آمایشی فراهم می‌گردد. ",
+                        Port =
+                            "این سامانه از یک‌سو قابلیت شناسایی تخلفات زمین‌خواری و ساخت‌وسازهای غیرمجاز در اراضی حساس کشور را با استفاده از تصاویر ماهواره‌ای فراهم نموده که به عنوان بستری برای معرفی موارد زمین‌خواری و نظارت بر عملکرد دستگاه‌های اجرایی ذی‌ربط قابل استفاده می‌باشد. از سوی دیگر سامانه با فراهم نمودن زیرساخت‌های الکترونیکی مدیریت هوشمندانه و سیستمی فرایندهای بین دستگاهی جهت ارائه مجوزها و استعلامات حوزه زمین و ساختمان، سازوکارهای مناسبی را جهت پیشگیری از بروز مفاسد و مشکلاتی نظیر جعل استعلامات و مجوزها ، تبانی و ارتشا توسط زمین‌خواران، تداخل وظایف بین‌دستگاهی و عدم شفافیت در تصمیم‌گیری‌های کمیسیون‌ها و شوراها فراهمی‌نماید."
+                    }
                 };
 
                 _context.HomePage.Add(homePage);
@@ -645,7 +779,8 @@ namespace Persistence.Utilities
                 var aboutUsPage = new AboutUsPage(
                     " سامانه پنجره واحد مدیریت زمین به عنوان یکی از 23 پروژه اولویت‌دار دولت الکترونیک و با دو هدف کلی پیشگیری از مفاسد زمین‌خواری و ساماندهی نحوه ارائه خدمات حوزه زمین و ساختمان راه‌اندازی شده است.",
                     "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع.",
-                    "برای مردم ایران زمین");
+                    "برای مردم ایران زمین"
+                );
 
                 _context.AboutUsPage.Add(aboutUsPage);
 
@@ -656,7 +791,9 @@ namespace Persistence.Utilities
             {
                 var lawPage = new LawPage(
                     "متقاضی گرامی!",
-                    "خدمات حوزه اراضی و املاک، یکی از حوزه‌هایی است که از نظر قوانین و مقررات دارای پیچیدگی بالایی می‌باشد. در این سامانه بخشی از این قوانین و مقررات جهت اطلاع و مطالعه عمومی جمع‌آوری و ارائه گردیده است ."); ;
+                    "خدمات حوزه اراضی و املاک، یکی از حوزه‌هایی است که از نظر قوانین و مقررات دارای پیچیدگی بالایی می‌باشد. در این سامانه بخشی از این قوانین و مقررات جهت اطلاع و مطالعه عمومی جمع‌آوری و ارائه گردیده است ."
+                );
+                ;
 
                 _context.LawPage.Add(lawPage);
 
@@ -671,27 +808,32 @@ namespace Persistence.Utilities
                     Intro = new EnglishIntro
                     {
                         Title = "Intro",
-                        Content = "IranEland is asingle-window platform equipped with emerging technologies, ArtificialIntelligence (AI) in particular, to ensure the legal use of land, providecitizens with high-quality service and information on land and constructionpermits and support the government on the best practices to achieve sustainableland management and protection. IranEland has provided a software environmentfor the electronic delivery of land and building permits, allowing citizens tosubmit and track their requests without visiting multiple organizations. " +
-                         "<br/><br/><br/>Byutilizing high-quality images obtained from the Iranian satellite Khayyam, thissystem prevents any unauthorized changes in land use. Additionally, it providescontinuous monitoring of land status for the government, leading to moreprecise management and planning across various sectors in the country.IranEland wasestablished in 2020 by the ITO Information Technology Organization of Iran andoperated officially at the beginning of 2022. IranEland also pursuing the ideaof “Government as a Platform” compatible with iternational frameworks andstandards to enable offering all the land-related services in one place. ",
+                        Content =
+                            "IranEland is asingle-window platform equipped with emerging technologies, ArtificialIntelligence (AI) in particular, to ensure the legal use of land, providecitizens with high-quality service and information on land and constructionpermits and support the government on the best practices to achieve sustainableland management and protection. IranEland has provided a software environmentfor the electronic delivery of land and building permits, allowing citizens tosubmit and track their requests without visiting multiple organizations. "
+                            + "<br/><br/><br/>Byutilizing high-quality images obtained from the Iranian satellite Khayyam, thissystem prevents any unauthorized changes in land use. Additionally, it providescontinuous monitoring of land status for the government, leading to moreprecise management and planning across various sectors in the country.IranEland wasestablished in 2020 by the ITO Information Technology Organization of Iran andoperated officially at the beginning of 2022. IranEland also pursuing the ideaof “Government as a Platform” compatible with iternational frameworks andstandards to enable offering all the land-related services in one place. ",
                     },
                     MainIdea = new EnglishMainIdea
                     {
                         Title = "Main Idea",
-                        Content1 = "IranEland intelligentlyprocesses high-quality images from the Iranian Khayam satellite via AI tools,and shares the information and services between government organizations. As aresult, the problem of land grabbing is solved, and the possibility ofobtaining land permits quickly and cheaply is provided, leading to greatersatisfaction among the public. ",
+                        Content1 =
+                            "IranEland intelligentlyprocesses high-quality images from the Iranian Khayam satellite via AI tools,and shares the information and services between government organizations. As aresult, the problem of land grabbing is solved, and the possibility ofobtaining land permits quickly and cheaply is provided, leading to greatersatisfaction among the public. ",
                         Bold = "Common Ground & Problems To Solve",
-                        Content2 = "Citizens, especially realinvestors, face complex, time-consuming, and sometimes opaque processes to obtain land usage permits. On the other hand, individuals engage in corruptpractices within these processes, contributing to land grabbing. It is nowpossible to intelligently monitor changes in the land through high-qualityimages from the Iranian Khayyam satellite and by sharing information andservices from various relevant organizations. These challenges can be addressedby creating an intelligent land management single window. "
+                        Content2 =
+                            "Citizens, especially realinvestors, face complex, time-consuming, and sometimes opaque processes to obtain land usage permits. On the other hand, individuals engage in corruptpractices within these processes, contributing to land grabbing. It is nowpossible to intelligently monitor changes in the land through high-qualityimages from the Iranian Khayyam satellite and by sharing information andservices from various relevant organizations. These challenges can be addressedby creating an intelligent land management single window. "
                     },
 
                     CurrentSituation = new EnglishCurrentSituation
                     {
                         Title = "Current Situation",
-                        Content = " By utilizing the IranEland system, the expenses of citizens' visits andpaper usage are significantly reduced. Currently, the system receives anaverage of 1,000 acceptance requests per day in its first year of operation,with each request requiring an average of 10 inquiries.</br></br>Considering the average cost of commuting, paperwork, and ancillaryexpenses for responding to an inquiry to be around $25, IranEland has costsreduced by about $250,000 and prevented the cutting down of 5 large treesdaily, based on the average paper required for files and inquiry responses.With the widespread use of the system across the country and the increase inland-based services, these numbers can increase up to 20 times the currentcapacity. It means that IranEland has the potential to save more than 1.8billion dollars and to prevent the cutting down of more than 1800 large treesper year.</br></br>In addition, an average of 200hectares of land are identified as suspicious environmental destruction casesdaily, and this is only a small part of Iran's land that is monitoredcurrently. These statistics only highlight a few specific aspects of thesystem, and its capacity for positive impact is significant and evident ineconomic, social (significantly increasing social justice following decisiontransparency), and environmental fields. ",
+                        Content =
+                            " By utilizing the IranEland system, the expenses of citizens' visits andpaper usage are significantly reduced. Currently, the system receives anaverage of 1,000 acceptance requests per day in its first year of operation,with each request requiring an average of 10 inquiries.</br></br>Considering the average cost of commuting, paperwork, and ancillaryexpenses for responding to an inquiry to be around $25, IranEland has costsreduced by about $250,000 and prevented the cutting down of 5 large treesdaily, based on the average paper required for files and inquiry responses.With the widespread use of the system across the country and the increase inland-based services, these numbers can increase up to 20 times the currentcapacity. It means that IranEland has the potential to save more than 1.8billion dollars and to prevent the cutting down of more than 1800 large treesper year.</br></br>In addition, an average of 200hectares of land are identified as suspicious environmental destruction casesdaily, and this is only a small part of Iran's land that is monitoredcurrently. These statistics only highlight a few specific aspects of thesystem, and its capacity for positive impact is significant and evident ineconomic, social (significantly increasing social justice following decisiontransparency), and environmental fields. ",
                         Image = "currentSituation.png"
                     },
                     Vision = new EnglishVision
                     {
                         Title = "Vision",
-                        Content = "This particular project can be regarded as the most extensivesingle-window service project in the country regarding the number ofresponsible organizations (over 45) and associated services and processes (over200). The system's goal is to monitor the entire land of Iran intelligently.This requires the use of fast and intelligent processing algorithms. Inconclusion, this system is highly complex in technical, operational, andmanagement aspects. This level of complexity is rare among other methods. Fortunately,these issues are controlled to some extent, and the project is on track toultimate success. These features make IranEland a single window for thecountry's land management, which means it is a continuous project."
+                        Content =
+                            "This particular project can be regarded as the most extensivesingle-window service project in the country regarding the number ofresponsible organizations (over 45) and associated services and processes (over200). The system's goal is to monitor the entire land of Iran intelligently.This requires the use of fast and intelligent processing algorithms. Inconclusion, this system is highly complex in technical, operational, andmanagement aspects. This level of complexity is rare among other methods. Fortunately,these issues are controlled to some extent, and the project is on track toultimate success. These features make IranEland a single window for thecountry's land management, which means it is a continuous project."
                     },
                     Cards = new List<EnglishCard>
                     {
@@ -705,7 +847,8 @@ namespace Persistence.Utilities
                             Line = true,
                             Order = 0,
                             SiblingId = Guid.Parse("564FCE78-CC0E-41CB-9E6F-7BC90E5061BC"),
-                            Content =  "1. In many countries the landgrabbing is a big nationalproblem.</br></br>2. Citizens, especially realinvestors, face complex,time-consuming, andsometimes opaque processesto obtain land usage permits.</br></br>3. Individuals engage incorrupt practices withinthese processes, contributingto land grabbing."
+                            Content =
+                                "1. In many countries the landgrabbing is a big nationalproblem.</br></br>2. Citizens, especially realinvestors, face complex,time-consuming, andsometimes opaque processesto obtain land usage permits.</br></br>3. Individuals engage incorrupt practices withinthese processes, contributingto land grabbing."
                         },
                         new EnglishCard
                         {
@@ -715,9 +858,9 @@ namespace Persistence.Utilities
                             Title = "PROOF",
                             Order = 1,
                             SiblingId = Guid.Parse("564FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
-                            Content =  "1. In Iran, an average of 500 casesof land speculation are detectedon national lands monthly, andthe actual statistics are likelyhigher.</br></br>2. It is now possible to intelligentlymonitor changes in the landthrough high-quality imagesfrom satellite.</br></br>3. Now, depending on its type,obtaining a land usage permitinvolves numerous inquiriesfrom various executing bodies,taking an average of 6 months."
+                            Content =
+                                "1. In Iran, an average of 500 casesof land speculation are detectedon national lands monthly, andthe actual statistics are likelyhigher.</br></br>2. It is now possible to intelligentlymonitor changes in the landthrough high-quality imagesfrom satellite.</br></br>3. Now, depending on its type,obtaining a land usage permitinvolves numerous inquiriesfrom various executing bodies,taking an average of 6 months."
                         },
-
                         new EnglishCard
                         {
                             Id = Guid.NewGuid(),
@@ -726,7 +869,8 @@ namespace Persistence.Utilities
                             Title = "IDEA",
                             Line = true,
                             Order = 2,
-                            Content=  "It is possible to build a system intelligentlyprocesses high-quality images from the IranianKhayam satellite, and shares the informationand services between governmentorganizations. We named it as IranEland.</br></br>As a result, the problem of land grabbing issolved, and the possibility of obtaining landpermits quickly and cheaply is provided,leading to greater satisfaction among thepublic."
+                            Content =
+                                "It is possible to build a system intelligentlyprocesses high-quality images from the IranianKhayam satellite, and shares the informationand services between governmentorganizations. We named it as IranEland.</br></br>As a result, the problem of land grabbing issolved, and the possibility of obtaining landpermits quickly and cheaply is provided,leading to greater satisfaction among thepublic."
                         },
                         #endregion
 
@@ -740,7 +884,8 @@ namespace Persistence.Utilities
                             Line = true,
                             Order = 0,
                             SiblingId = Guid.Parse("664FCE78-CC0E-41CB-9E6F-7BC90E5061BC"),
-                            Content =  "1. Artificial intelligence techniques,especially in image processing,may exhibit unacceptableaccuracy.</br></br>2. The responsible entities'information, processes, andservices must be uniform andintegrated, especially maps andinformational layers."
+                            Content =
+                                "1. Artificial intelligence techniques,especially in image processing,may exhibit unacceptableaccuracy.</br></br>2. The responsible entities'information, processes, andservices must be uniform andintegrated, especially maps andinformational layers."
                         },
                         new EnglishCard
                         {
@@ -750,9 +895,9 @@ namespace Persistence.Utilities
                             Title = "PROOF",
                             Order = 1,
                             SiblingId = Guid.Parse("664FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
-                            Content =  "1. The high volume ofdistributed data in thecountry need to be managedfor land management. Forexample, maps of roadboundaries, national landsand cultural heritage, orinformation on existingpermits and geographicdivisions are just some cases"
+                            Content =
+                                "1. The high volume ofdistributed data in thecountry need to be managedfor land management. Forexample, maps of roadboundaries, national landsand cultural heritage, orinformation on existingpermits and geographicdivisions are just some cases"
                         },
-
                         new EnglishCard
                         {
                             Id = Guid.NewGuid(),
@@ -761,9 +906,9 @@ namespace Persistence.Utilities
                             Title = "PROOF",
                             Line = true,
                             Order = 2,
-                            Content=  "1. Recently, artificial intelligence has grown rapidly and found manyapplications.</br></br>2. Now it is possible to receive high-quality images from Iranian satellite,Khayyam, quickly, continuously and cheaply.</br></br>3. The trial use of the system during 6 months led to the identification of17,000 hectares of illegal land changes. Investigations and local visitsshowed that more than 60% of these identifications were correct."
+                            Content =
+                                "1. Recently, artificial intelligence has grown rapidly and found manyapplications.</br></br>2. Now it is possible to receive high-quality images from Iranian satellite,Khayyam, quickly, continuously and cheaply.</br></br>3. The trial use of the system during 6 months led to the identification of17,000 hectares of illegal land changes. Investigations and local visitsshowed that more than 60% of these identifications were correct."
                         },
-
                         new EnglishCard
                         {
                             Id = Guid.Parse("a64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
@@ -772,7 +917,8 @@ namespace Persistence.Utilities
                             Title = "SOLUTION",
                             Order = 3,
                             SiblingId = Guid.Parse("a64FCE78-CC0E-41CB-9E6F-7BC90E5061BC"),
-                            Content =  "1. Cutting-edge technologies likedeep learning is utilized.</br></br>2. Data exchange interfaces havebeen established, enablingsystems to interact with theunified land managementportal while maintaining theirindependence."
+                            Content =
+                                "1. Cutting-edge technologies likedeep learning is utilized.</br></br>2. Data exchange interfaces havebeen established, enablingsystems to interact with theunified land managementportal while maintaining theirindependence."
                         },
                         new EnglishCard
                         {
@@ -782,9 +928,9 @@ namespace Persistence.Utilities
                             Title = "COMMON GROUND",
                             Order = 4,
                             SiblingId = Guid.Parse("a64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
-                            Content =  "1. The accuracy of artificialintelligence algorithms increasesover time, which makes themreliable and prevents thenegative influence of people inthe process of combating landgrabbing.</br></br>2. Coordination between variousorganizations and systems thatare active in the land issuerequires standardization andalignment between them."
+                            Content =
+                                "1. The accuracy of artificialintelligence algorithms increasesover time, which makes themreliable and prevents thenegative influence of people inthe process of combating landgrabbing.</br></br>2. Coordination between variousorganizations and systems thatare active in the land issuerequires standardization andalignment between them."
                         },
-
                         new EnglishCard
                         {
                             Id = Guid.Parse("b64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
@@ -794,7 +940,8 @@ namespace Persistence.Utilities
                             Line = true,
                             Order = 5,
                             SiblingId = Guid.Parse("b64FCE78-CC0E-41CB-9E6F-7BC90E5061BC"),
-                            Content =  "1. Even, we solve the dataexchange among informationsystems, The existence ofnumerous stakeholders andbeneficiaries in the countryposes a significant challenge dueto their need for coordinationand alignment.</br></br>2. People may need help to be ableto use the system conveniently.</br></br>3. After identifying the illegal landchanges, it is necessary to makethe investigation process,detection of violation and issuingof the judicial orderelectronically."
+                            Content =
+                                "1. Even, we solve the dataexchange among informationsystems, The existence ofnumerous stakeholders andbeneficiaries in the countryposes a significant challenge dueto their need for coordinationand alignment.</br></br>2. People may need help to be ableto use the system conveniently.</br></br>3. After identifying the illegal landchanges, it is necessary to makethe investigation process,detection of violation and issuingof the judicial orderelectronically."
                         },
                         new EnglishCard
                         {
@@ -804,9 +951,9 @@ namespace Persistence.Utilities
                             Title = "PROOF",
                             Order = 6,
                             SiblingId = Guid.Parse("b64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
-                            Content =  "1. In Iran, more than 40government and publicorganizations are involved inland issues.</br></br>2. All citizens, especiallyinvestors and farmers, areusers of the system. It isclear that the simplicity ofworking with the system isvery key and necessary."
+                            Content =
+                                "1. In Iran, more than 40government and publicorganizations are involved inland issues.</br></br>2. All citizens, especiallyinvestors and farmers, areusers of the system. It isclear that the simplicity ofworking with the system isvery key and necessary."
                         },
-
                         new EnglishCard
                         {
                             Id = Guid.NewGuid(),
@@ -815,9 +962,9 @@ namespace Persistence.Utilities
                             Title = "PROOF",
                             Line = true,
                             Order = 7,
-                            Content =  "1. Currently, 8 main services of the government in the field of land areprovided within IranEland single window, in which more than 500000users have registered so far."
+                            Content =
+                                "1. Currently, 8 main services of the government in the field of land areprovided within IranEland single window, in which more than 500000users have registered so far."
                         },
-
                         new EnglishCard
                         {
                             Id = Guid.Parse("c64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
@@ -826,7 +973,8 @@ namespace Persistence.Utilities
                             Title = "SOLUTION",
                             Order = 8,
                             SiblingId = Guid.Parse("c64FCE78-CC0E-41CB-9E6F-7BC90E5061BC"),
-                            Content =  "1. Clear and enforceable lawsand regulations should beformulated.</br></br>2. The system has a user-friendlyinterface, and also allowingpeople to seek assistance fromknowledgeable agentselectronically"
+                            Content =
+                                "1. Clear and enforceable lawsand regulations should beformulated.</br></br>2. The system has a user-friendlyinterface, and also allowingpeople to seek assistance fromknowledgeable agentselectronically"
                         },
                         new EnglishCard
                         {
@@ -836,9 +984,9 @@ namespace Persistence.Utilities
                             Title = "COMMON GROUND",
                             Order = 9,
                             SiblingId = Guid.Parse("c64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
-                            Content =  "1. For the success of IranEland, themost important concern iscoordination at all technical,expert and managerial levels. Itsrequirement is to formulatesimple and standard regulationsand follow them.</br></br>2. Simple access to the system andreceiving all services from onepoint, along with the legalrequirement to use it, is animportant principle in thesuccess of the system."
+                            Content =
+                                "1. For the success of IranEland, themost important concern iscoordination at all technical,expert and managerial levels. Itsrequirement is to formulatesimple and standard regulationsand follow them.</br></br>2. Simple access to the system andreceiving all services from onepoint, along with the legalrequirement to use it, is animportant principle in thesuccess of the system."
                         },
-
                         new EnglishCard
                         {
                             Id = Guid.Parse("d64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
@@ -848,7 +996,8 @@ namespace Persistence.Utilities
                             Title = "PROBLEMS",
                             Order = 10,
                             SiblingId = Guid.Parse("d64FCE78-CC0E-41CB-9E6F-7BC90E5061BC"),
-                            Content =  "1. Existing systems withinexecuting bodies, such asmunicipalities already in use,must be adapted to the newsystem.</br></br>2. Considering the number ofsystems in the country, both atthe national level (such asG4B.ir) and within theorganization, user confusionand work interference willoccur."
+                            Content =
+                                "1. Existing systems withinexecuting bodies, such asmunicipalities already in use,must be adapted to the newsystem.</br></br>2. Considering the number ofsystems in the country, both atthe national level (such asG4B.ir) and within theorganization, user confusionand work interference willoccur."
                         },
                         new EnglishCard
                         {
@@ -858,9 +1007,9 @@ namespace Persistence.Utilities
                             Title = "PROOF",
                             Order = 11,
                             SiblingId = Guid.Parse("d64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
-                            Content =  "1. A good practice that exists inthe country and manyadvanced countries have alsoexperienced it is to use asingle window to consolidateservices and access them allthrough one point."
+                            Content =
+                                "1. A good practice that exists inthe country and manyadvanced countries have alsoexperienced it is to use asingle window to consolidateservices and access them allthrough one point."
                         },
-
                         new EnglishCard
                         {
                             Id = Guid.NewGuid(),
@@ -869,9 +1018,9 @@ namespace Persistence.Utilities
                             Title = "PROOF",
                             Order = 12,
                             Line = true,
-                            Content =  "1. The registration of more than 400,000 requests in a 6-month period shows that it is accepted by citizens."
+                            Content =
+                                "1. The registration of more than 400,000 requests in a 6-month period shows that it is accepted by citizens."
                         },
-
                         new EnglishCard
                         {
                             Id = Guid.Parse("e64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
@@ -880,7 +1029,8 @@ namespace Persistence.Utilities
                             Title = "SOLUTION",
                             Order = 13,
                             SiblingId = Guid.Parse("e64FCE78-CC0E-41CB-9E6F-7BC90E5061BC"),
-                            Content =  "1. IranEland system is a singleservice window that providesaccess to services from onepoint.</br></br>2. The architecture of theIranEland is characterized bythe idea of ​providing most ofits services in the backgroundand in interaction with othersystems.</br></br>3. All parallel systems are eitherremoved or, according to theapproved regulations, theymust be called in thebackground without involvingthe user."
+                            Content =
+                                "1. IranEland system is a singleservice window that providesaccess to services from onepoint.</br></br>2. The architecture of theIranEland is characterized bythe idea of ​providing most ofits services in the backgroundand in interaction with othersystems.</br></br>3. All parallel systems are eitherremoved or, according to theapproved regulations, theymust be called in thebackground without involvingthe user."
                         },
                         new EnglishCard
                         {
@@ -890,12 +1040,12 @@ namespace Persistence.Utilities
                             Title = "COMMON GROUND",
                             Order = 14,
                             SiblingId = Guid.Parse("e64FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
-                            Content =  "1. A good practice thatexists in the country andmany advanced countrieshave also experienced itis to use a single servicewindow to consolidateservices and access themall through one channel.</br></br>2. Eliminating parallelsystems, not needing togo in person and makingthe request for a permitelectronically, will leadto a major reduction intime and financial costs,which will lead to thesatisfaction of citizens."
-                    },
-                        
+                            Content =
+                                "1. A good practice thatexists in the country andmany advanced countrieshave also experienced itis to use a single servicewindow to consolidateservices and access themall through one channel.</br></br>2. Eliminating parallelsystems, not needing togo in person and makingthe request for a permitelectronically, will leadto a major reduction intime and financial costs,which will lead to thesatisfaction of citizens."
+                        },
                         #endregion
 
-                        #region End           
+                        #region End
                         new EnglishCard
                         {
                             Id = Guid.NewGuid(),
@@ -904,9 +1054,9 @@ namespace Persistence.Utilities
                             Title = "COMMON GROUND",
                             Line = true,
                             Order = 0,
-                            Content=  "1. Considering the existinginfrastructure in the fields of legal,communication and information, aswell as the possibility of usingartificial intelligence algorithmsbased on deep learning technologiesbased on high quality satelliteimages, it is possible to realize theidea and actually exploit it."
+                            Content =
+                                "1. Considering the existinginfrastructure in the fields of legal,communication and information, aswell as the possibility of usingartificial intelligence algorithmsbased on deep learning technologiesbased on high quality satelliteimages, it is possible to realize theidea and actually exploit it."
                         },
-
                         new EnglishCard
                         {
                             Id = Guid.Parse("164FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
@@ -916,7 +1066,8 @@ namespace Persistence.Utilities
                             Line = true,
                             Order = 1,
                             SiblingId = Guid.Parse("164FCE78-CC0E-41CB-9E6F-7BC90E5061BC"),
-                            Content =  "1. The land of the country is underconstant and intelligentsurveillance. Any suspiciouscases are automatically reportedand dealt with in the executingsystem.</br></br>2. Citizens can now apply for landand building permits onlinewithout visiting variousorganizations.</br></br>3. The system also provides theanalytical information needed forgovernment planning andindividuals involved in land\u0002related areas"
+                            Content =
+                                "1. The land of the country is underconstant and intelligentsurveillance. Any suspiciouscases are automatically reportedand dealt with in the executingsystem.</br></br>2. Citizens can now apply for landand building permits onlinewithout visiting variousorganizations.</br></br>3. The system also provides theanalytical information needed forgovernment planning andindividuals involved in land\u0002related areas"
                         },
                         new EnglishCard
                         {
@@ -926,7 +1077,8 @@ namespace Persistence.Utilities
                             Title = "PROOF",
                             Order = 2,
                             SiblingId = Guid.Parse("164FCE78-CC0E-41CB-9E6F-7BC90E5061BB"),
-                            Content =  "It is expected that,</br></br>1. The government will be able toreact quickly against landgrabbing and prevent itsuccessfully</br></br>2. The citizens can submit andtrack their requests throughIranEland without visitingmultiple organizations.</br></br>Available on:<a href='https://newportal.iraneland.ir'>https://newportal.iraneland.ir</a>"
+                            Content =
+                                "It is expected that,</br></br>1. The government will be able toreact quickly against landgrabbing and prevent itsuccessfully</br></br>2. The citizens can submit andtrack their requests throughIranEland without visitingmultiple organizations.</br></br>Available on:<a href='https://newportal.iraneland.ir'>https://newportal.iraneland.ir</a>"
                         },
                         #endregion
                     }
@@ -940,31 +1092,65 @@ namespace Persistence.Utilities
 
                 var problems = new List<EnglishProblem>
                 {
-                        new EnglishProblem("People may need help to be able to use the system conveniently." ,englishPageId),
-                        new EnglishProblem("The existence ofnumerous beneficiaries in the country poses a significant challenge due to their need for coordination and alignment.", englishPageId),
-                        new EnglishProblem("The responsibleentities' information, processes, and services must be uniform and integrated,especially maps and informational layers.", englishPageId),
-                        new EnglishProblem("Existing systemswithin executing bodies, such as municipalities already in use, must be adaptedto the new system.",englishPageId),
-                        new EnglishProblem("Artificialintelligence techniques, especially in image processing, may exhibitunacceptable accuracy.", englishPageId),
+                    new EnglishProblem(
+                        "People may need help to be able to use the system conveniently.",
+                        englishPageId
+                    ),
+                    new EnglishProblem(
+                        "The existence ofnumerous beneficiaries in the country poses a significant challenge due to their need for coordination and alignment.",
+                        englishPageId
+                    ),
+                    new EnglishProblem(
+                        "The responsibleentities' information, processes, and services must be uniform and integrated,especially maps and informational layers.",
+                        englishPageId
+                    ),
+                    new EnglishProblem(
+                        "Existing systemswithin executing bodies, such as municipalities already in use, must be adaptedto the new system.",
+                        englishPageId
+                    ),
+                    new EnglishProblem(
+                        "Artificialintelligence techniques, especially in image processing, may exhibitunacceptable accuracy.",
+                        englishPageId
+                    ),
                 };
 
                 _context.EnglishPageProblem.AddRange(problems);
 
-
                 var solutions = new List<EnglishSolution>
                 {
-                        new EnglishSolution("The system has a user-friendly interface, and also allowing people to seek assistance from knowledgeableagents electronically.", englishPageId),
-                        new EnglishSolution("Clear and enforceable laws and regulations should be formulated.", englishPageId),
-                        new EnglishSolution("The system should only receive essential services such as maps from their primary sources.", englishPageId),
-                        new EnglishSolution("Data exchange interfaces have been established, enabling systems to interact with the unified land managementportal while maintaining their independence.", englishPageId),
-                        new EnglishSolution("Cutting-edge technologies like deeplearning and image processing are utilized.", englishPageId),
-                        new EnglishSolution("The architecture of the IranEland is characterized by the idea of ​​providing most of its services in the background and ininteraction with other systems.", englishPageId),
-                        new EnglishSolution("Following international frameworks and standards in this regard.", englishPageId),
+                    new EnglishSolution(
+                        "The system has a user-friendly interface, and also allowing people to seek assistance from knowledgeableagents electronically.",
+                        englishPageId
+                    ),
+                    new EnglishSolution(
+                        "Clear and enforceable laws and regulations should be formulated.",
+                        englishPageId
+                    ),
+                    new EnglishSolution(
+                        "The system should only receive essential services such as maps from their primary sources.",
+                        englishPageId
+                    ),
+                    new EnglishSolution(
+                        "Data exchange interfaces have been established, enabling systems to interact with the unified land managementportal while maintaining their independence.",
+                        englishPageId
+                    ),
+                    new EnglishSolution(
+                        "Cutting-edge technologies like deeplearning and image processing are utilized.",
+                        englishPageId
+                    ),
+                    new EnglishSolution(
+                        "The architecture of the IranEland is characterized by the idea of ​​providing most of its services in the background and ininteraction with other systems.",
+                        englishPageId
+                    ),
+                    new EnglishSolution(
+                        "Following international frameworks and standards in this regard.",
+                        englishPageId
+                    ),
                 };
 
                 _context.EnglishPageSolution.AddRange(solutions);
 
                 await _context.SaveChangesAsync();
-
             }
 
             if (!_context.FooterPage.Any())
@@ -974,18 +1160,21 @@ namespace Persistence.Utilities
                 await _context.SaveChangesAsync();
             }
             #endregion
-
         }
 
         #region Regulation
         private List<ApprovalAuthority> ApprovalAuthorities =>
             new List<ApprovalAuthority>
             {
-                new ApprovalAuthority("وزراي عضو شوراي عالي مناطق آزاد تجاري -صنعتي و ويژه اقتصادي") ,
+                new ApprovalAuthority(
+                    "وزراي عضو شوراي عالي مناطق آزاد تجاري -صنعتي و ويژه اقتصادي"
+                ),
                 new ApprovalAuthority("هيات امناي حساب ذخيره ارزي"),
                 new ApprovalAuthority("شوراي نگهبان"),
                 new ApprovalAuthority("وزارت صنعت،معدن و تجارت"),
-                new ApprovalAuthority("وزراي عضو كميسيون ماده (1) آيين نامه اجرايي قانون مقررات صادرات و واردات"),
+                new ApprovalAuthority(
+                    "وزراي عضو كميسيون ماده (1) آيين نامه اجرايي قانون مقررات صادرات و واردات"
+                ),
                 new ApprovalAuthority("مجمع تشخيص مصلحت نظام"),
                 new ApprovalAuthority("كميسيون ارزيابي و تصويب نشانهاي دولتي"),
                 new ApprovalAuthority("هيات مديره سازمان بورس و اوراق بهادار"),
@@ -1064,7 +1253,6 @@ namespace Persistence.Utilities
                 new LawCategory("تحولات مراجع وضع"),
             };
 
-
         private void LawCleaner(ApplicationDbContext context)
         {
             var laws = context.Law.ToList();
@@ -1094,11 +1282,11 @@ namespace Persistence.Utilities
         public List<GalleryPhoto> Images =>
             new List<GalleryPhoto>()
             {
-                new GalleryPhoto("1.jpg", new Random().Next(0,5) , Guid.Empty),
-                new GalleryPhoto("2.jpg", new Random().Next(0,5) , Guid.Empty),
-                new GalleryPhoto("3.jpg", new Random().Next(0,5) , Guid.Empty),
-                new GalleryPhoto("4.jpg", new Random().Next(0,5) , Guid.Empty),
-                new GalleryPhoto("5.jpg", new Random().Next(0,5) , Guid.Empty),
+                new GalleryPhoto("1.jpg", new Random().Next(0, 5), Guid.Empty),
+                new GalleryPhoto("2.jpg", new Random().Next(0, 5), Guid.Empty),
+                new GalleryPhoto("3.jpg", new Random().Next(0, 5), Guid.Empty),
+                new GalleryPhoto("4.jpg", new Random().Next(0, 5), Guid.Empty),
+                new GalleryPhoto("5.jpg", new Random().Next(0, 5), Guid.Empty),
             };
 
         #endregion
@@ -1107,79 +1295,92 @@ namespace Persistence.Utilities
         public List<NewsCategory> NewsCategories =>
             new List<NewsCategory>
             {
-                new NewsCategory("سیاسی" , null),
-                new NewsCategory("اقتصادی" , null),
-                new NewsCategory("اجتماعی" , null),
+                new NewsCategory("سیاسی", null),
+                new NewsCategory("اقتصادی", null),
+                new NewsCategory("اجتماعی", null),
             };
 
-        public News News =
-            new News(
-                "عنوان خبر",
-                 description: "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون</br>                بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع</br>                با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه</br>                و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و</br>                فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها،</br>                و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل</br>                دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</br>            </p></br>            <h3 class=\"mt-30\"></br>                لورم ایپسوم متن ساختگی با تولید</br>            </h3></br>            <p class=\"mt-10\">لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است،</br>                چاپگرها و متون</br>                بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع</br>                با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه</br>                و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و</br>                فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها،</br>                و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل</br>                دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</br>            </p></br>            <img src=\"/banner.jpg\" class=\"mt-30\" /></br>            <p class=\"mt-30\">لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است،</br>                چاپگرها و متون</br>                بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع</br>                با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه</br>                و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و</br>                فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها،</br>                و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل</br>                دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</br>            </p></br>            <p class=\"mt-20\">لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است،</br>                چاپگرها و متون</br>                بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع</br>                با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه</br>                و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و</br>                فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها،</br>                و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل</br>                دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</br>            </p>",
-                 headline: "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.",
-                 "mehrnews.com/x33LcG", DateTime.Now, Guid.Empty, 0);
+        public News News = new News(
+            "عنوان خبر",
+            description: "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون</br>                بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع</br>                با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه</br>                و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و</br>                فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها،</br>                و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل</br>                دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</br>            </p></br>            <h3 class=\"mt-30\"></br>                لورم ایپسوم متن ساختگی با تولید</br>            </h3></br>            <p class=\"mt-10\">لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است،</br>                چاپگرها و متون</br>                بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع</br>                با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه</br>                و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و</br>                فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها،</br>                و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل</br>                دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</br>            </p></br>            <img src=\"/banner.jpg\" class=\"mt-30\" /></br>            <p class=\"mt-30\">لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است،</br>                چاپگرها و متون</br>                بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع</br>                با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه</br>                و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و</br>                فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها،</br>                و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل</br>                دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</br>            </p></br>            <p class=\"mt-20\">لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است،</br>                چاپگرها و متون</br>                بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع</br>                با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه</br>                و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و</br>                فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها،</br>                و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل</br>                دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</br>            </p>",
+            headline: "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.",
+            "mehrnews.com/x33LcG",
+            DateTime.Now,
+            Guid.Empty,
+            0
+        );
         #endregion
 
         #region Contact
         public FrequentlyAskedQuestions FrequentlyAskedQuestions =>
-            new FrequentlyAskedQuestions("لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ؟", "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد. لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ.</p>");
+            new FrequentlyAskedQuestions(
+                "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ؟",
+                "<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد. لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ.</p>"
+            );
 
         public Guide Guide =>
-            new Guide("لورم ایپسوم متن ساختگی با تولید", "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/Dqev1/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div></br><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی.</p></br><h3 class='font-dana mt-40'>لورم ایپسوم متن ساختگی با تولید</h3></br><p class='mt-20'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p></br><img class='mt-40' src='/banner.jpg'/></br><p class='mt-20'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود</p></br>", true);
+            new Guide(
+                "لورم ایپسوم متن ساختگی با تولید",
+                "<style>.h_iframe-aparat_embed_frame{position:relative;}.h_iframe-aparat_embed_frame .ratio{display:block;width:100%;height:auto;}.h_iframe-aparat_embed_frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style><div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe src=\"https://www.aparat.com/video/video/embed/videohash/Dqev1/vt/frame\"  allowFullScreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div></br><p class='mt-40'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی.</p></br><h3 class='font-dana mt-40'>لورم ایپسوم متن ساختگی با تولید</h3></br><p class='mt-20'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p></br><img class='mt-40' src='/banner.jpg'/></br><p class='mt-20'>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود</p></br>",
+                true
+            );
 
         public List<RelatedCompany> RelatedCompanies =>
             new List<RelatedCompany>
-        {
-            new RelatedCompany( "وزارت کشور" , "1.png",0),
-            new RelatedCompany( "سازمان امور اراضی" , "2.png",0),
-            new RelatedCompany( "سازمان شهرداری ها و دهیاری های کشور" , "3.png",0),
-            new RelatedCompany( "وزارت صنعت، معدن و تجارت" , "4.png",0),
-            new RelatedCompany( "شرکت سهامی مادر تخصصی مدیریت منابع آب ایران" , "5.png",0),
-            new RelatedCompany( "شرکت ملی پست جمهوری اسلامی ایران" , "6.png",0),
-            new RelatedCompany( "وزارت میراث فرهنگی، صنایع دستی و گردشگری" , "7.png",0),
-            new RelatedCompany( "سازمان اوقاف و امور خیریه" , "8.png",0),
-            new RelatedCompany( "سازمان جنگلها مراتع و آبخیزداری کشور" , "9.png",1),
-            new RelatedCompany( "سازمان فضایی ایران" , "10.png",0),
-            new RelatedCompany( "سازمان حفاظت محیط زیست" , "11.png",0),
-            new RelatedCompany( "دبیرخانه شورای عالی معماری و شهرسازی" , "12.png",0),
-            new RelatedCompany( "سازمان تنظیم مقررات و ارتباطات رادیویی" , "13.png",0),
-            new RelatedCompany( "سازمان اداری و استخدامی کشور" , "14.png",0),
-            new RelatedCompany( "سازمان ملی زمین و مسکن" , "15.png",0),
-            new RelatedCompany( "شرکت ملی مخابرات ایران" , "16.png",0),
-            new RelatedCompany( "ارتباطات زیرساخت" , "17.png",0),
-            new RelatedCompany( "وزارت ارتباطات و فناوری اطلاعات" , "18.png",0),
-            new RelatedCompany( "وزارت نفت" , "19.png",0),
-            new RelatedCompany( "سازمان ثبت احوال کشور" , "20.png",0),
-            new RelatedCompany( "شرکت راه‌آهن جمهوری اسلامی ایران" , "21.png",0),
-            new RelatedCompany( "شرکت سهامی مادرتخصصی مهندسی آب و فاضلاب کشور" , "22.png",0),
-            new RelatedCompany( "شرکت فرودگاه‌ها و ناوبری هوایی ایران" , "23.png",0),
-            new RelatedCompany( "سازمان جغرافیایی نیروهای مسلح" , "24.png",0),
-            new RelatedCompany( "سازمان ثبت اسناد و املاک کشور" , "25.png",0),
-            new RelatedCompany( "شرکت مادر تخصصی عمران شهرهای جدید" , "26.png",0),
-            new RelatedCompany( "سازمان برنامه و بودجه کشور" , "27.png",0),
-            new RelatedCompany( "سازمان صنایع کوچک و شهرکهای صنعتی ایران" , "28.png",0),
-            new RelatedCompany( "بنیاد مسکن انقلاب اسلامی" , "29.png",0),
-            new RelatedCompany( "سازمان بنادر و دریانوردی" , "30.png",0),
-            new RelatedCompany( "شرکت سهامی مادر تخصصی تولید، انتقال و توزیع نیروی برق ایران" , "31.png",0),
-            new RelatedCompany( "سازمان نقشه برداری کشور" , "32.png",0),
-            new RelatedCompany( "وزارت جهاد کشاورزی" , "33.png",0),
-            new RelatedCompany( "سازمان فناوری اطلاعات ایران" , "34.png",1),
-            new RelatedCompany( "وزارت راه و شهرسازی" , "35.png",0),
-            new RelatedCompany( "سازمان راهداری و حمل و نقل جاده ای" , "36.png",0),
-            new RelatedCompany( "دبیرخانه ستاد مبارزه با مفاسد اقتصادی" , "37.png",1),
+            {
+                new RelatedCompany("وزارت کشور", "1.png", 0),
+                new RelatedCompany("سازمان امور اراضی", "2.png", 0),
+                new RelatedCompany("سازمان شهرداری ها و دهیاری های کشور", "3.png", 0),
+                new RelatedCompany("وزارت صنعت، معدن و تجارت", "4.png", 0),
+                new RelatedCompany("شرکت سهامی مادر تخصصی مدیریت منابع آب ایران", "5.png", 0),
+                new RelatedCompany("شرکت ملی پست جمهوری اسلامی ایران", "6.png", 0),
+                new RelatedCompany("وزارت میراث فرهنگی، صنایع دستی و گردشگری", "7.png", 0),
+                new RelatedCompany("سازمان اوقاف و امور خیریه", "8.png", 0),
+                new RelatedCompany("سازمان جنگلها مراتع و آبخیزداری کشور", "9.png", 1),
+                new RelatedCompany("سازمان فضایی ایران", "10.png", 0),
+                new RelatedCompany("سازمان حفاظت محیط زیست", "11.png", 0),
+                new RelatedCompany("دبیرخانه شورای عالی معماری و شهرسازی", "12.png", 0),
+                new RelatedCompany("سازمان تنظیم مقررات و ارتباطات رادیویی", "13.png", 0),
+                new RelatedCompany("سازمان اداری و استخدامی کشور", "14.png", 0),
+                new RelatedCompany("سازمان ملی زمین و مسکن", "15.png", 0),
+                new RelatedCompany("شرکت ملی مخابرات ایران", "16.png", 0),
+                new RelatedCompany("ارتباطات زیرساخت", "17.png", 0),
+                new RelatedCompany("وزارت ارتباطات و فناوری اطلاعات", "18.png", 0),
+                new RelatedCompany("وزارت نفت", "19.png", 0),
+                new RelatedCompany("سازمان ثبت احوال کشور", "20.png", 0),
+                new RelatedCompany("شرکت راه‌آهن جمهوری اسلامی ایران", "21.png", 0),
+                new RelatedCompany("شرکت سهامی مادرتخصصی مهندسی آب و فاضلاب کشور", "22.png", 0),
+                new RelatedCompany("شرکت فرودگاه‌ها و ناوبری هوایی ایران", "23.png", 0),
+                new RelatedCompany("سازمان جغرافیایی نیروهای مسلح", "24.png", 0),
+                new RelatedCompany("سازمان ثبت اسناد و املاک کشور", "25.png", 0),
+                new RelatedCompany("شرکت مادر تخصصی عمران شهرهای جدید", "26.png", 0),
+                new RelatedCompany("سازمان برنامه و بودجه کشور", "27.png", 0),
+                new RelatedCompany("سازمان صنایع کوچک و شهرکهای صنعتی ایران", "28.png", 0),
+                new RelatedCompany("بنیاد مسکن انقلاب اسلامی", "29.png", 0),
+                new RelatedCompany("سازمان بنادر و دریانوردی", "30.png", 0),
+                new RelatedCompany(
+                    "شرکت سهامی مادر تخصصی تولید، انتقال و توزیع نیروی برق ایران",
+                    "31.png",
+                    0
+                ),
+                new RelatedCompany("سازمان نقشه برداری کشور", "32.png", 0),
+                new RelatedCompany("وزارت جهاد کشاورزی", "33.png", 0),
+                new RelatedCompany("سازمان فناوری اطلاعات ایران", "34.png", 1),
+                new RelatedCompany("وزارت راه و شهرسازی", "35.png", 0),
+                new RelatedCompany("سازمان راهداری و حمل و نقل جاده ای", "36.png", 0),
+                new RelatedCompany("دبیرخانه ستاد مبارزه با مفاسد اقتصادی", "37.png", 1),
             };
 
         public List<RelatedLink> RelatedLinks =>
             new List<RelatedLink>
             {
-                new RelatedLink("پایگاه اطلاع رسانی دفتر مقام معظم رهبری" , "#" , 0),
-                new RelatedLink("پایگاه اطلاع رسانی ریاست جمهوری" , "#" , 1),
-                new RelatedLink("پایگاه اطلاع رسانی دولت" , "#",2),
-                new RelatedLink("وزارت ارتباطات و فناوری اطلاعات" , "#",3),
-                new RelatedLink("سازمان فناوری اطلاعات ایران" , "#",4),
-                new RelatedLink("ستاد هماهنگی مبارزه با مفاسد اقتصادی" , "#",5)
+                new RelatedLink("پایگاه اطلاع رسانی دفتر مقام معظم رهبری", "#", 0),
+                new RelatedLink("پایگاه اطلاع رسانی ریاست جمهوری", "#", 1),
+                new RelatedLink("پایگاه اطلاع رسانی دولت", "#", 2),
+                new RelatedLink("وزارت ارتباطات و فناوری اطلاعات", "#", 3),
+                new RelatedLink("سازمان فناوری اطلاعات ایران", "#", 4),
+                new RelatedLink("ستاد هماهنگی مبارزه با مفاسد اقتصادی", "#", 5)
             };
-
 
         public class Organization
         {
@@ -1408,19 +1609,16 @@ namespace Persistence.Utilities
             }
         };
 
-
         #endregion
 
         #region Resources
-        public List<Author> Authors =>
-                new List<Author>
-                {
-                new Author("دوئیس اِ. داندیس")
-                };
+        public List<Author> Authors => new List<Author> { new Author("دوئیس اِ. داندیس") };
         #endregion
 
-        private String lorem = "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.";
-        private String video = "<div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe</br>                            src=\"https://www.aparat.com/video/video/embed/videohash/jq0lh/vt/frame\" allowFullScreen=\"true\"</br>                            webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>";
+        private String lorem =
+            "لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.";
+        private String video =
+            "<div class=\"h_iframe-aparat_embed_frame\"><span style=\"display: block;padding-top: 57%\"></span><iframe</br>                            src=\"https://www.aparat.com/video/video/embed/videohash/jq0lh/vt/frame\" allowFullScreen=\"true\"</br>                            webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\"></iframe></div>";
     }
 
     class NewsData
@@ -1436,7 +1634,6 @@ namespace Persistence.Utilities
         public DateTime newsDateO { get; set; }
 
         public String description { get; set; }
-
     }
 
     class NewsDataImage
@@ -1445,7 +1642,6 @@ namespace Persistence.Utilities
         public int size { get; set; }
         public String type { get; set; }
         public String value { get; set; }
-
     }
 
     class LawData
@@ -1490,15 +1686,19 @@ namespace Persistence.Utilities
         public string LawText { get; set; }
     }
 
-
-
     internal class ParseStringConverter : Newtonsoft.Json.JsonConverter
     {
         public override bool CanConvert(Type t) => t == typeof(long) || t == typeof(long?);
 
-        public override object ReadJson(JsonReader reader, Type t, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
+        public override object ReadJson(
+            JsonReader reader,
+            Type t,
+            object existingValue,
+            Newtonsoft.Json.JsonSerializer serializer
+        )
         {
-            if (reader.TokenType == JsonToken.Null) return null;
+            if (reader.TokenType == JsonToken.Null)
+                return null;
             var value = serializer.Deserialize<string>(reader);
             long l;
             if (Int64.TryParse(value, out l))
@@ -1508,7 +1708,11 @@ namespace Persistence.Utilities
             throw new Exception("Cannot unmarshal type long");
         }
 
-        public override void WriteJson(JsonWriter writer, object untypedValue, Newtonsoft.Json.JsonSerializer serializer)
+        public override void WriteJson(
+            JsonWriter writer,
+            object untypedValue,
+            Newtonsoft.Json.JsonSerializer serializer
+        )
         {
             if (untypedValue == null)
             {
@@ -1523,4 +1727,3 @@ namespace Persistence.Utilities
         public static readonly ParseStringConverter Singleton = new ParseStringConverter();
     }
 }
-

@@ -9,16 +9,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Pages.EnglishPage
 {
-    public class UpdateCurrentSituationImageCommandHandler : IRequestHandler<UpdateCurrentSituationImageCommand, CommandResponse>
+    public class UpdateCurrentSituationImageCommandHandler
+        : IRequestHandler<UpdateCurrentSituationImageCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IPhotoManager _photoManager;
         private readonly ILogger<UpdateCurrentSituationImageCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-
-        public UpdateCurrentSituationImageCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<UpdateCurrentSituationImageCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateCurrentSituationImageCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IPhotoManager photoManager,
+            ILogger<UpdateCurrentSituationImageCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -27,11 +33,12 @@ namespace Persistence.CQRS.Pages.EnglishPage
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateCurrentSituationImageCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateCurrentSituationImageCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var page =
-                await _context.EnglishPage
-                    .FirstAsync(cancellationToken);
+            var page = await _context.EnglishPage.FirstAsync(cancellationToken);
 
             var newImageName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
             var oldImageName = page.CurrentSituation.Image;
@@ -49,7 +56,9 @@ namespace Persistence.CQRS.Pages.EnglishPage
                 if (File.Exists(upload + oldImageName))
                     File.Delete(upload + oldImageName);
 
-                _logger.LogInformation($"CurrentSituationImage Updated from EnglishPage  by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"CurrentSituationImage Updated from EnglishPage  by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
 
                 return CommandResponse.Success(newImageName);
             }

@@ -1199,6 +1199,27 @@ namespace Persistence.Migrations
                     b.ToTable("LawCategory");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Regulation.LawContent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LawContent");
+                });
+
             modelBuilder.Entity("Domain.Entities.Regulation.LawImage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1226,6 +1247,21 @@ namespace Persistence.Migrations
                     b.HasIndex("LawId");
 
                     b.ToTable("LawImage");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Regulation.LawLawContent", b =>
+                {
+                    b.Property<Guid>("LawId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("LawContentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("LawId", "LawContentId");
+
+                    b.HasIndex("LawContentId");
+
+                    b.ToTable("LawLawContents", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Resources.Article", b =>
@@ -1439,6 +1475,40 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Publication");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Timelines.Timeline", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AccomplishedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Video")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Timeline");
                 });
 
             modelBuilder.Entity("Domain.Entities.Account.User", b =>
@@ -1979,6 +2049,25 @@ namespace Persistence.Migrations
                     b.Navigation("Law");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Regulation.LawLawContent", b =>
+                {
+                    b.HasOne("Domain.Entities.Regulation.LawContent", "LawContent")
+                        .WithMany("LawLawContents")
+                        .HasForeignKey("LawContentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Regulation.Law", "Law")
+                        .WithMany("LawLawContents")
+                        .HasForeignKey("LawId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Law");
+
+                    b.Navigation("LawContent");
+                });
+
             modelBuilder.Entity("Domain.Entities.Resources.Article", b =>
                 {
                     b.HasOne("Domain.Entities.Resources.Author", "Author")
@@ -2098,6 +2187,16 @@ namespace Persistence.Migrations
                     b.Navigation("Problems");
 
                     b.Navigation("Solutions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Regulation.Law", b =>
+                {
+                    b.Navigation("LawLawContents");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Regulation.LawContent", b =>
+                {
+                    b.Navigation("LawLawContents");
                 });
 #pragma warning restore 612, 618
         }

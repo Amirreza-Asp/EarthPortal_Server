@@ -3,8 +3,8 @@
     public class LawPagenationQuery
     {
         public String? Text { get; set; }
-
         public List<String> SearchProps { get; set; }
+
         public List<int>? LawType { get; set; }
 
         public List<Guid>? ApprovalAuthorityIds { get; set; }
@@ -21,6 +21,8 @@
         public String? NewspaperNumber { get; set; }
         public DateTime? NewspaperDate { get; set; }
 
+        public List<Guid>? LawContentIds { get; set; }
+
         public String? SortBy { get; set; }
         public bool ascSort { get; set; }
 
@@ -28,15 +30,16 @@
         public int Size { get; set; } = 10;
 
         public bool IsFiltered() =>
-            ApprovalAuthorityIds != null && ApprovalAuthorityIds.Any() ||
-            ExecutorManagmentIds != null && ExecutorManagmentIds.Any() ||
-            ApprovalStatusIds != null && ApprovalStatusIds.Any() ||
-            LawCategoryIds != null && LawCategoryIds.Any() ||
-            ApprovalTypeIds != null && ApprovalTypeIds.Any() ||
-            !String.IsNullOrEmpty(AnnouncementNumber) ||
-            AnnouncementDate.HasValue ||
-             !String.IsNullOrEmpty(NewspaperNumber) ||
-            NewspaperDate.HasValue ||
-            ApprovalDate.HasValue;
+            (ApprovalAuthorityIds != null && ApprovalAuthorityIds.Any())
+            || (ExecutorManagmentIds != null && ExecutorManagmentIds.Any())
+            || (ApprovalStatusIds != null && ApprovalStatusIds.Any())
+            || (LawCategoryIds != null && LawCategoryIds.Any())
+            || (ApprovalTypeIds != null && ApprovalTypeIds.Any())
+            || (LawContentIds != null && LawContentIds.Any())
+            || !string.IsNullOrEmpty(AnnouncementNumber)
+            || AnnouncementDate.HasValue
+            || !string.IsNullOrEmpty(NewspaperNumber)
+            || NewspaperDate.HasValue
+            || ApprovalDate.HasValue;
     }
 }

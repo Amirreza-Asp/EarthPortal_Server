@@ -12,15 +12,21 @@ namespace Persistence.CQRS.Notices
 {
     public class UpdateNewsCommandHandler : IRequestHandler<UpdateNewsCommand, CommandResponse>
     {
-
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IMediator _mediator;
         private readonly IPhotoManager _photoManager;
         private readonly ILogger<UpdateNewsCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateNewsCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, IMediator mediator, ILogger<UpdateNewsCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateNewsCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IPhotoManager photoManager,
+            IMediator mediator,
+            ILogger<UpdateNewsCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -30,11 +36,16 @@ namespace Persistence.CQRS.Notices
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateNewsCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateNewsCommand request,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
-                var news = await _context.News.Where(b => b.Id == request.Id).FirstOrDefaultAsync(cancellationToken);
+                var news = await _context
+                    .News.Where(b => b.Id == request.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
 
                 if (news == null)
                     return CommandResponse.Failure(400, "خبر مورد نظر در سیستم وجود ندارد");
@@ -50,13 +61,18 @@ namespace Persistence.CQRS.Notices
 
                 _context.News.Update(news);
 
-                var upsertNewsLink = new UpsertNewsLinkCommand(request.Links == null ? new List<string>() : request.Links, request.Id);
+                var upsertNewsLink = new UpsertNewsLinkCommand(
+                    request.Links == null ? new List<string>() : request.Links,
+                    request.Id
+                );
                 var response = await _mediator.Send(upsertNewsLink, cancellationToken);
 
                 if (response.Status != 200)
                     return response;
 
-                var image = await _context.NewsImage.Where(b => b.NewsId == request.Id).FirstOrDefaultAsync(cancellationToken);
+                var image = await _context
+                    .NewsImage.Where(b => b.NewsId == request.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
 
                 var oldImage = image != null ? image.Name : String.Empty;
 
@@ -69,12 +85,17 @@ namespace Persistence.CQRS.Notices
                 {
                     if (image != null)
                     {
-                        image.Name = Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName);
+                        image.Name =
+                            Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName);
                         _context.NewsImage.Update(image);
                     }
                     else
                     {
-                        image = new NewsImage(Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName), request.Id, 0);
+                        image = new NewsImage(
+                            Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName),
+                            request.Id,
+                            0
+                        );
                         _context.NewsImage.Add(image);
                     }
 
@@ -83,11 +104,17 @@ namespace Persistence.CQRS.Notices
 
                 await _context.SaveChangesAsync(cancellationToken);
 
-                if (request.Image != null && !String.IsNullOrEmpty(oldImage) && File.Exists(upload + oldImage))
+                if (
+                    request.Image != null
+                    && !String.IsNullOrEmpty(oldImage)
+                    && File.Exists(upload + oldImage)
+                )
                     File.Delete(upload + oldImage);
 
                 _context.Database.CommitTransaction();
-                _logger.LogInformation($"News with id {news.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"News with id {news.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
 
                 return CommandResponse.Success(new { Image = image.Name });
             }

@@ -1,4 +1,5 @@
-﻿using Domain.Dtos.Resources;
+﻿using System.Reflection;
+using Domain.Dtos.Resources;
 using Domain.Entities.Account;
 using Domain.Entities.Contact;
 using Domain.Entities.Mutimedia;
@@ -6,16 +7,18 @@ using Domain.Entities.Notices;
 using Domain.Entities.Pages;
 using Domain.Entities.Regulation;
 using Domain.Entities.Resources;
+using Domain.Entities.Timelines;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using System.Reflection;
 
 namespace Persistence
 {
     public class ApplicationDbContext : DbContext
     {
         private readonly IMemoryCache _memoryCache;
-        public ApplicationDbContext(DbContextOptions options, IMemoryCache memoryCache) : base(options)
+
+        public ApplicationDbContext(DbContextOptions options, IMemoryCache memoryCache)
+            : base(options)
         {
             _memoryCache = memoryCache;
         }
@@ -33,6 +36,7 @@ namespace Persistence
         public DbSet<ExecutorManagment> ExecutorManagment { get; set; }
         public DbSet<LawCategory> LawCategory { get; set; }
         public DbSet<LawImage> LawImage { get; set; }
+        public DbSet<LawContent> LawContent { get; set; }
         #endregion
 
         #region Multimedia
@@ -65,9 +69,8 @@ namespace Persistence
         public DbSet<RelatedCompany> RelatedCompany { get; set; }
         public DbSet<Goal> Goal { get; set; }
         public DbSet<AboutUs> AboutUs { get; set; }
-
+        public DbSet<Timeline> Timeline { get; set; }
         public DbSet<RelatedLink> RelatedLink { get; set; }
-
         public DbSet<SystemEvaluation> SystemEvaluation { get; set; }
         public DbSet<SystemEvaluationIntroductionMethod> IntroductionMethod { get; set; }
         public DbSet<SystemEvaluationPage> SystemEvaluationPage { get; set; }
@@ -108,7 +111,9 @@ namespace Persistence
             modelBuilder.Entity<Link>().Property(b => b.Id).ValueGeneratedNever();
         }
 
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public override async Task<int> SaveChangesAsync(
+            CancellationToken cancellationToken = default
+        )
         {
             var footer = await this.FooterPage.FirstOrDefaultAsync(cancellationToken);
 
@@ -122,6 +127,5 @@ namespace Persistence
 
             return await base.SaveChangesAsync(cancellationToken);
         }
-
     }
 }

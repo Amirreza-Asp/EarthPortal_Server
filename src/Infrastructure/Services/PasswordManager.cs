@@ -1,8 +1,8 @@
-﻿using Application.Contracts.Infrastructure.Services;
+﻿using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using Application.Contracts.Infrastructure.Services;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Hosting;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 
 namespace Infrastructure.Services
 {
@@ -16,9 +16,9 @@ namespace Infrastructure.Services
         private readonly int _saltLength;
         private readonly int _requestedLength;
         private readonly int _iterCount;
-        private readonly IHostingEnvironment _hostEnv;
+        private readonly IWebHostEnvironment _hostEnv;
 
-        public PasswordManager(IHostingEnvironment hostEnv)
+        public PasswordManager(IWebHostEnvironment hostEnv)
         {
             _useAspNetCore = true;
 
@@ -34,7 +34,8 @@ namespace Infrastructure.Services
 
         public string HashPassword(string password)
         {
-            if (string.IsNullOrEmpty(password)) throw new ArgumentNullException(nameof(password));
+            if (string.IsNullOrEmpty(password))
+                throw new ArgumentNullException(nameof(password));
 
             byte[] salt = new byte[_saltLength];
             using (var rng = RandomNumberGenerator.Create())
@@ -49,12 +50,18 @@ namespace Infrastructure.Services
             }
             else
             {
-                using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, _iterCount, _hashAlgorithmName);
+                using var pbkdf2 = new Rfc2898DeriveBytes(
+                    password,
+                    salt,
+                    _iterCount,
+                    _hashAlgorithmName
+                );
                 subkey = pbkdf2.GetBytes(_requestedLength);
             }
 
             var headerByteLength = 1; // Format marker only
-            if (_includeHeaderInfo) headerByteLength = 13;
+            if (_includeHeaderInfo)
+                headerByteLength = 13;
 
             var outputBytes = new byte[headerByteLength + salt.Length + subkey.Length];
 
@@ -69,9 +76,12 @@ namespace Infrastructure.Services
                 else
                 {
                     var shaInt = 1;
-                    if (_hashAlgorithmName == HashAlgorithmName.SHA1) shaInt = 0;
-                    else if (_hashAlgorithmName == HashAlgorithmName.SHA256) shaInt = 1;
-                    else if (_hashAlgorithmName == HashAlgorithmName.SHA512) shaInt = 2;
+                    if (_hashAlgorithmName == HashAlgorithmName.SHA1)
+                        shaInt = 0;
+                    else if (_hashAlgorithmName == HashAlgorithmName.SHA256)
+                        shaInt = 1;
+                    else if (_hashAlgorithmName == HashAlgorithmName.SHA512)
+                        shaInt = 2;
 
                     WriteNetworkByteOrder(outputBytes, 1, (uint)shaInt);
                 }
@@ -88,7 +98,8 @@ namespace Infrastructure.Services
 
         public bool VerifyPassword(string hashedPassword, string enteredPassword)
         {
-            if (string.IsNullOrEmpty(enteredPassword) || string.IsNullOrEmpty(hashedPassword)) return false;
+            if (string.IsNullOrEmpty(enteredPassword) || string.IsNullOrEmpty(hashedPassword))
+                return false;
 
             byte[] decodedHashedPassword;
             try
@@ -100,11 +111,13 @@ namespace Infrastructure.Services
                 return false;
             }
 
-            if (decodedHashedPassword.Length == 0) return false;
+            if (decodedHashedPassword.Length == 0)
+                return false;
 
-            // Read the format marker          
+            // Read the format marker
             var verifyMarker = (byte)decodedHashedPassword[0];
-            if (_formatMarker != verifyMarker) return false;
+            if (_formatMarker != verifyMarker)
+                return false;
 
             try
             {
@@ -119,7 +132,8 @@ namespace Infrastructure.Services
                         2 => KeyDerivationPrf.HMACSHA512,
                         _ => KeyDerivationPrf.HMACSHA256,
                     };
-                    if (_prf != verifyPrf) return false;
+                    if (_prf != verifyPrf)
+                        return false;
 
                     var verifyAlgorithmName = shaUInt switch
                     {
@@ -128,17 +142,21 @@ namespace Infrastructure.Services
                         2 => HashAlgorithmName.SHA512,
                         _ => HashAlgorithmName.SHA256,
                     };
-                    if (_hashAlgorithmName != verifyAlgorithmName) return false;
+                    if (_hashAlgorithmName != verifyAlgorithmName)
+                        return false;
 
                     int iterCountRead = (int)ReadNetworkByteOrder(decodedHashedPassword, 5);
-                    if (_iterCount != iterCountRead) return false;
+                    if (_iterCount != iterCountRead)
+                        return false;
 
                     int saltLengthRead = (int)ReadNetworkByteOrder(decodedHashedPassword, 9);
-                    if (_saltLength != saltLengthRead) return false;
+                    if (_saltLength != saltLengthRead)
+                        return false;
                 }
 
                 var headerByteLength = 1; // Format marker only
-                if (_includeHeaderInfo) headerByteLength = 13;
+                if (_includeHeaderInfo)
+                    headerByteLength = 13;
 
                 // Read the salt
                 byte[] salt = new byte[_saltLength];
@@ -147,20 +165,38 @@ namespace Infrastructure.Services
                 // Read the subkey (the rest of the payload)
                 int subkeyLength = decodedHashedPassword.Length - headerByteLength - salt.Length;
 
-                if (_requestedLength != subkeyLength) return false;
+                if (_requestedLength != subkeyLength)
+                    return false;
 
                 byte[] expectedSubkey = new byte[subkeyLength];
-                Buffer.BlockCopy(decodedHashedPassword, headerByteLength + salt.Length, expectedSubkey, 0, expectedSubkey.Length);
+                Buffer.BlockCopy(
+                    decodedHashedPassword,
+                    headerByteLength + salt.Length,
+                    expectedSubkey,
+                    0,
+                    expectedSubkey.Length
+                );
 
                 // Hash the incoming password and verify it
                 byte[] actualSubkey = new byte[_requestedLength];
                 if (_useAspNetCore)
                 {
-                    actualSubkey = KeyDerivation.Pbkdf2(enteredPassword, salt, _prf, _iterCount, subkeyLength);
+                    actualSubkey = KeyDerivation.Pbkdf2(
+                        enteredPassword,
+                        salt,
+                        _prf,
+                        _iterCount,
+                        subkeyLength
+                    );
                 }
                 else
                 {
-                    using var pbkdf2 = new Rfc2898DeriveBytes(enteredPassword, salt, _iterCount, _hashAlgorithmName);
+                    using var pbkdf2 = new Rfc2898DeriveBytes(
+                        enteredPassword,
+                        salt,
+                        _iterCount,
+                        _hashAlgorithmName
+                    );
                     actualSubkey = pbkdf2.GetBytes(_requestedLength);
                 }
 
@@ -179,10 +215,15 @@ namespace Infrastructure.Services
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         private static bool ByteArraysEqual(byte[] a, byte[] b)
         {
-            if (a == null && b == null) return true;
-            if (a == null || b == null || a.Length != b.Length) return false;
+            if (a == null && b == null)
+                return true;
+            if (a == null || b == null || a.Length != b.Length)
+                return false;
             var areSame = true;
-            for (var i = 0; i < a.Length; i++) { areSame &= (a[i] == b[i]); }
+            for (var i = 0; i < a.Length; i++)
+            {
+                areSame &= (a[i] == b[i]);
+            }
             return areSame;
         }
 
@@ -218,16 +259,20 @@ namespace Infrastructure.Services
             for (int i = 0; i < password.Length; i++)
             {
                 if (
-                    (password[i] >= 'A' && password[i] <= 'Z') ||
-                    (password[i] >= 'a' && password[i] <= 'z') ||
-                    (password[i] >= '0' && password[i] <= '9') ||
-                    password[i] == '@' ||
-                    password[i] == '!' ||
-                    password[i] == '*' ||
-                    password[i] == '#')
+                    (password[i] >= 'A' && password[i] <= 'Z')
+                    || (password[i] >= 'a' && password[i] <= 'z')
+                    || (password[i] >= '0' && password[i] <= '9')
+                    || password[i] == '@'
+                    || password[i] == '!'
+                    || password[i] == '*'
+                    || password[i] == '#'
+                )
                     continue;
 
-                return new(false, "رمز عبور فقط باید شامل A-Z یا a-z یا کاراکتر های (! , * , @ , #) باشد");
+                return new(
+                    false,
+                    "رمز عبور فقط باید شامل A-Z یا a-z یا کاراکتر های (! , * , @ , #) باشد"
+                );
             }
 
             return new(true, "");

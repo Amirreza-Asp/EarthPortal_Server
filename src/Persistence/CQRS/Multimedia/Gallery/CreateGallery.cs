@@ -9,15 +9,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Gallery
 {
-    public class CreateGalleryCommandHandler : IRequestHandler<CreateGalleryCommand, CommandResponse>
+    public class CreateGalleryCommandHandler
+        : IRequestHandler<CreateGalleryCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IPhotoManager _photoManager;
         private readonly ILogger<CreateGalleryCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public CreateGalleryCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<CreateGalleryCommandHandler> logger, IUserAccessor userAccessor)
+        public CreateGalleryCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IPhotoManager photoManager,
+            ILogger<CreateGalleryCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -26,7 +33,10 @@ namespace Persistence.CQRS.Multimedia.Gallery
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(CreateGalleryCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            CreateGalleryCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var gallery = new Domain.Entities.Mutimedia.Gallery(request.Title, request.Description);
             gallery.Order = request.Order;
@@ -52,8 +62,16 @@ namespace Persistence.CQRS.Multimedia.Gallery
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"Gallery with id {gallery.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
-                return CommandResponse.Success(new { Id = gallery.Id, Images = images.Select(s => new { Id = s.Id, Name = s.Name }) });
+                _logger.LogInformation(
+                    $"Gallery with id {gallery.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
+                return CommandResponse.Success(
+                    new
+                    {
+                        Id = gallery.Id,
+                        Images = images.Select(s => new { Id = s.Id, Name = s.Name })
+                    }
+                );
             }
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
         }

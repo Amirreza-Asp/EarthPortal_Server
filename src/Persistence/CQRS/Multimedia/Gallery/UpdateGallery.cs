@@ -11,15 +11,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Gallery
 {
-    public class UpdateGalleryCommandHandler : IRequestHandler<UpdateGalleryCommand, CommandResponse>
+    public class UpdateGalleryCommandHandler
+        : IRequestHandler<UpdateGalleryCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IPhotoManager _photoManager;
         private readonly ILogger<UpdateGalleryCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateGalleryCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<UpdateGalleryCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateGalleryCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IPhotoManager photoManager,
+            ILogger<UpdateGalleryCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -28,14 +35,19 @@ namespace Persistence.CQRS.Multimedia.Gallery
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateGalleryCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateGalleryCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var upload = _env.WebRootPath + SD.GalleryPath;
             if (!Directory.Exists(upload))
                 Directory.CreateDirectory(upload);
 
-            var gallery =
-                await _context.Gallery.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var gallery = await _context.Gallery.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (gallery == null)
                 return CommandResponse.Failure(400, "آلبوم تصاویر انتخاب شده در سیستم وجود ندارد");
@@ -60,7 +72,14 @@ namespace Persistence.CQRS.Multimedia.Gallery
                     var galleryImage = new GalleryPhoto(imgName, 0, gallery.Id);
                     _context.GalleryPhoto.Add(galleryImage);
 
-                    images.Add(new ImageSummary { Id = galleryImage.Id, Name = galleryImage.Name, Order = galleryImage.Order });
+                    images.Add(
+                        new ImageSummary
+                        {
+                            Id = galleryImage.Id,
+                            Name = galleryImage.Name,
+                            Order = galleryImage.Order
+                        }
+                    );
                 }
             }
 
@@ -68,7 +87,9 @@ namespace Persistence.CQRS.Multimedia.Gallery
             {
                 if (request.DeletedImages != null)
                 {
-                    var deletedPhotos = await _context.GalleryPhoto.Where(b => request.DeletedImages.Contains(b.Id)).ToListAsync();
+                    var deletedPhotos = await _context
+                        .GalleryPhoto.Where(b => request.DeletedImages.Contains(b.Id))
+                        .ToListAsync();
 
                     foreach (var deletedPhoto in deletedPhotos)
                     {
@@ -79,13 +100,13 @@ namespace Persistence.CQRS.Multimedia.Gallery
                     }
                 }
 
-                _logger.LogInformation($"Gallery with id {gallery.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"Gallery with id {gallery.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
                 return CommandResponse.Success(images);
             }
 
-
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
-
         }
     }
 }

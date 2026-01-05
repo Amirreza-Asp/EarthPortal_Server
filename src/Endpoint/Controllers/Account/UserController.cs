@@ -28,25 +28,33 @@ namespace Endpoint.Controllers.Account
 
         [HttpPost]
         [Route("[action]")]
-        public async Task<ListActionResult<UserSummary>> PaginationSummary([FromBody] GridQuery query, CancellationToken cancellationToken) =>
-            await _repo.GetAllAsync<UserSummary>(query, cancellationToken: cancellationToken);
+        public async Task<ListActionResult<UserSummary>> PaginationSummary(
+            [FromBody] GridQuery query,
+            CancellationToken cancellationToken
+        ) => await _repo.GetAllAsync<UserSummary>(query, cancellationToken: cancellationToken);
 
         [HttpPost]
         [Route("[action]")]
         [AccessControl(SD.AdminRole)]
-        public async Task<CommandResponse> Create([FromBody] CreateUserCommand command, CancellationToken cancellationToken) =>
-            await _mediator.HandleRequestAsync(command, cancellationToken);
+        public async Task<CommandResponse> Create(
+            [FromBody] CreateUserCommand command,
+            CancellationToken cancellationToken
+        ) => await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("[action]")]
         [AccessControl(SD.AdminRole)]
-        public async Task<CommandResponse> Update([FromBody] UpdateUserCommand command, CancellationToken cancellationToken) =>
-            await _mediator.HandleRequestAsync(command, cancellationToken);
+        public async Task<CommandResponse> Update(
+            [FromBody] UpdateUserCommand command,
+            CancellationToken cancellationToken
+        ) => await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("[action]")]
         [AccessControl(SD.AdminRole)]
-        public async Task<CommandResponse> Remove([FromQuery] RemoveUserCommand command, CancellationToken cancellationToken) =>
-            await _mediator.HandleRequestAsync(command, cancellationToken);
+        public async Task<CommandResponse> Remove(
+            [FromQuery] RemoveUserCommand command,
+            CancellationToken cancellationToken
+        ) => await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

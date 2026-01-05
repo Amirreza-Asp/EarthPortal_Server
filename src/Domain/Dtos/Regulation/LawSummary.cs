@@ -15,5 +15,7 @@
         public String? NewspaperFile { get; set; }
         public String ApprovalType { get; set; }
         public bool ShowArticle { get; set; }
+
+        public List<string> LawContentTitles { get; set; } = new();
     }
 }

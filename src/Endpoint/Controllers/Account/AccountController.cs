@@ -21,7 +21,11 @@ namespace Endpoint.Controllers.Account
         private readonly IRepository<User> _userRepo;
         private readonly IRepository<Role> _roleRepo;
 
-        public AccountController(IMediator mediator, IRepository<User> userRepo, IRepository<Role> roleRepo)
+        public AccountController(
+            IMediator mediator,
+            IRepository<User> userRepo,
+            IRepository<Role> roleRepo
+        )
         {
             _mediator = mediator;
             _userRepo = userRepo;
@@ -30,21 +34,26 @@ namespace Endpoint.Controllers.Account
 
         [HttpPost]
         [Route("Login")]
-        public async Task<CommandResponse> Login([FromBody] LoginCommand command, CancellationToken cancellationToken) =>
-            await _mediator.HandleRequestAsync(command, cancellationToken);
+        public async Task<CommandResponse> Login(
+            [FromBody] LoginCommand command,
+            CancellationToken cancellationToken
+        ) => await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpGet]
         [Route("Logout")]
         public CommandResponse Logout()
         {
-            HttpContext.Response.Cookies.Delete(SD.AuthToken, new CookieOptions
-            {
-                Path = "/",
-                Secure = true,
-                HttpOnly = true,
-                SameSite = SameSiteMode.None,
-                IsEssential = true
-            });
+            HttpContext.Response.Cookies.Delete(
+                SD.AuthToken,
+                new CookieOptions
+                {
+                    Path = "/",
+                    Secure = true,
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    IsEssential = true
+                }
+            );
 
             return CommandResponse.Success();
         }
@@ -59,12 +68,25 @@ namespace Endpoint.Controllers.Account
             if (userName == null)
                 return CommandResponse.Failure(400, "کاربر به سیستم وارد نشده");
 
-            var user = await _userRepo.FirstOrDefaultAsync(b => b.UserName == userName, include: source => source.Include(b => b.Role), cancellationToken);
+            var user = await _userRepo.FirstOrDefaultAsync(
+                b => b.UserName == userName,
+                include: source => source.Include(b => b.Role),
+                cancellationToken
+            );
 
             if (userName == null)
                 return CommandResponse.Failure(400, "کاربر در سیستم وجود ندارد");
 
-            return CommandResponse.Success(new { userName = user.UserName, name = user.Name + " " + user.Family, role = user.Role?.Title, roleDisplay = user.Role?.Display, contentEdit = user.EnableContentEdit });
+            return CommandResponse.Success(
+                new
+                {
+                    userName = user.UserName,
+                    name = user.Name + " " + user.Family,
+                    role = user.Role?.Title,
+                    roleDisplay = user.Role?.Display,
+                    contentEdit = user.EnableContentEdit
+                }
+            );
         }
 
         [HttpPut]
@@ -73,7 +95,6 @@ namespace Endpoint.Controllers.Account
         [Route("[action]")]
         public async Task<CommandResponse> ToggleEditContent(CancellationToken cancellationToken) =>
             await _mediator.HandleRequestAsync(new ToggleEditContentCommand(), cancellationToken);
-
 
         [HttpGet]
         [Route("[action]")]

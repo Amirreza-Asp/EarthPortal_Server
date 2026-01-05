@@ -5,15 +5,13 @@ namespace Domain.Entities.Regulation
     //نوع مصوبه
     public class ApprovalType : BaseEntity
     {
-        public ApprovalType(string value) : base(Guid.NewGuid())
+        public ApprovalType(string value)
+            : base(Guid.NewGuid())
         {
             Value = value;
         }
 
-        private ApprovalType()
-        {
-
-        }
+        private ApprovalType() { }
 
         public String Value { get; set; }
     }

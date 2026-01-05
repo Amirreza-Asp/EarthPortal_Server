@@ -18,7 +18,13 @@ namespace Application.Utilities
                 ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
                 using (MemoryStream ms = new MemoryStream())
                 {
-                    using (CryptoStream cryptoStream = new CryptoStream((Stream)ms, encryptor, CryptoStreamMode.Write))
+                    using (
+                        CryptoStream cryptoStream = new CryptoStream(
+                            (Stream)ms,
+                            encryptor,
+                            CryptoStreamMode.Write
+                        )
+                    )
                     {
                         using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
                         {
@@ -50,7 +56,13 @@ namespace Application.Utilities
                     ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
                     using (MemoryStream ms = new MemoryStream(buffer))
                     {
-                        using (CryptoStream cryptoStream = new CryptoStream((Stream)ms, decryptor, CryptoStreamMode.Read))
+                        using (
+                            CryptoStream cryptoStream = new CryptoStream(
+                                (Stream)ms,
+                                decryptor,
+                                CryptoStreamMode.Read
+                            )
+                        )
                         {
                             using (StreamReader sr = new StreamReader(cryptoStream))
                             {
@@ -60,11 +72,10 @@ namespace Application.Utilities
                     }
                 }
             }
-            catch (Exception e)
+            catch
             {
                 return text;
             }
-
         }
     }
 }

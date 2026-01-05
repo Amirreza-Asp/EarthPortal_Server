@@ -12,12 +12,18 @@ namespace Persistence.CQRS.Contact.About
     public class CreateAboutCommandHandler : IRequestHandler<CreateAboutCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IPhotoManager _photoManager;
         private readonly ILogger<CreateAboutCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public CreateAboutCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env, IUserAccessor userAccessor, ILogger<CreateAboutCommandHandler> logger)
+        public CreateAboutCommandHandler(
+            ApplicationDbContext context,
+            IPhotoManager photoManager,
+            IWebHostEnvironment env,
+            IUserAccessor userAccessor,
+            ILogger<CreateAboutCommandHandler> logger
+        )
         {
             _context = context;
             _photoManager = photoManager;
@@ -26,7 +32,10 @@ namespace Persistence.CQRS.Contact.About
             _logger = logger;
         }
 
-        public async Task<CommandResponse> Handle(CreateAboutCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            CreateAboutCommand request,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
@@ -49,27 +58,41 @@ namespace Persistence.CQRS.Contact.About
 
                     _photoManager.Save(request.Image, upload + imgName);
 
-                    var about = new AboutUs(request.Title, request.Description, null, imgName, request.AccomplishedDate);
+                    var about = new AboutUs(
+                        request.Title,
+                        request.Description,
+                        null,
+                        imgName,
+                        request.AccomplishedDate
+                    );
                     about.Order = request.Order;
                     _context.AboutUs.Add(about);
 
-
                     if (await _context.SaveChangesAsync(cancellationToken) > 0)
                     {
-                        _logger.LogInformation($"about with id {about.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                        _logger.LogInformation(
+                            $"about with id {about.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                        );
                         return CommandResponse.Success(new { id = about.Id, image = imgName });
                     }
                 }
                 else
                 {
-                    var about = new AboutUs(request.Title, request.Description, request.Video, null, request.AccomplishedDate);
+                    var about = new AboutUs(
+                        request.Title,
+                        request.Description,
+                        request.Video,
+                        null,
+                        request.AccomplishedDate
+                    );
                     about.Order = request.Order;
                     _context.AboutUs.Add(about);
 
-
                     if (await _context.SaveChangesAsync(cancellationToken) > 0)
                     {
-                        _logger.LogInformation($"about with id {about.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                        _logger.LogInformation(
+                            $"about with id {about.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                        );
                         return CommandResponse.Success(new { id = about.Id });
                     }
                 }

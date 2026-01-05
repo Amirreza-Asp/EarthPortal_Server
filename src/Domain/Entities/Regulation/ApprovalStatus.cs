@@ -4,7 +4,8 @@ namespace Domain.Entities.Regulation
 {
     public class ApprovalStatus : BaseEntity
     {
-        public ApprovalStatus(string status) : base(Guid.NewGuid())
+        public ApprovalStatus(string status)
+            : base(Guid.NewGuid())
         {
             Status = status;
         }

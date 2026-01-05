@@ -1,6 +1,4 @@
 ﻿using Application.CQRS.Captcha;
-using Application.Models;
-using Domain.Dtos.Account;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,9 +18,11 @@ namespace Endpoint.Controllers.Captcha
         [HttpGet("GetCaptcha")]
         public async Task<IActionResult> GetCaptcha(CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GenerateCaptchaCommandRequest(), cancellationToken);
+            var result = await _mediator.Send(
+                new GenerateCaptchaCommandRequest(),
+                cancellationToken
+            );
             return File(result, "Image/Png", true);
-
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Application.Contracts.Persistence.Repositories;
+﻿using System.Reflection;
+using Application.Contracts.Persistence.Repositories;
 using Application.Contracts.Persistence.Services;
 using Application.Contracts.Persistence.Utilities;
 using MediatR;
@@ -9,14 +10,15 @@ using Persistence.Behavoirs;
 using Persistence.Repositories;
 using Persistence.Services;
 using Persistence.Utilities;
-using System.Reflection;
 
 namespace Persistence
 {
     public static class Registration
     {
-
-        public static IServiceCollection AddPersistencsRegistrations(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddPersistencsRegistrations(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
         {
             // Database
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -48,6 +50,5 @@ namespace Persistence
 
             return services;
         }
-
     }
 }

@@ -8,27 +8,50 @@ namespace Infrastructure.Profiles
 {
     public class RegulationProfile : Profile
     {
-
         public RegulationProfile()
         {
             CreateMap<Law, Law>();
             CreateMap<Law, LawSummary>()
-                .ForMember(b => b.Type, d => d.MapFrom(e => e.Type == LawType.Rule ? "آیین نامه" : "قانون"))
+                .ForMember(
+                    b => b.Type,
+                    d => d.MapFrom(e => e.Type == LawType.Rule ? "آیین نامه" : "قانون")
+                )
                 .ForMember(b => b.ApprovalAuthority, d => d.MapFrom(e => e.ApprovalAuthority.Name))
                 .ForMember(b => b.ApprovalStatus, d => d.MapFrom(e => e.ApprovalStatus.Status))
                 .ForMember(b => b.ApprovalType, d => d.MapFrom(e => e.ApprovalType.Value))
                 .ForMember(b => b.NewspaperNumber, d => d.MapFrom(e => e.Newspaper.Number))
                 .ForMember(b => b.NewspaperFile, d => d.MapFrom(e => e.Newspaper.File))
+                .ForMember(
+                    b => b.LawContentTitles,
+                    d => d.MapFrom(e => e.LawLawContents.Select(l => l.LawContent.Title))
+                )
                 .ForMember(b => b.ShowArticle, d => d.Ignore());
 
             CreateMap<Law, LawDetails>()
                 .ForMember(b => b.ApprovalAuthority, d => d.MapFrom(e => e.ApprovalAuthority.Name))
-                .ForMember(b => b.Type, d => d.MapFrom(e => e.Type == LawType.Rule ? "آیین نامه" : "قانون"))
+                .ForMember(
+                    b => b.Type,
+                    d => d.MapFrom(e => e.Type == LawType.Rule ? "آیین نامه" : "قانون")
+                )
                 .ForMember(b => b.ApprovalStatusTitle, d => d.MapFrom(e => e.ApprovalStatus.Status))
                 .ForMember(b => b.ApprovalAuthority, d => d.MapFrom(e => e.ApprovalAuthority.Name))
                 .ForMember(b => b.ApprovalTypeTitle, d => d.MapFrom(e => e.ApprovalType.Value))
-                .ForMember(b => b.ExecutorManagmentTitle, d => d.MapFrom(e => e.ExecutorManagment.Name))
-                .ForMember(b => b.LawCategoryTitle, d => d.MapFrom(e => e.LawCategory.Title));
+                .ForMember(
+                    b => b.ExecutorManagmentTitle,
+                    d => d.MapFrom(e => e.ExecutorManagment.Name)
+                )
+                .ForMember(b => b.LawCategoryTitle, d => d.MapFrom(e => e.LawCategory.Title))
+                .ForMember(
+                    b => b.LawContents,
+                    d =>
+                        d.MapFrom(e =>
+                            e.LawLawContents.Select(l => new LawContentSimple
+                            {
+                                Id = l.LawContent.Id,
+                                Title = l.LawContent.Title
+                            })
+                        )
+                );
 
             CreateMap<LawCategory, SelectListItem>()
                 .ForMember(b => b.Value, d => d.MapFrom(e => e.Id))
@@ -50,6 +73,5 @@ namespace Infrastructure.Profiles
                 .ForMember(b => b.Value, d => d.MapFrom(e => e.Id))
                 .ForMember(b => b.Text, d => d.MapFrom(e => e.Name));
         }
-
     }
 }

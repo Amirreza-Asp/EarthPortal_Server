@@ -5,7 +5,8 @@ namespace Domain.Entities.Regulation
 {
     public class LawImage : BaseEntity
     {
-        public LawImage(string path, int order, Guid lawId, LawImageType type) : base(Guid.NewGuid())
+        public LawImage(string path, int order, Guid lawId, LawImageType type)
+            : base(Guid.NewGuid())
         {
             Path = path;
             Order = order;
@@ -22,6 +23,4 @@ namespace Domain.Entities.Regulation
 
         public Law? Law { get; set; }
     }
-
-
 }

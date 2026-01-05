@@ -9,15 +9,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Infographics
 {
-    public class CreateInfographicCommandHandler : IRequestHandler<CreateInfographicCommand, CommandResponse>
+    public class CreateInfographicCommandHandler
+        : IRequestHandler<CreateInfographicCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly IPhotoManager _photoManager;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly ILogger<CreateInfographicCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public CreateInfographicCommandHandler(ApplicationDbContext context, IPhotoManager photoManager, IHostingEnvironment env, ILogger<CreateInfographicCommandHandler> logger, IUserAccessor userAccessor)
+        public CreateInfographicCommandHandler(
+            ApplicationDbContext context,
+            IPhotoManager photoManager,
+            IWebHostEnvironment env,
+            ILogger<CreateInfographicCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _photoManager = photoManager;
@@ -26,7 +33,10 @@ namespace Persistence.CQRS.Multimedia.Infographics
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(CreateInfographicCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            CreateInfographicCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var upload = _env.WebRootPath + SD.InfographicPath;
             var imgName = Guid.NewGuid() + Path.GetExtension(request.Image.FileName);
@@ -45,7 +55,9 @@ namespace Persistence.CQRS.Multimedia.Infographics
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"Infographic with id {infographic.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"Infographic with id {infographic.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
                 return CommandResponse.Success(new { Name = imgName, Id = infographic.Id });
             }
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");

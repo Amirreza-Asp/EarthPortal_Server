@@ -1,11 +1,11 @@
-﻿using Application.Contracts.Persistence.Services;
-using Domain;
-using Domain.Dtos.ExternalAPI;
-using Microsoft.Extensions.Caching.Memory;
-using System.Net;
+﻿using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Application.Contracts.Persistence.Services;
+using Domain;
+using Domain.Dtos.ExternalAPI;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Persistence.Services
 {
@@ -18,7 +18,9 @@ namespace Persistence.Services
             _memoryCache = memoryCache;
         }
 
-        public async Task<CasesAndUsersResponse> GetCasesAndUsersAsync(CancellationToken cancellationToken = default)
+        public async Task<CasesAndUsersResponse> GetCasesAndUsersAsync(
+            CancellationToken cancellationToken = default
+        )
         {
             CasesAndUsersResponse data = null;
             try
@@ -28,7 +30,12 @@ namespace Persistence.Services
 
                 byte[] iv = Encoding.UTF8.GetBytes(SD.IranelandIV);
 
-                var date = DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString("00") + DateTime.Now.Day.ToString("00") + DateTime.Now.Hour.ToString("00") + "1994";
+                var date =
+                    DateTime.Now.Year.ToString()
+                    + DateTime.Now.Month.ToString("00")
+                    + DateTime.Now.Day.ToString("00")
+                    + DateTime.Now.Hour.ToString("00")
+                    + "1994";
                 var dateNumber = Convert.ToInt64(date) * 11;
 
                 byte[] cryptKey = SHA256.HashData(Encoding.UTF8.GetBytes(SD.IranelandSecretKey));
@@ -41,12 +48,21 @@ namespace Persistence.Services
                 var content = new FormUrlEncodedContent(values);
 
                 client.Timeout = TimeSpan.FromSeconds(60);
-                System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-                var response = await client.PostAsync($"https://zamin.gov.ir/ow/service/ow/portalStatisticService", content);
+                System.Net.ServicePointManager.SecurityProtocol =
+                    SecurityProtocolType.Tls12
+                    | SecurityProtocolType.Tls11
+                    | SecurityProtocolType.Tls;
+                var response = await client.PostAsync(
+                    $"https://zamin.gov.ir/ow/service/ow/portalStatisticService",
+                    content
+                );
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    var responseString = response
+                        .Content.ReadAsStringAsync()
+                        .GetAwaiter()
+                        .GetResult();
 
                     var jsonData = IranelandEncryptionUtil.Decode(cryptKey, iv, responseString);
 
@@ -54,17 +70,15 @@ namespace Persistence.Services
                     _memoryCache.Set("IranelandCases", data, DateTimeOffset.Now.AddHours(1));
 
                     return data;
-
                 }
 
                 return null;
             }
-            catch (Exception ex)
+            catch
             {
                 return null;
             }
         }
-
     }
 
     public class IranelandEncryptionUtil
@@ -108,7 +122,9 @@ namespace Persistence.Services
                 byte[] encryptedData;
                 using (MemoryStream ms = new MemoryStream())
                 {
-                    using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                    using (
+                        CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write)
+                    )
                     {
                         cs.Write(clearBytes, 0, clearBytes.Length);
                         cs.Close();
@@ -126,5 +142,4 @@ namespace Persistence.Services
             return Convert.ToBase64String(bytes);
         }
     }
-
 }

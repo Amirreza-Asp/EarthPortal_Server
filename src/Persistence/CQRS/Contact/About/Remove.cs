@@ -12,11 +12,16 @@ namespace Persistence.CQRS.Contact.About
     public class RemoveAboutCommandHandler : IRequestHandler<RemoveAboutCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly ILogger<RemoveAboutCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveAboutCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IUserAccessor userAccessor, ILogger<RemoveAboutCommandHandler> logger)
+        public RemoveAboutCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IUserAccessor userAccessor,
+            ILogger<RemoveAboutCommandHandler> logger
+        )
         {
             _context = context;
             _env = env;
@@ -24,9 +29,15 @@ namespace Persistence.CQRS.Contact.About
             _logger = logger;
         }
 
-        public async Task<CommandResponse> Handle(RemoveAboutCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveAboutCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var about = await _context.AboutUs.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var about = await _context.AboutUs.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (about == null)
                 return CommandResponse.Failure(400, "آیتم مورد نظر در سیستم وجود ندارد");
@@ -43,7 +54,9 @@ namespace Persistence.CQRS.Contact.About
                 if (File.Exists(upload + about.Image))
                     File.Delete(upload + about.Image);
 
-                _logger.LogInformation($"about with id {about.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"about with id {about.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
 
                 return CommandResponse.Success();
             }

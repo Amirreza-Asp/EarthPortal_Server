@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +43,7 @@ builder.Services.AddMemoryCache();
 
 
 builder.Services.AddDistributedMemoryCache();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -51,7 +51,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddOptions();
 
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
-builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+builder.Services.Configure<IpRateLimitPolicies>(
+    builder.Configuration.GetSection("IpRateLimitPolicies")
+);
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
 builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
@@ -60,24 +62,32 @@ builder.Services.AddInMemoryRateLimiting();
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services
-    .AddApplicationRegistrations()
+builder
+    .Services.AddApplicationRegistrations()
     .AddPersistencsRegistrations(builder.Configuration)
     .AddInfrastructureRegistrations();
 
 builder.Services.AddHostedService<CasesAndUsersWorker>();
 
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CorsPolicy", policy =>
-    {
-        policy
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .WithOrigins("https://sinic.iraneland.ir", "http://localhost:3000", "https://zamin.gov.ir", "http://localhost:5173", "https://newportal.iraneland.ir")
-            .AllowCredentials();
-    });
+    options.AddPolicy(
+        "CorsPolicy",
+        policy =>
+        {
+            policy
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .WithOrigins(
+                    "https://sinic.iraneland.ir",
+                    "http://localhost:3000",
+                    "https://zamin.gov.ir",
+                    "http://localhost:5173",
+                    "https://newportal.iraneland.ir"
+                )
+                .AllowCredentials();
+        }
+    );
 });
 
 builder.Services.AddSession(options =>
@@ -88,28 +98,30 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.None;
-
-
 });
 
 builder.Services.AddSpaStaticFiles(configuration =>
 {
     configuration.RootPath = "clientapp/dist";
-
 });
 
-
-builder.Services.AddAntiforgery(o => { o.Cookie.Name = "X-XSRF"; o.HeaderName = "X-XCSRF"; o.SuppressXFrameOptionsHeader = false; });
+builder.Services.AddAntiforgery(o =>
+{
+    o.Cookie.Name = "X-XSRF";
+    o.HeaderName = "X-XCSRF";
+    o.SuppressXFrameOptionsHeader = false;
+});
 
 builder.Services.AddSignalR();
 
 #region JWT
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
+builder
+    .Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
     .AddCookie(x =>
     {
         x.Cookie.Name = SD.AuthToken;
@@ -132,13 +144,14 @@ builder.Services.AddAuthentication(options =>
         {
             OnTokenValidated = context =>
             {
-                var tokenValidatorService = context.HttpContext.RequestServices.GetRequiredService<ITokenValidate>();
+                var tokenValidatorService =
+                    context.HttpContext.RequestServices.GetRequiredService<ITokenValidate>();
                 return tokenValidatorService.Execute(context);
             },
             OnMessageReceived = context =>
             {
-                var userCounterService = context.HttpContext.RequestServices.GetRequiredService<IUserCounterService>();
-
+                var userCounterService =
+                    context.HttpContext.RequestServices.GetRequiredService<IUserCounterService>();
 
                 var token = context.Request.Cookies[SD.AuthToken];
                 if (token != null)
@@ -152,7 +165,6 @@ builder.Services.AddAuthentication(options =>
 #endregion
 
 var app = builder.Build();
-
 
 app.Lifetime.ApplicationStarted.Register(() =>
 {
@@ -180,43 +192,44 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSpaStaticFiles();
+
 // app.UseStaticFiles();
 
 app.UseCustomHeaderHandler();
 
-
 var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method.ToLower() != "get")
+app.Use(
+    async (context, next) =>
     {
-        if (context.Request.Path.Value.StartsWith("/"))
+        if (context.Request.Method.ToLower() != "get")
         {
-            var tokens = antiforgery.GetAndStoreTokens(context);
-            context.Response.Cookies.Delete("X-CSRF");
-            context.Response.Cookies.Append("X-CSRF", tokens.RequestToken,
-            new CookieOptions()
+            if (context.Request.Path.Value.StartsWith("/"))
             {
-                HttpOnly = false,
-                Secure = true,
-                IsEssential = true,
-                SameSite = SameSiteMode.None,
-            });
+                var tokens = antiforgery.GetAndStoreTokens(context);
+                context.Response.Cookies.Delete("X-CSRF");
+                context.Response.Cookies.Append(
+                    "X-CSRF",
+                    tokens.RequestToken,
+                    new CookieOptions()
+                    {
+                        HttpOnly = false,
+                        Secure = true,
+                        IsEssential = true,
+                        SameSite = SameSiteMode.None,
+                    }
+                );
+            }
         }
+
+        await next();
     }
-
-    await next();
-});
-
-
+);
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}"
-    ).RequireCors("CorsPolicy");
-
+    endpoints
+        .MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}")
+        .RequireCors("CorsPolicy");
 });
 
 app.UseSpa(config =>

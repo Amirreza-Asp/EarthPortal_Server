@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Domain.Dtos.Contact;
 using Domain.Dtos.Content;
+using Domain.Dtos.Timeline;
 using Domain.Entities.Contact;
+using Domain.Entities.Timelines;
 
 namespace Infrastructure.Profiles
 {
@@ -25,6 +27,9 @@ namespace Infrastructure.Profiles
             CreateMap<Goal, Goal>();
 
             CreateMap<AboutUs, AboutUsSummary>()
+                .ForMember(b => b.HaveVideo, d => d.MapFrom(e => !String.IsNullOrEmpty(e.Video)));
+
+            CreateMap<Timeline, TimelineSummary>()
                 .ForMember(b => b.HaveVideo, d => d.MapFrom(e => !String.IsNullOrEmpty(e.Video)));
 
         }

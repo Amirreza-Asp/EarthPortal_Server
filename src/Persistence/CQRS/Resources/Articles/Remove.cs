@@ -9,13 +9,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Articles
 {
-    public class RemoveArticleCommandHandler : IRequestHandler<RemoveArticleCommand, CommandResponse>
+    public class RemoveArticleCommandHandler
+        : IRequestHandler<RemoveArticleCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly ILogger<RemoveArticleCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
-        public RemoveArticleCommandHandler(ApplicationDbContext context, IHostingEnvironment env, ILogger<RemoveArticleCommandHandler> logger, IUserAccessor userAccessor)
+
+        public RemoveArticleCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            ILogger<RemoveArticleCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -23,15 +30,16 @@ namespace Persistence.CQRS.Resources.Articles
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(RemoveArticleCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveArticleCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var entity = await _context.Article.FirstOrDefaultAsync(b => b.Id == request.Id);
             var upload = _env.WebRootPath;
 
             if (entity == null)
                 return CommandResponse.Failure(400, "مقاله مورد نظر در سیستم وجود ندارد");
-
-
 
             _context.Article.Remove(entity);
 
@@ -43,7 +51,9 @@ namespace Persistence.CQRS.Resources.Articles
                 if (File.Exists(upload + SD.ArticleImagePath + entity.Image))
                     File.Delete(upload + SD.ArticleImagePath + entity.Image);
 
-                _logger.LogInformation($"Article with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"Article with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
                 return CommandResponse.Success();
             }
 

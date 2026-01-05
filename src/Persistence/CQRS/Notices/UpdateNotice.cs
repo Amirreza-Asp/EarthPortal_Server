@@ -12,15 +12,21 @@ namespace Persistence.CQRS.Notices
 {
     public class UpdateNoticeCommandHandler : IRequestHandler<UpdateNoticeCommand, CommandResponse>
     {
-
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IMediator _mediator;
         private readonly IPhotoManager _photoManager;
         private readonly ILogger<UpdateNoticeCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateNoticeCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, IMediator mediator, ILogger<UpdateNoticeCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateNoticeCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IPhotoManager photoManager,
+            IMediator mediator,
+            ILogger<UpdateNoticeCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -30,11 +36,16 @@ namespace Persistence.CQRS.Notices
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateNoticeCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateNoticeCommand request,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
-                var notice = await _context.Notices.Where(b => b.Id == request.Id).FirstOrDefaultAsync(cancellationToken);
+                var notice = await _context
+                    .Notices.Where(b => b.Id == request.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
 
                 if (notice == null)
                     return CommandResponse.Failure(400, "اطلاعیه مورد نظر در سیستم وجود ندارد");
@@ -51,13 +62,18 @@ namespace Persistence.CQRS.Notices
 
                 _context.Notices.Update(notice);
 
-                var upsertNoticeLink = new UpsertNoticeLinkCommand(request.Links == null ? new List<string>() : request.Links, request.Id);
+                var upsertNoticeLink = new UpsertNoticeLinkCommand(
+                    request.Links == null ? new List<string>() : request.Links,
+                    request.Id
+                );
                 var response = await _mediator.Send(upsertNoticeLink, cancellationToken);
 
                 if (response.Status != 200)
                     return response;
 
-                var image = await _context.NoticeImage.Where(b => b.NoticeId == request.Id).FirstOrDefaultAsync(cancellationToken);
+                var image = await _context
+                    .NoticeImage.Where(b => b.NoticeId == request.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
 
                 var oldImage = image != null ? image.Name : String.Empty;
 
@@ -70,12 +86,17 @@ namespace Persistence.CQRS.Notices
                 {
                     if (image != null)
                     {
-                        image.Name = Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName);
+                        image.Name =
+                            Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName);
                         _context.NoticeImage.Update(image);
                     }
                     else
                     {
-                        image = new NoticeImage(Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName), request.Id, 0);
+                        image = new NoticeImage(
+                            Guid.NewGuid().ToString() + Path.GetExtension(request.Image.FileName),
+                            request.Id,
+                            0
+                        );
                         _context.NoticeImage.Add(image);
                     }
 
@@ -84,11 +105,17 @@ namespace Persistence.CQRS.Notices
 
                 await _context.SaveChangesAsync(cancellationToken);
 
-                if (request.Image != null && !String.IsNullOrEmpty(oldImage) && File.Exists(upload + oldImage))
+                if (
+                    request.Image != null
+                    && !String.IsNullOrEmpty(oldImage)
+                    && File.Exists(upload + oldImage)
+                )
                     File.Delete(upload + oldImage);
 
                 _context.Database.CommitTransaction();
-                _logger.LogInformation($"Notice with id {notice.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    $"Notice with id {notice.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
 
                 return CommandResponse.Success(new { Image = image.Name });
             }

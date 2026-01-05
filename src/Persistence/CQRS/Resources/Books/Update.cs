@@ -12,12 +12,18 @@ namespace Persistence.CQRS.Resources.Books
     public class UpdateBookCommandHandler : IRequestHandler<UpdateBookCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IPhotoManager _photoManager;
         private readonly ILogger<UpdateBookCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateBookCommandHandler(ApplicationDbContext context, IHostingEnvironment env, IPhotoManager photoManager, ILogger<UpdateBookCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateBookCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IPhotoManager photoManager,
+            ILogger<UpdateBookCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -26,9 +32,15 @@ namespace Persistence.CQRS.Resources.Books
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateBookCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateBookCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var book = await _context.Book.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var book = await _context.Book.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (book == null)
                 return CommandResponse.Failure(400, "کتاب مورد نظر در سیستم وجود ندارد");
@@ -40,9 +52,6 @@ namespace Persistence.CQRS.Resources.Books
 
             if (!Directory.Exists(upload + SD.BookFilePath))
                 Directory.CreateDirectory(upload + SD.BookFilePath);
-
-
-
 
             var oldImage = book.Image;
             var oldFile = book.File;
@@ -58,13 +67,17 @@ namespace Persistence.CQRS.Resources.Books
             book.PublishDate = request.PublishDate;
             book.TranslatorId = request.TranslatorId;
 
-
             if (request.File != null)
             {
                 var fileName = Guid.NewGuid() + Path.GetExtension(request.File.FileName);
                 book.File = fileName;
 
-                using (Stream fileStream = new FileStream(upload + SD.BookFilePath + book.File, FileMode.Create))
+                using (
+                    Stream fileStream = new FileStream(
+                        upload + SD.BookFilePath + book.File,
+                        FileMode.Create
+                    )
+                )
                 {
                     await request.File.CopyToAsync(fileStream);
                 }
@@ -79,26 +92,31 @@ namespace Persistence.CQRS.Resources.Books
 
             _context.Book.Update(book);
 
-
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-
                 if (request.Image != null)
                 {
                     if (File.Exists(upload + SD.BookImagePath + oldImage))
                         File.Delete(upload + SD.BookImagePath + oldImage);
-
                 }
 
                 if (request.File != null)
                 {
                     if (File.Exists(upload + SD.BookFilePath + oldFile))
                         File.Delete(upload + SD.BookFilePath + oldFile);
-
                 }
 
-                _logger.LogInformation($"Book with id {book.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
-                return CommandResponse.Success(new { Id = book.Id, Image = book.Image, File = book.File });
+                _logger.LogInformation(
+                    $"Book with id {book.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                );
+                return CommandResponse.Success(
+                    new
+                    {
+                        Id = book.Id,
+                        Image = book.Image,
+                        File = book.File
+                    }
+                );
             }
 
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
