@@ -91,8 +91,12 @@ namespace Persistence.CQRS.Regulation.Laws
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"Law with id {law.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Law with id {Id} created by {UserRealName} in {DoneTime}",
+                    law.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(law.Id);
             }
 

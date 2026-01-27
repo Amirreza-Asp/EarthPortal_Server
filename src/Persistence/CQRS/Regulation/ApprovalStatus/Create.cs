@@ -6,21 +6,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Regulation.ApprovalStatus
 {
-    public class CreateApprovalStatusCommandHandler : IRequestHandler<CreateApprovalStatusCommand, CommandResponse>
+    public class CreateApprovalStatusCommandHandler
+        : IRequestHandler<CreateApprovalStatusCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<CreateApprovalStatusCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-
-        public CreateApprovalStatusCommandHandler(ApplicationDbContext context, ILogger<CreateApprovalStatusCommandHandler> logger, IUserAccessor userAccessor)
+        public CreateApprovalStatusCommandHandler(
+            ApplicationDbContext context,
+            ILogger<CreateApprovalStatusCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(CreateApprovalStatusCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            CreateApprovalStatusCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var entity = new Domain.Entities.Regulation.ApprovalStatus(request.Title);
             entity.Order = request.Order;
@@ -28,7 +35,13 @@ namespace Persistence.CQRS.Regulation.ApprovalStatus
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"ApprovalStatus with id {entity.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "ApprovalStatus with id {Id} created by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success(entity.Id);
             }
 

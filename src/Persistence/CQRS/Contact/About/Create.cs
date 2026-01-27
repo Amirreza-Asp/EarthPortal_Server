@@ -71,8 +71,12 @@ namespace Persistence.CQRS.Contact.About
                     if (await _context.SaveChangesAsync(cancellationToken) > 0)
                     {
                         _logger.LogInformation(
-                            $"about with id {about.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                            "about with id {Username} registered by {UserRealName} in {DoneTime}",
+                            about.Id,
+                            _userAccessor.GetUserName(),
+                            DateTimeOffset.UtcNow
                         );
+
                         return CommandResponse.Success(new { id = about.Id, image = imgName });
                     }
                 }
@@ -91,8 +95,12 @@ namespace Persistence.CQRS.Contact.About
                     if (await _context.SaveChangesAsync(cancellationToken) > 0)
                     {
                         _logger.LogInformation(
-                            $"about with id {about.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                            "about with id {Username} registered by {UserRealName} in {DoneTime}",
+                            about.Id,
+                            _userAccessor.GetUserName(),
+                            DateTimeOffset.UtcNow
                         );
+
                         return CommandResponse.Success(new { id = about.Id });
                     }
                 }

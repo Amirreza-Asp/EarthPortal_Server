@@ -7,25 +7,36 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.EducationalVideos
 {
-    public class UpdateEducationalVideoCommandHandler : IRequestHandler<UpdateEducationalVideoCommand, CommandResponse>
+    public class UpdateEducationalVideoCommandHandler
+        : IRequestHandler<UpdateEducationalVideoCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<UpdateEducationalVideoCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateEducationalVideoCommandHandler(ApplicationDbContext context, ILogger<UpdateEducationalVideoCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateEducationalVideoCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdateEducationalVideoCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateEducationalVideoCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateEducationalVideoCommand request,
+            CancellationToken cancellationToken
+        )
         {
             if (!request.Video.Contains("</iframe>"))
                 return CommandResponse.Failure(400, "فرمت ویدیو وارد شده صحیح نیست");
 
-            var edv = await _context.EducationalVideo.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var edv = await _context.EducationalVideo.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (edv == null)
                 return CommandResponse.Failure(400, "ویدیو مورد نظر در سیستم وجود ندارد");
@@ -39,8 +50,13 @@ namespace Persistence.CQRS.Contact.EducationalVideos
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
+                _logger.LogInformation(
+                    "EducationalVideo with id {Username} updated by {UserRealName} in {DoneTime}",
+                    edv.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
 
-                _logger.LogInformation($"EducationalVideo with id {edv.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
             }
 

@@ -13,14 +13,21 @@ namespace Persistence.CQRS.Resources.Authors
         private readonly ILogger<CreateAuthorCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public CreateAuthorCommandHandler(ApplicationDbContext context, ILogger<CreateAuthorCommandHandler> logger, IUserAccessor userAccessor)
+        public CreateAuthorCommandHandler(
+            ApplicationDbContext context,
+            ILogger<CreateAuthorCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(CreateAuthorCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            CreateAuthorCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var author = new Author(request.Name);
             author.Order = request.Order;
@@ -28,8 +35,13 @@ namespace Persistence.CQRS.Resources.Authors
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
+                _logger.LogInformation(
+                    "Author with id {Id} updated by {UserRealName} in {DoneTime}",
+                    author.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
 
-                _logger.LogInformation($"Author with id {author.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(author.Id);
             }
 

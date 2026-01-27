@@ -73,7 +73,10 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
                     File.Delete(upload + oldImage);
 
                 _logger.LogInformation(
-                    $"RelatedCompany with id {relatedCompany.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "RelatedCompany with id {Username} updated by {UserRealName} in {DoneTime}",
+                    relatedCompany.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
 
                 return CommandResponse.Success(imgName);

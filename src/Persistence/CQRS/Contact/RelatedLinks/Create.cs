@@ -7,21 +7,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.RelatedLinks
 {
-    public class CreateRelatedLinkCommandHandler : IRequestHandler<CreateRelatedLinkCommand, CommandResponse>
+    public class CreateRelatedLinkCommandHandler
+        : IRequestHandler<CreateRelatedLinkCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<CreateRelatedLinkCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-
-        public CreateRelatedLinkCommandHandler(ApplicationDbContext context, ILogger<CreateRelatedLinkCommandHandler> logger, IUserAccessor userAccessor)
+        public CreateRelatedLinkCommandHandler(
+            ApplicationDbContext context,
+            ILogger<CreateRelatedLinkCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(CreateRelatedLinkCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            CreateRelatedLinkCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var entity = new RelatedLink(request.Title, request.Link, request.Order);
 
@@ -29,7 +36,13 @@ namespace Persistence.CQRS.Contact.RelatedLinks
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"RelatedLink with id {entity.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "RelatedLink with id {Username} created by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success(entity.Id);
             }
 

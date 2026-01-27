@@ -54,8 +54,12 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"RelatedCompany with id {relatedCompany.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "RelatedCompany with id {Username} created by {UserRealName} in {DoneTime}",
+                    relatedCompany.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(
                     new { Id = relatedCompany.Id, Image = relatedCompany.Image }
                 );

@@ -13,26 +13,41 @@ namespace Persistence.CQRS.Contact.Guids
         private readonly ILogger<RemoveGuideCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveGuideCommandHandler(ApplicationDbContext context, ILogger<RemoveGuideCommandHandler> logger, IUserAccessor userAccessor)
+        public RemoveGuideCommandHandler(
+            ApplicationDbContext context,
+            ILogger<RemoveGuideCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(RemoveGuideCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveGuideCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var guide = await _context.Guide.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var guide = await _context.Guide.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (guide == null)
                 return CommandResponse.Failure(400, "آیتم مورد نظر در سیستم وجود ندارد");
-
 
             _context.Guide.Remove(guide);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"Guide with id {guide.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "Guide with id {Username} removed by {UserRealName} in {DoneTime}",
+                    guide.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success(guide.Id);
             }
 

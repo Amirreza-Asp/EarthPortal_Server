@@ -107,8 +107,12 @@ namespace Persistence.CQRS.Resources.Books
                 }
 
                 _logger.LogInformation(
-                    $"Book with id {book.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Book with id {Id} updated by {UserRealName} in {DoneTime}",
+                    book.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(
                     new
                     {

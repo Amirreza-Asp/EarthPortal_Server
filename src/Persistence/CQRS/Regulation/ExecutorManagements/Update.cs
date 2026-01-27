@@ -7,22 +7,32 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Regulation.ExecutorManagements
 {
-    public class UpdateExecutorManagementCommandHandler : IRequestHandler<UpdateExecutorManagementCommand, CommandResponse>
+    public class UpdateExecutorManagementCommandHandler
+        : IRequestHandler<UpdateExecutorManagementCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<UpdateExecutorManagementCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateExecutorManagementCommandHandler(ApplicationDbContext context, ILogger<UpdateExecutorManagementCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateExecutorManagementCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdateExecutorManagementCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateExecutorManagementCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateExecutorManagementCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var entity = await _context.ExecutorManagment.FirstOrDefaultAsync(b => b.Id == request.Id);
+            var entity = await _context.ExecutorManagment.FirstOrDefaultAsync(b =>
+                b.Id == request.Id
+            );
 
             if (entity == null)
                 return CommandResponse.Failure(400, "دستگاه مجری انتخاب شده در سیستم وجود ندارد");
@@ -34,7 +44,13 @@ namespace Persistence.CQRS.Regulation.ExecutorManagements
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"ExecutorManagement with id {entity.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "ExecutorManagement with id {Id} updated by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 

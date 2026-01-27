@@ -8,22 +8,32 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Pages.PageMetadatas
 {
-    public class UpdatePageMetadataCommandHandler : IRequestHandler<UpdatePageMetadataCommand, CommandResponse>
+    public class UpdatePageMetadataCommandHandler
+        : IRequestHandler<UpdatePageMetadataCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<UpdatePageMetadataCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdatePageMetadataCommandHandler(ApplicationDbContext context, ILogger<UpdatePageMetadataCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdatePageMetadataCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdatePageMetadataCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdatePageMetadataCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdatePageMetadataCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var pageMeta = await _context.PageMetadata.Where(b => b.Id == request.Id).FirstOrDefaultAsync(cancellationToken);
+            var pageMeta = await _context
+                .PageMetadata.Where(b => b.Id == request.Id)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (pageMeta == null)
                 return CommandResponse.Failure(400, "شناسه وارد شده اشتباه است");
@@ -35,7 +45,13 @@ namespace Persistence.CQRS.Pages.PageMetadatas
             _context.PageMetadata.Update(pageMeta);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"PageMetadata with id {pageMeta.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+            _logger.LogInformation(
+                "PageMetadata with id {Id} updated by {UserRealName} in {DoneTime}",
+                pageMeta.Id,
+                _userAccessor.GetUserName(),
+                DateTimeOffset.UtcNow
+            );
+
             return CommandResponse.Success();
         }
     }

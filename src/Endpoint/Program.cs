@@ -11,8 +11,11 @@ using Endpoint.Middlewares;
 using Infrastructure;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
+using Serilog;
+using Serilog.Sinks.MSSqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,20 +30,22 @@ builder.Services.AddMvc(opt =>
 //builder.Logging.ClearProviders();
 builder.Services.AddMemoryCache();
 
-//builder.Host.UseSerilog((hostBuilderContext, logConfig) =>
-//{
-//    if (hostBuilderContext.HostingEnvironment.IsDevelopment())
-//    {
-//        logConfig.WriteTo.Console().MinimumLevel.Information();
-//        //logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
-//    }
-//    else
-//    {
-//        logConfig.ReadFrom.Configuration(hostBuilderContext.Configuration);
-//        //logConfig.WriteTo.Console().MinimumLevel.Error();
-//    }
-//});
+builder.Host.UseSerilog(
+    (ctx, logConfig) =>
+    {
+        var columnOptions = new ColumnOptions();
+        columnOptions.Store.Remove(StandardColumn.Properties);
+        columnOptions.Store.Add(StandardColumn.LogEvent);
 
+        logConfig
+            .ReadFrom.Configuration(ctx.Configuration)
+            .WriteTo.MSSqlServer(
+                ctx.Configuration.GetConnectionString("DefaultConnection"),
+                new MSSqlServerSinkOptions { TableName = "Logs", AutoCreateSqlTable = true },
+                columnOptions: columnOptions
+            );
+    }
+);
 
 builder.Services.AddDistributedMemoryCache();
 
@@ -97,7 +102,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
 builder.Services.AddSpaStaticFiles(configuration =>
@@ -108,6 +113,12 @@ builder.Services.AddSpaStaticFiles(configuration =>
 builder.Services.AddAntiforgery(o =>
 {
     o.Cookie.Name = "X-XSRF";
+
+    o.Cookie.HttpOnly = true;
+    o.Cookie.SecurePolicy = CookieSecurePolicy.None;
+    o.Cookie.SameSite = SameSiteMode.Strict;
+    o.Cookie.Path = "/";
+
     o.HeaderName = "X-XCSRF";
     o.SuppressXFrameOptionsHeader = false;
 });
@@ -166,6 +177,18 @@ builder
 
 var app = builder.Build();
 
+#region Antiforgery SSL Issue
+var forwardedOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+
+forwardedOptions.KnownNetworks.Clear();
+forwardedOptions.KnownProxies.Clear();
+
+app.UseForwardedHeaders(forwardedOptions);
+#endregion
+
 app.Lifetime.ApplicationStarted.Register(() =>
 {
     var scope = app.Services.CreateScope();
@@ -177,7 +200,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseHttpsRedirection();
 }
+
+Log.Information(
+    "🚀 Application starting at {Time} on {Machine}",
+    DateTime.UtcNow,
+    Environment.MachineName
+);
 
 app.UseIpRateLimiting();
 
@@ -185,8 +215,6 @@ app.UseRouting();
 
 app.UseCors("CorsPolicy");
 app.UseSession();
-
-// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -215,7 +243,7 @@ app.Use(
                         HttpOnly = false,
                         Secure = true,
                         IsEssential = true,
-                        SameSite = SameSiteMode.None,
+                        SameSite = SameSiteMode.Strict,
                     }
                 );
             }

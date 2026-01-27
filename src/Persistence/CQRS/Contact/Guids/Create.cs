@@ -13,22 +13,39 @@ namespace Persistence.CQRS.Contact.Guids
         private readonly ILogger<CreateGuideCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public CreateGuideCommandHandler(ApplicationDbContext context, ILogger<CreateGuideCommandHandler> logger, IUserAccessor userAccessor)
+        public CreateGuideCommandHandler(
+            ApplicationDbContext context,
+            ILogger<CreateGuideCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(CreateGuideCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            CreateGuideCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var guide = new Guide(request.Title, request.Content, request.IsPort.ToLower() == "true");
+            var guide = new Guide(
+                request.Title,
+                request.Content,
+                request.IsPort.ToLower() == "true"
+            );
             guide.Order = request.Order;
             _context.Guide.Add(guide);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"Guide with id {guide.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "Guide with id {Username} created by {UserRealName} in {DoneTime}",
+                    guide.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success(guide.Id);
             }
 

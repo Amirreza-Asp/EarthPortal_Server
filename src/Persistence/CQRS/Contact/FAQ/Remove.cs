@@ -13,17 +13,26 @@ namespace Persistence.CQRS.Contact.FAQ
         private readonly ILogger<RemoveFAQCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveFAQCommandHandler(ApplicationDbContext context, ILogger<RemoveFAQCommandHandler> logger, IUserAccessor userAccessor)
+        public RemoveFAQCommandHandler(
+            ApplicationDbContext context,
+            ILogger<RemoveFAQCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(RemoveFAQCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveFAQCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var faq = await _context.FrequentlyAskedQuestions.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
-
+            var faq = await _context.FrequentlyAskedQuestions.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (faq == null)
                 return CommandResponse.Failure(400, "سوال انتخاب شده در سیستم وجود ندارد");
@@ -32,7 +41,13 @@ namespace Persistence.CQRS.Contact.FAQ
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"FAQ with id {faq.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "FAQ with id {Username} removed by {UserRealName} in {DoneTime}",
+                    faq.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");

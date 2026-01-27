@@ -7,20 +7,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Regulation.ApprovalStatus
 {
-    public class UpdateApprovalStatusCommandHandler : IRequestHandler<UpdateApprovalStatusCommand, CommandResponse>
+    public class UpdateApprovalStatusCommandHandler
+        : IRequestHandler<UpdateApprovalStatusCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<UpdateApprovalStatusCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateApprovalStatusCommandHandler(ApplicationDbContext context, ILogger<UpdateApprovalStatusCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateApprovalStatusCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdateApprovalStatusCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateApprovalStatusCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateApprovalStatusCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var entity = await _context.ApprovalStatus.FirstOrDefaultAsync(b => b.Id == request.Id);
 
@@ -34,7 +42,13 @@ namespace Persistence.CQRS.Regulation.ApprovalStatus
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"ApprovalStatus with id {entity.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "ApprovalStatus with id {Id} updated by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 

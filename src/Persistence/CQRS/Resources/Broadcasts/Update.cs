@@ -109,8 +109,12 @@ namespace Persistence.CQRS.Resources.Broadcasts
                 }
 
                 _logger.LogInformation(
-                    $"Broadcast with id {entity.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Broadcast with id {Id} updated by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(
                     new
                     {

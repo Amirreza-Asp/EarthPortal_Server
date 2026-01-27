@@ -8,12 +8,12 @@ namespace Application.Contracts.Persistence.Repositories
     {
         Task<HomePage> GetAsync(CancellationToken cancellationToken);
 
-        Task<CommandResponse> ChangeHeaderAsync(HomeHeaderDto header, CancellationToken cancellationToken);
+        Task<CommandResponse> ChangeHeaderAsync(
+            HomeHeaderDto header,
+            CancellationToken cancellationToken
+        );
         Task<CommandResponse> ChangeWorkAsync(HomeWork work, CancellationToken cancellationToken);
         Task<CommandResponse> UpdateCasesAndUsersAsync(CasesAndUsersResponse model);
-
-
-
     }
 
     public class HomeHeaderDto

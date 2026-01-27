@@ -7,23 +7,33 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Translators
 {
-    public class UpdateTranslatorCommandHandler : IRequestHandler<UpdateTranslatorCommand, CommandResponse>
+    public class UpdateTranslatorCommandHandler
+        : IRequestHandler<UpdateTranslatorCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<UpdateTranslatorCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-
-        public UpdateTranslatorCommandHandler(ApplicationDbContext context, ILogger<UpdateTranslatorCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateTranslatorCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdateTranslatorCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateTranslatorCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateTranslatorCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var entity = await _context.Translator.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var entity = await _context.Translator.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (entity == null)
                 return CommandResponse.Failure(400, "مترجم مورد نظر در سیستم وجود ندارد");
@@ -35,8 +45,13 @@ namespace Persistence.CQRS.Resources.Translators
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
+                _logger.LogInformation(
+                    "Translator with id {Id} updated by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
 
-                _logger.LogInformation($"Translator with id {entity.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
             }
 

@@ -85,7 +85,10 @@ public class UpdateTimelineCommandHandler : IRequestHandler<UpdateTimelineComman
                             File.Delete(upload + oldImage);
 
                         _logger.LogInformation(
-                            $"Timeline with id {timeline.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                            "Timeline with id {Id} updated by {UserRealName} in {DoneTime}",
+                            timeline.Id,
+                            _userAccessor.GetUserName(),
+                            DateTimeOffset.UtcNow
                         );
 
                         return CommandResponse.Success(new { Image = timeline.Image });
@@ -105,7 +108,10 @@ public class UpdateTimelineCommandHandler : IRequestHandler<UpdateTimelineComman
                             File.Delete(upload + oldImage);
 
                         _logger.LogInformation(
-                            $"Timeline with id {timeline.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                            "Timeline with id {Id} updated by {UserRealName} in {DoneTime}",
+                            timeline.Id,
+                            _userAccessor.GetUserName(),
+                            DateTimeOffset.UtcNow
                         );
 
                         return CommandResponse.Success();

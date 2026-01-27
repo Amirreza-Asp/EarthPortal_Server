@@ -13,16 +13,26 @@ namespace Persistence.CQRS.Resources.Authors
         private readonly ILogger<UpdateAuthorCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateAuthorCommandHandler(ApplicationDbContext context, ILogger<UpdateAuthorCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateAuthorCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdateAuthorCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateAuthorCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateAuthorCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var author = await _context.Author.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var author = await _context.Author.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (author == null)
                 return CommandResponse.Failure(400, "نویسنده مورد نظر در سیستم وجود ندارد");
@@ -34,8 +44,13 @@ namespace Persistence.CQRS.Resources.Authors
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
+                _logger.LogInformation(
+                    "Author with id {Id} updated by {UserRealName} in {DoneTime}",
+                    author.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
 
-                _logger.LogInformation($"Author with id {author.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
             }
 

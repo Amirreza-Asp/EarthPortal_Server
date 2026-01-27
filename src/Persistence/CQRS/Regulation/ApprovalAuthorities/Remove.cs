@@ -7,32 +7,47 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Regulation.ApprovalAuthorities
 {
-    public class RemoveApprovalAuthorityCommandHandler : IRequestHandler<RemoveApprovalAuthorityCommand, CommandResponse>
+    public class RemoveApprovalAuthorityCommandHandler
+        : IRequestHandler<RemoveApprovalAuthorityCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<RemoveApprovalAuthorityCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveApprovalAuthorityCommandHandler(ApplicationDbContext context, ILogger<RemoveApprovalAuthorityCommandHandler> logger, IUserAccessor userAccessor)
+        public RemoveApprovalAuthorityCommandHandler(
+            ApplicationDbContext context,
+            ILogger<RemoveApprovalAuthorityCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(RemoveApprovalAuthorityCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveApprovalAuthorityCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var entity = await _context.ApprovalAuthority.FirstOrDefaultAsync(b => b.Id == request.Id);
+            var entity = await _context.ApprovalAuthority.FirstOrDefaultAsync(b =>
+                b.Id == request.Id
+            );
 
             if (entity == null)
                 return CommandResponse.Failure(400, "مرجع تصویب انتخاب شده در سیستم وجود ندارد");
-
 
             _context.ApprovalAuthority.Remove(entity);
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"ApprovalAuthority with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "ApprovalAuthority with id {Id} removed by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 

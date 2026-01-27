@@ -9,7 +9,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.Infographics
 {
-    public class UpdateInfographicCommandHandler : IRequestHandler<UpdateInfographicCommand, CommandResponse>
+    public class UpdateInfographicCommandHandler
+        : IRequestHandler<UpdateInfographicCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
@@ -17,7 +18,13 @@ namespace Persistence.CQRS.Multimedia.Infographics
         private readonly ILogger<UpdateInfographicCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateInfographicCommandHandler(ApplicationDbContext context, IWebHostEnvironment env, IPhotoManager photoManager, ILogger<UpdateInfographicCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateInfographicCommandHandler(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IPhotoManager photoManager,
+            ILogger<UpdateInfographicCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _env = env;
@@ -26,11 +33,15 @@ namespace Persistence.CQRS.Multimedia.Infographics
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateInfographicCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateInfographicCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var infographic =
-                await _context.Infographic
-                    .FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var infographic = await _context.Infographic.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (infographic == null)
                 return CommandResponse.Failure(400, "اینفوگرافیک مورد نظر در سیستم وجود ندارد");
@@ -63,7 +74,13 @@ namespace Persistence.CQRS.Multimedia.Infographics
                         File.Delete(upload + SD.InfographicPath + oldImageName);
                 }
 
-                _logger.LogInformation($"Infographic with id {infographic.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "Infographic with id {Username} updated by {UserRealName} in {DoneTime}",
+                    infographic.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success(infographic.Name);
             }
 

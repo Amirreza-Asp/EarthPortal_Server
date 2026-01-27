@@ -8,28 +8,35 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Pages.EnglishPage
 {
-    public class EnglishPageAddProblemCommandHandler : IRequestHandler<EnglishPageAddProblemCommand, CommandResponse>
+    public class EnglishPageAddProblemCommandHandler
+        : IRequestHandler<EnglishPageAddProblemCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<EnglishPageAddProblemCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public EnglishPageAddProblemCommandHandler(ApplicationDbContext context, ILogger<EnglishPageAddProblemCommandHandler> logger, IUserAccessor userAccessor)
+        public EnglishPageAddProblemCommandHandler(
+            ApplicationDbContext context,
+            ILogger<EnglishPageAddProblemCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(EnglishPageAddProblemCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            EnglishPageAddProblemCommand request,
+            CancellationToken cancellationToken
+        )
         {
             if (String.IsNullOrEmpty(request.Content))
                 return CommandResponse.Failure(400, "Enter the content of the Problem");
 
-            var englishPageId =
-                await _context.EnglishPage
-                    .Select(b => b.Id)
-                    .FirstAsync(cancellationToken);
+            var englishPageId = await _context
+                .EnglishPage.Select(b => b.Id)
+                .FirstAsync(cancellationToken);
 
             var problem = new EnglishProblem(request.Content, englishPageId);
 
@@ -37,7 +44,13 @@ namespace Persistence.CQRS.Pages.EnglishPage
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"Problem with content  {request.Content} added to english page by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "Problem with content {Content} added to english page by {UserRealName} in {DoneTime}",
+                    request.Content,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success(problem.Id);
             }
 

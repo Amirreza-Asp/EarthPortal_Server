@@ -7,20 +7,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Regulation.Categories
 {
-    public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, CommandResponse>
+    public class CreateCategoryCommandHandler
+        : IRequestHandler<CreateCategoryCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<CreateCategoryCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public CreateCategoryCommandHandler(ApplicationDbContext context, ILogger<CreateCategoryCommandHandler> logger, IUserAccessor userAccessor)
+        public CreateCategoryCommandHandler(
+            ApplicationDbContext context,
+            ILogger<CreateCategoryCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            CreateCategoryCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var entity = new LawCategory(request.Title);
             entity.Order = request.Order;
@@ -28,8 +36,13 @@ namespace Persistence.CQRS.Regulation.Categories
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
+                _logger.LogInformation(
+                    "LawCategory with id {Id} created by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
 
-                _logger.LogInformation($"LawCategory with id {entity.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(entity.Id);
             }
 

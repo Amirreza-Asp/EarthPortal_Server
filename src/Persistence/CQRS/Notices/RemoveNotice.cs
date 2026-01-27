@@ -1,6 +1,7 @@
 ﻿using Application.Contracts.Infrastructure.Services;
 using Application.CQRS.Notices;
 using Application.Models;
+using Domain.Entities.Notices;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -46,8 +47,12 @@ namespace Persistence.CQRS.Notices
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"Notice with id {notice.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Notice with id {Username} removed by {UserRealName} in {DoneTime}",
+                    notice.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success();
             }
 

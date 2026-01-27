@@ -42,8 +42,12 @@ namespace Persistence.CQRS.Regulation.LawContent
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"LawContent with id {entity.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "LawContent with id {Id} updated by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success();
             }
 

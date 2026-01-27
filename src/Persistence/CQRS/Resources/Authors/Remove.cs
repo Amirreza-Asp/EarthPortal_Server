@@ -13,16 +13,26 @@ namespace Persistence.CQRS.Resources.Authors
         private readonly ILogger<RemoveAuthorCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveAuthorCommandHandler(ApplicationDbContext context, ILogger<RemoveAuthorCommandHandler> logger, IUserAccessor userAccessor)
+        public RemoveAuthorCommandHandler(
+            ApplicationDbContext context,
+            ILogger<RemoveAuthorCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(RemoveAuthorCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveAuthorCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var author = await _context.Author.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var author = await _context.Author.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (author == null)
                 return CommandResponse.Failure(400, "نویسنده مورد نظر در سیستم وجود ندارد");
@@ -31,8 +41,13 @@ namespace Persistence.CQRS.Resources.Authors
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
+                _logger.LogInformation(
+                    "Author with id {Id} removed by {UserRealName} in {DoneTime}",
+                    author.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
 
-                _logger.LogInformation($"Author with id {author.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success();
             }
 

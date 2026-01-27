@@ -109,7 +109,10 @@ namespace Persistence.CQRS.Resources.Articles
                 }
 
                 _logger.LogInformation(
-                    $"Article with id {entity.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Article with id {Id} updated by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
 
                 return CommandResponse.Success(

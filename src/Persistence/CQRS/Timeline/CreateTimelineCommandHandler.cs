@@ -61,8 +61,12 @@ public class CreateTimelineCommandHandler : IRequestHandler<CreateTimelineComman
                 if (await _context.SaveChangesAsync(cancellationToken) > 0)
                 {
                     _logger.LogInformation(
-                        $"Timeline with id {timeline.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                        "Timeline with id {Id} registered by {UserRealName} in {DoneTime}",
+                        timeline.Id,
+                        _userAccessor.GetUserName(),
+                        DateTimeOffset.UtcNow
                     );
+
                     return CommandResponse.Success(new { id = timeline.Id });
                 }
             }
@@ -88,8 +92,12 @@ public class CreateTimelineCommandHandler : IRequestHandler<CreateTimelineComman
                 if (await _context.SaveChangesAsync(cancellationToken) > 0)
                 {
                     _logger.LogInformation(
-                        $"Timeline with id {timeline.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                        "Timeline with id {Id} registered by {UserRealName} in {DoneTime}",
+                        timeline.Id,
+                        _userAccessor.GetUserName(),
+                        DateTimeOffset.UtcNow
                     );
+
                     return CommandResponse.Success(new { id = timeline.Id, image = imgName });
                 }
             }
@@ -107,8 +115,12 @@ public class CreateTimelineCommandHandler : IRequestHandler<CreateTimelineComman
                 if (await _context.SaveChangesAsync(cancellationToken) > 0)
                 {
                     _logger.LogInformation(
-                        $"Timeline with id {timeline.Id} registered by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                        "Timeline with id {Id} registered by {UserRealName} in {DoneTime}",
+                        timeline.Id,
+                        _userAccessor.GetUserName(),
+                        DateTimeOffset.UtcNow
                     );
+
                     return CommandResponse.Success(new { id = timeline.Id });
                 }
             }

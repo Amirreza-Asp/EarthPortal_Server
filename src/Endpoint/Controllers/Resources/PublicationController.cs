@@ -6,6 +6,7 @@ using Domain;
 using Domain.Dtos.Shared;
 using Domain.Entities.Resources;
 using Endpoint.CustomeAttributes;
+using Endpoint.Filters;
 using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,7 @@ namespace Endpoint.Controllers.Resources
 {
     [Route("api/[controller]")]
     [ApiController]
+    [DisableController] // disabling controller for now
     public class PublicationController : ControllerBase
     {
         private readonly IRepository<Publication> _repo;
@@ -25,28 +27,35 @@ namespace Endpoint.Controllers.Resources
             _mediator = mediator;
         }
 
-
         [HttpPost]
         [Route("PaginationSummary")]
-        public async Task<ListActionResult<SelectListItem>> PaginationSummary([FromBody] GridQuery query, CancellationToken cancellationToken) =>
-            await _repo.GetAllAsync<SelectListItem>(query, cancellationToken: cancellationToken);
+        public async Task<ListActionResult<SelectListItem>> PaginationSummary(
+            [FromBody] GridQuery query,
+            CancellationToken cancellationToken
+        ) => await _repo.GetAllAsync<SelectListItem>(query, cancellationToken: cancellationToken);
 
         [HttpPost]
         [Route("Create")]
         [AccessControl(SD.AdminRole)]
-        public async Task<CommandResponse> Create([FromBody] CreatePublicationCommand command, CancellationToken cancellationToken) =>
-           await _mediator.HandleRequestAsync(command, cancellationToken);
+        public async Task<CommandResponse> Create(
+            [FromBody] CreatePublicationCommand command,
+            CancellationToken cancellationToken
+        ) => await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpPut]
         [Route("Update")]
         [AccessControl(SD.AdminRole)]
-        public async Task<CommandResponse> Update([FromBody] UpdatePublicationCommand command, CancellationToken cancellationToken) =>
-            await _mediator.HandleRequestAsync(command, cancellationToken);
+        public async Task<CommandResponse> Update(
+            [FromBody] UpdatePublicationCommand command,
+            CancellationToken cancellationToken
+        ) => await _mediator.HandleRequestAsync(command, cancellationToken);
 
         [HttpDelete]
         [Route("Remove")]
         [AccessControl(SD.AdminRole)]
-        public async Task<CommandResponse> Remove([FromQuery] RemovePublicationCommand command, CancellationToken cancellationToken) =>
-            await _mediator.HandleRequestAsync(command, cancellationToken);
+        public async Task<CommandResponse> Remove(
+            [FromQuery] RemovePublicationCommand command,
+            CancellationToken cancellationToken
+        ) => await _mediator.HandleRequestAsync(command, cancellationToken);
     }
 }

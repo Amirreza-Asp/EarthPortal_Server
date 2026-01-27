@@ -101,8 +101,12 @@ namespace Persistence.CQRS.Multimedia.Gallery
                 }
 
                 _logger.LogInformation(
-                    $"Gallery with id {gallery.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Gallery with id {Username} updated by {UserRealName} in {DoneTime}",
+                    gallery.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(images);
             }
 

@@ -52,8 +52,12 @@ namespace Persistence.CQRS.Contact.RelatedCompanies
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"RelatedCompany with id {relatedCompany.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "RelatedCompany with id {Username} removed by {UserRealName} in {DoneTime}",
+                    relatedCompany.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success();
             }
 

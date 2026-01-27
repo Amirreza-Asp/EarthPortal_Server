@@ -78,8 +78,12 @@ namespace Persistence.CQRS.Resources.Books
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"Book with id {book.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Book with id {Id} created by {UserRealName} in {DoneTime}",
+                    book.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(
                     new
                     {

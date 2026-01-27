@@ -2,6 +2,7 @@
 using Application.CQRS.Resources.Articles;
 using Application.Models;
 using Domain;
+using Domain.Entities.Regulation;
 using Domain.Entities.Resources;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
@@ -79,8 +80,12 @@ namespace Persistence.CQRS.Resources.Articles
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"Article with id {entity.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Article with id {Id} created by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(
                     new
                     {

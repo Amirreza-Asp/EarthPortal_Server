@@ -13,16 +13,26 @@ namespace Persistence.CQRS.Contact.Guids
         private readonly ILogger<UpdateGuideCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateGuideCommandHandler(ApplicationDbContext context, ILogger<UpdateGuideCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateGuideCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdateGuideCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateGuideCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateGuideCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var guide = await _context.Guide.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var guide = await _context.Guide.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (guide == null)
                 return CommandResponse.Failure(400, "آیتم مورد نظر در سیستم وجود ندارد");
@@ -36,7 +46,13 @@ namespace Persistence.CQRS.Contact.Guids
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"Guide with id {guide.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "Guide with id {Username} updated by {UserRealName} in {DoneTime}",
+                    guide.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success(guide.Id);
             }
 

@@ -55,7 +55,10 @@ public class RemoveTimelineCommandHandler : IRequestHandler<RemoveTimelineComman
                 File.Delete(upload + timeline.Image);
 
             _logger.LogInformation(
-                $"Timeline with id {timeline.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                "Timeline with id {Id} removed by {UserRealName} in {DoneTime}",
+                timeline.Id,
+                _userAccessor.GetUserName(),
+                DateTimeOffset.UtcNow
             );
 
             return CommandResponse.Success();

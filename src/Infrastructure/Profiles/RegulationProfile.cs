@@ -72,6 +72,10 @@ namespace Infrastructure.Profiles
             CreateMap<ExecutorManagment, SelectListItem>()
                 .ForMember(b => b.Value, d => d.MapFrom(e => e.Id))
                 .ForMember(b => b.Text, d => d.MapFrom(e => e.Name));
+
+            CreateMap<LawContent, SelectListItem>()
+                .ForMember(d => d.Value, opt => opt.MapFrom(s => s.Id))
+                .ForMember(d => d.Text, opt => opt.MapFrom(s => s.Title));
         }
     }
 }

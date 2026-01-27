@@ -7,21 +7,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Resources.Translators
 {
-    public class CreateTranslatorCommandHandler : IRequestHandler<CreateTranslatorCommand, CommandResponse>
+    public class CreateTranslatorCommandHandler
+        : IRequestHandler<CreateTranslatorCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<CreateTranslatorCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-
-        public CreateTranslatorCommandHandler(ApplicationDbContext context, ILogger<CreateTranslatorCommandHandler> logger, IUserAccessor userAccessor)
+        public CreateTranslatorCommandHandler(
+            ApplicationDbContext context,
+            ILogger<CreateTranslatorCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(CreateTranslatorCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            CreateTranslatorCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var entity = new Translator(request.Name);
             entity.Order = request.Order;
@@ -29,8 +36,13 @@ namespace Persistence.CQRS.Resources.Translators
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
+                _logger.LogInformation(
+                    "Translator with id {Id} created by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
 
-                _logger.LogInformation($"Translator with id {entity.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}");
                 return CommandResponse.Success(entity.Id);
             }
 

@@ -7,22 +7,33 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Contact.EducationalVideos
 {
-    public class RemoveEducationalVideoCommandHandler : IRequestHandler<RemoveEducationalVideoCommand, CommandResponse>
+    public class RemoveEducationalVideoCommandHandler
+        : IRequestHandler<RemoveEducationalVideoCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<RemoveEducationalVideoCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveEducationalVideoCommandHandler(ApplicationDbContext context, ILogger<RemoveEducationalVideoCommandHandler> logger, IUserAccessor userAccessor)
+        public RemoveEducationalVideoCommandHandler(
+            ApplicationDbContext context,
+            ILogger<RemoveEducationalVideoCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(RemoveEducationalVideoCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveEducationalVideoCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var edv = await _context.EducationalVideo.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var edv = await _context.EducationalVideo.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (edv == null)
                 return CommandResponse.Failure(400, "ویدیو مورد نظر در سیستم وجود ندارد");
@@ -31,7 +42,13 @@ namespace Persistence.CQRS.Contact.EducationalVideos
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"EducationalVideo with id {edv.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "EducationalVideo with id {Username} removed by {UserRealName} in {DoneTime}",
+                    edv.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 

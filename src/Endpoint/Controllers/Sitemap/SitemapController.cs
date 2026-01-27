@@ -6,8 +6,9 @@ using Persistence;
 
 namespace Endpoint.Controllers.Sitemap;
 
-[Route("api/sitemap.xml")]
 [ApiController]
+[Route("api/sitemap.xml")]
+[Route("sitemap.xml")]
 public class SitemapController : ControllerBase
 {
     private readonly ApplicationDbContext _dbContext;

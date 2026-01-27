@@ -7,20 +7,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Regulation.ApprovalTypes
 {
-    public class UpdateApprovalTypeCommandHandler : IRequestHandler<UpdateApprovalTypeCommand, CommandResponse>
+    public class UpdateApprovalTypeCommandHandler
+        : IRequestHandler<UpdateApprovalTypeCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<UpdateApprovalTypeCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateApprovalTypeCommandHandler(ApplicationDbContext context, ILogger<UpdateApprovalTypeCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateApprovalTypeCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdateApprovalTypeCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateApprovalTypeCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateApprovalTypeCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var entity = await _context.ApprovalType.FirstOrDefaultAsync(b => b.Id == request.Id);
 
@@ -34,7 +42,13 @@ namespace Persistence.CQRS.Regulation.ApprovalTypes
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"ApprovalType with id {entity.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "ApprovalType with id {Id} updated by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 

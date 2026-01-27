@@ -112,8 +112,12 @@ namespace Persistence.CQRS.Notices
                     File.Delete(upload + oldImage);
 
                 _context.Database.CommitTransaction();
+
                 _logger.LogInformation(
-                    $"News with id {news.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "News with id {Username} updated by {UserRealName} in {DoneTime}",
+                    news.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
 
                 return CommandResponse.Success(new { Image = image.Name });

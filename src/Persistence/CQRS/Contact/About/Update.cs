@@ -84,7 +84,10 @@ namespace Persistence.CQRS.Contact.About
                             File.Delete(upload + oldImage);
 
                         _logger.LogInformation(
-                            $"about with id {about.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                            "about with id {Username} updated by {UserRealName} in {DoneTime}",
+                            about.Id,
+                            _userAccessor.GetUserName(),
+                            DateTimeOffset.UtcNow
                         );
 
                         return CommandResponse.Success(new { Image = about.Image });
@@ -104,7 +107,10 @@ namespace Persistence.CQRS.Contact.About
                             File.Delete(upload + oldImage);
 
                         _logger.LogInformation(
-                            $"about with id {about.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                            "about with id {Username} updated by {UserRealName} in {DoneTime}",
+                            about.Id,
+                            _userAccessor.GetUserName(),
+                            DateTimeOffset.UtcNow
                         );
 
                         return CommandResponse.Success();

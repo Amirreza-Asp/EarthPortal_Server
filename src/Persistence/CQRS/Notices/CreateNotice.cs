@@ -95,8 +95,12 @@ namespace Persistence.CQRS.Notices
                 _context.Database.CommitTransaction();
 
                 _logger.LogInformation(
-                    $"Notice with id {notice.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Notice with id {Username} created by {UserRealName} in {DoneTime}",
+                    notice.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(
                     new
                     {

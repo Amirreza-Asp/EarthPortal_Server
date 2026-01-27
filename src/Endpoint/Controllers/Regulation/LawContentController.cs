@@ -6,6 +6,7 @@ using Domain;
 using Domain.Dtos.Shared;
 using Domain.Entities.Regulation;
 using Endpoint.CustomeAttributes;
+using Endpoint.Filters;
 using Endpoint.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,7 @@ namespace Endpoint.Controllers.Regulation
 {
     [Route("api/[controller]")]
     [ApiController]
+    [DisableController]
     public class LawContentController : ControllerBase
     {
         private readonly IRepository<LawContent> _repo;

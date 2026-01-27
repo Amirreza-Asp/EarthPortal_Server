@@ -13,16 +13,26 @@ namespace Persistence.CQRS.Contact.FAQ
         private readonly ILogger<UpdateFAQCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateFAQCommandHandler(ApplicationDbContext context, ILogger<UpdateFAQCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateFAQCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdateFAQCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateFAQCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateFAQCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var faq = await _context.FrequentlyAskedQuestions.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var faq = await _context.FrequentlyAskedQuestions.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (faq == null)
                 return CommandResponse.Failure(400, "سوال انتخاب شده در سیستم وجود ندارد");
@@ -35,7 +45,13 @@ namespace Persistence.CQRS.Contact.FAQ
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"FAQ with id {faq.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "FAQ with id {Username} updated by {UserRealName} in {DoneTime}",
+                    faq.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 

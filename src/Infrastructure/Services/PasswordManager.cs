@@ -245,13 +245,25 @@ namespace Infrastructure.Services
 
         public (bool Valid, string Error) CheckPasswordStrong(string password)
         {
-            if (password.Length < 6)
-                return new(false, "رمز عبور باید بیشتر از 6 کاراکتر باشد");
+            bool IsValid = password.All(c => c >= 0x21 && c <= 0x7E);
+
+            if (password.Length < 12)
+                return new(false, "رمز عبور باید بیشتر از 12 کاراکتر باشد");
+
+            if (password.Any(char.IsControl))
+                return (false, "رمز عبور شامل کاراکتر نامعتبر است");
 
             if (!CheckCommonPassword(password))
                 return new(false, "رمز عبور وارد شده ضعیف است");
 
-            return CheckCharacters(password);
+            if (!IsAsciiPassword(password))
+                return new(
+                    false,
+                    "رمز عبور فقط می‌تواند شامل حروف انگلیسی (A-Z, a-z)، اعداد (0-9) و نمادها باشد"
+                );
+
+            return CheckPasswordComplexity(password);
+            //return CheckCharacters(password);
         }
 
         public (bool Valid, string Error) CheckCharacters(String password)
@@ -284,6 +296,44 @@ namespace Infrastructure.Services
             var data = File.ReadAllLines(path);
 
             return !data.Contains(password);
+        }
+
+        private bool IsAsciiPassword(string password)
+        {
+            if (string.IsNullOrEmpty(password))
+                return false;
+
+            foreach (char c in password)
+            {
+                // Printable ASCII characters only: ! (0x21) to ~ (0x7E)
+                if (c < 0x21 || c > 0x7E)
+                    return false;
+            }
+
+            return true;
+        }
+
+        private (bool Valid, string Error) CheckPasswordComplexity(string password)
+        {
+            // Complexity checks
+            bool hasUpper = password.Any(char.IsUpper);
+            bool hasLower = password.Any(char.IsLower);
+            bool hasDigit = password.Any(char.IsDigit);
+            bool hasSymbol = password.Any(c => !char.IsLetterOrDigit(c));
+
+            if (!hasUpper)
+                return (false, "رمز عبور باید حداقل یک حرف بزرگ انگلیسی (A-Z) داشته باشد");
+
+            if (!hasLower)
+                return (false, "رمز عبور باید حداقل یک حرف کوچک انگلیسی (a-z) داشته باشد");
+
+            if (!hasDigit)
+                return (false, "رمز عبور باید حداقل یک عدد (0-9) داشته باشد");
+
+            if (!hasSymbol)
+                return (false, "رمز عبور باید حداقل یک نماد (!@#$...) داشته باشد");
+
+            return new(true, "");
         }
     }
 }

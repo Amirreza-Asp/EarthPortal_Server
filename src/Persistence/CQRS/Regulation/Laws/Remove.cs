@@ -50,7 +50,10 @@ namespace Persistence.CQRS.Regulation.Laws
                     File.Delete(_env.WebRootPath + SD.LawPdfPath + law.Pdf);
 
                 _logger.LogInformation(
-                    $"Law with id {law.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Law with id {Id} removed by {UserRealName} in {DoneTime}",
+                    law.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
 
                 return CommandResponse.Success();

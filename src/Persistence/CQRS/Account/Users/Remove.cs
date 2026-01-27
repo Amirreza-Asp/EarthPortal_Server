@@ -13,23 +13,31 @@ namespace Persistence.CQRS.Account.Users
         private readonly ILogger<RemoveUserCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveUserCommandHandler(ApplicationDbContext context, ILogger<RemoveUserCommandHandler> logger, IUserAccessor userAccessor)
+        public RemoveUserCommandHandler(
+            ApplicationDbContext context,
+            ILogger<RemoveUserCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-
-        public async Task<CommandResponse> Handle(RemoveUserCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveUserCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var user =
-               await _context.User
-                   .Where(b => b.UserName == request.UserName)
-                   .FirstOrDefaultAsync(cancellationToken);
+            var user = await _context
+                .User.Where(b => b.UserName == request.UserName)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (user == null)
-                return CommandResponse.Failure(400, $"هیچ کاربری با نام کاربری {request.UserName} ثبت نشده است");
+                return CommandResponse.Failure(
+                    400,
+                    $"هیچ کاربری با نام کاربری {request.UserName} ثبت نشده است"
+                );
 
             user.IsActive = false;
 
@@ -37,7 +45,13 @@ namespace Persistence.CQRS.Account.Users
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"user with username {request.UserName} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "User with username {Username} removed by {UserRealName} in {LoginTime}",
+                    request.UserName,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 

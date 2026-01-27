@@ -17,7 +17,12 @@ namespace Endpoint.Controllers.Pages
         private readonly IUserCounterService _userCounterService;
         private readonly IStatisticsRepository _statisticsRepository;
 
-        public FooterController(IRepository<FooterPage> footerRepo, IMemoryCache memoryCache, IUserCounterService userCounterService, IStatisticsRepository statisticsRepository)
+        public FooterController(
+            IRepository<FooterPage> footerRepo,
+            IMemoryCache memoryCache,
+            IUserCounterService userCounterService,
+            IStatisticsRepository statisticsRepository
+        )
         {
             _footerRepo = footerRepo;
             _memoryCache = memoryCache;
@@ -30,7 +35,10 @@ namespace Endpoint.Controllers.Pages
         public async Task<FooterSummary> Get(CancellationToken cancellationToken)
         {
             _userCounterService.Execute();
-            var footer = await _footerRepo.FirstOrDefaultAsync(b => true, cancellationToken: cancellationToken);
+            var footer = await _footerRepo.FirstOrDefaultAsync(
+                b => true,
+                cancellationToken: cancellationToken
+            );
 
             _memoryCache.TryGetValue("onlineUsers", out List<OnlineUserData>? onlineUsers);
 
@@ -52,6 +60,5 @@ namespace Endpoint.Controllers.Pages
                 OnlineUsers = onlineUsers == null ? 1 : onlineUsers.Count
             };
         }
-
     }
 }

@@ -7,25 +7,36 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Multimedia.VideoContents
 {
-    public class UpdateVideoContentCommandHandler : IRequestHandler<UpdateVideoContentCommand, CommandResponse>
+    public class UpdateVideoContentCommandHandler
+        : IRequestHandler<UpdateVideoContentCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<UpdateVideoContentCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateVideoContentCommandHandler(ApplicationDbContext context, ILogger<UpdateVideoContentCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateVideoContentCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdateVideoContentCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateVideoContentCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateVideoContentCommand request,
+            CancellationToken cancellationToken
+        )
         {
             if (!request.Video.Contains("</iframe>"))
                 return CommandResponse.Failure(400, "فرمت ویدیو وارد شده صحیح نیست");
 
-            var video = await _context.VideoContent.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var video = await _context.VideoContent.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (video == null)
                 return CommandResponse.Failure(400, "ویدیو در سیستم وجود ندارد");
@@ -41,7 +52,13 @@ namespace Persistence.CQRS.Multimedia.VideoContents
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"VideoContent with id {video.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "VideoContent with id {Username} updated by {UserRealName} in {DoneTime}",
+                    video.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 

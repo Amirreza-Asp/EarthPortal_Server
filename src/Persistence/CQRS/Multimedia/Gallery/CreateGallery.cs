@@ -63,8 +63,12 @@ namespace Persistence.CQRS.Multimedia.Gallery
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"Gallery with id {gallery.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Gallery with id {Username} created by {UserRealName} in {DoneTime}",
+                    gallery.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(
                     new
                     {

@@ -137,7 +137,10 @@ namespace Persistence.CQRS.Regulation.Laws
                     File.Delete(SD.LawPdfPath + oldNewspaperFileName);
 
                 _logger.LogInformation(
-                    $"Law with id {law.Id} updated by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Law with id {Id} updated by {UserRealName} in {DoneTime}",
+                    law.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
 
                 return CommandResponse.Success();

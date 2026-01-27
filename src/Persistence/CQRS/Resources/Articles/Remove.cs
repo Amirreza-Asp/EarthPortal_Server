@@ -52,8 +52,12 @@ namespace Persistence.CQRS.Resources.Articles
                     File.Delete(upload + SD.ArticleImagePath + entity.Image);
 
                 _logger.LogInformation(
-                    $"Article with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Article with id {Id} removed by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success();
             }
 

@@ -55,7 +55,10 @@ namespace Persistence.CQRS.Contact.About
                     File.Delete(upload + about.Image);
 
                 _logger.LogInformation(
-                    $"about with id {about.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "about with id {Username} removed by {UserRealName} in {DoneTime}",
+                    about.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
 
                 return CommandResponse.Success();

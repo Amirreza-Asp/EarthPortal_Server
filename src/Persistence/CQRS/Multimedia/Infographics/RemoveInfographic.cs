@@ -47,8 +47,12 @@ namespace Persistence.CQRS.Multimedia.Infographics
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"Infographic with id {infographic.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Infographic with id {Username} removed by {UserRealName} in {DoneTime}",
+                    infographic.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success();
             }
 

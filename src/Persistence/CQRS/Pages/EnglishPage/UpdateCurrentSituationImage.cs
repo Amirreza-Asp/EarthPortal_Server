@@ -57,7 +57,9 @@ namespace Persistence.CQRS.Pages.EnglishPage
                     File.Delete(upload + oldImageName);
 
                 _logger.LogInformation(
-                    $"CurrentSituationImage Updated from EnglishPage  by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "CurrentSituationImage updated from EnglishPage by {UserRealName} in {DoneTime}",
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
 
                 return CommandResponse.Success(newImageName);

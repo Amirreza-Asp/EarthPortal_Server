@@ -6,6 +6,7 @@ using Domain.Entities.Notices;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Notices
@@ -94,8 +95,12 @@ namespace Persistence.CQRS.Notices
                 _context.Database.CommitTransaction();
 
                 _logger.LogInformation(
-                    $"News with id {news.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "News with id {Username} created by {UserRealName} in {DoneTime}",
+                    news.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(
                     new
                     {
@@ -109,6 +114,7 @@ namespace Persistence.CQRS.Notices
             {
                 _context.Database.RollbackTransaction();
                 _logger.LogError(ex.Message, ex);
+
                 return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");
             }
         }

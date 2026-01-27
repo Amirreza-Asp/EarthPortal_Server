@@ -13,16 +13,26 @@ namespace Persistence.CQRS.Contact.Goals
         private readonly ILogger<RemoveGoalCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public RemoveGoalCommandHandler(ApplicationDbContext context, ILogger<RemoveGoalCommandHandler> logger, IUserAccessor userAccessor)
+        public RemoveGoalCommandHandler(
+            ApplicationDbContext context,
+            ILogger<RemoveGoalCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(RemoveGoalCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            RemoveGoalCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var entity = await _context.Goal.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
+            var entity = await _context.Goal.FirstOrDefaultAsync(
+                b => b.Id == request.Id,
+                cancellationToken
+            );
 
             if (entity == null)
                 return CommandResponse.Failure(400, "هدف مورد نظر در سیستم وجود ندارد");
@@ -31,7 +41,13 @@ namespace Persistence.CQRS.Contact.Goals
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"Goal with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "Goal with id {Username} removed by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 

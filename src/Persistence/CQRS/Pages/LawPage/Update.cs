@@ -7,24 +7,30 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Pages.LawPage
 {
-    public class UpdateLawPageCommandHandler : IRequestHandler<UpdateLawPageCommand, CommandResponse>
+    public class UpdateLawPageCommandHandler
+        : IRequestHandler<UpdateLawPageCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<UpdateLawPageCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateLawPageCommandHandler(ApplicationDbContext context, ILogger<UpdateLawPageCommandHandler> logger, IUserAccessor userAccessor)
+        public UpdateLawPageCommandHandler(
+            ApplicationDbContext context,
+            ILogger<UpdateLawPageCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(UpdateLawPageCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateLawPageCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var entity =
-                await _context.LawPage
-                    .FirstAsync(cancellationToken);
+            var entity = await _context.LawPage.FirstAsync(cancellationToken);
 
             entity.WarningTitle = request.WarningTitle;
             entity.WarningContent = request.WarningContent;
@@ -33,7 +39,12 @@ namespace Persistence.CQRS.Pages.LawPage
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"LawPage content updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "LawPage content updated from EnglishPage by {UserRealName} in {DoneTime}",
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 

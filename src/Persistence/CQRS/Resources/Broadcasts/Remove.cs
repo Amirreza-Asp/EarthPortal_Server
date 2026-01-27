@@ -52,8 +52,12 @@ namespace Persistence.CQRS.Resources.Broadcasts
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"Broadcast with id {entity.Id} removed by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Broadcast with id {Id} removed by {UserRealName} in {DoneTime}",
+                    entity.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success();
             }
 

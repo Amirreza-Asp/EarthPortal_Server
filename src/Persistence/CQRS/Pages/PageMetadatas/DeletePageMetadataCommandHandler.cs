@@ -7,22 +7,32 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.CQRS.Pages.PageMetadatas
 {
-    public class DeletePageMetadataCommandHandler : IRequestHandler<DeletePageMetadataCommand, CommandResponse>
+    public class DeletePageMetadataCommandHandler
+        : IRequestHandler<DeletePageMetadataCommand, CommandResponse>
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<CreatePageMetadataCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public DeletePageMetadataCommandHandler(ApplicationDbContext context, ILogger<CreatePageMetadataCommandHandler> logger, IUserAccessor userAccessor)
+        public DeletePageMetadataCommandHandler(
+            ApplicationDbContext context,
+            ILogger<CreatePageMetadataCommandHandler> logger,
+            IUserAccessor userAccessor
+        )
         {
             _context = context;
             _logger = logger;
             _userAccessor = userAccessor;
         }
 
-        public async Task<CommandResponse> Handle(DeletePageMetadataCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            DeletePageMetadataCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var pageMeta = await _context.PageMetadata.Where(b => b.Id == request.Id).FirstOrDefaultAsync(cancellationToken);
+            var pageMeta = await _context
+                .PageMetadata.Where(b => b.Id == request.Id)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (pageMeta == null)
                 return CommandResponse.Failure(400, "شناسه وارد شده اشتباه است");
@@ -31,7 +41,12 @@ namespace Persistence.CQRS.Pages.PageMetadatas
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"PageMetadata with id {pageMeta.Id} deleted by {_userAccessor.GetUserName()} in {DateTime.Now}");
+            _logger.LogInformation(
+                "PageMetadata with id {Id} deleted by {UserRealName} in {DoneTime}",
+                pageMeta.Id,
+                _userAccessor.GetUserName(),
+                DateTimeOffset.UtcNow
+            );
 
             return CommandResponse.Success();
         }

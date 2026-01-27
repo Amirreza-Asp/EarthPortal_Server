@@ -56,8 +56,12 @@ namespace Persistence.CQRS.Multimedia.Infographics
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
                 _logger.LogInformation(
-                    $"Infographic with id {infographic.Id} created by {_userAccessor.GetUserName()} in {DateTime.Now}"
+                    "Infographic with id {Username} created by {UserRealName} in {DoneTime}",
+                    infographic.Id,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
                 );
+
                 return CommandResponse.Success(new { Name = imgName, Id = infographic.Id });
             }
             return CommandResponse.Failure(400, "عملیات با شکست مواجه شد");

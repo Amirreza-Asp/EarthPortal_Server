@@ -14,7 +14,12 @@ namespace Persistence.CQRS.Account.Users
         private readonly ILogger<UpdateUserCommandHandler> _logger;
         private readonly IUserAccessor _userAccessor;
 
-        public UpdateUserCommandHandler(ApplicationDbContext context, IPasswordManager passManager, IUserAccessor userAccessor, ILogger<UpdateUserCommandHandler> logger)
+        public UpdateUserCommandHandler(
+            ApplicationDbContext context,
+            IPasswordManager passManager,
+            IUserAccessor userAccessor,
+            ILogger<UpdateUserCommandHandler> logger
+        )
         {
             _context = context;
             _passManager = passManager;
@@ -22,15 +27,20 @@ namespace Persistence.CQRS.Account.Users
             _logger = logger;
         }
 
-        public async Task<CommandResponse> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(
+            UpdateUserCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            var user =
-                await _context.User
-                    .Where(b => b.UserName == request.UserName)
-                    .FirstOrDefaultAsync(cancellationToken);
+            var user = await _context
+                .User.Where(b => b.UserName == request.UserName)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (user == null)
-                return CommandResponse.Failure(400, $"هیچ کاربری با نام کاربری {request.UserName} ثبت نشده است");
+                return CommandResponse.Failure(
+                    400,
+                    $"هیچ کاربری با نام کاربری {request.UserName} ثبت نشده است"
+                );
 
             if (request.Password != "TestPassword")
             {
@@ -51,7 +61,13 @@ namespace Persistence.CQRS.Account.Users
 
             if (await _context.SaveChangesAsync(cancellationToken) > 0)
             {
-                _logger.LogInformation($"user with username {request.UserName} updated by {_userAccessor.GetUserName()} in {DateTime.Now}");
+                _logger.LogInformation(
+                    "User with username {Username} updated by {UserRealName} in {LoginTime}",
+                    request.UserName,
+                    _userAccessor.GetUserName(),
+                    DateTimeOffset.UtcNow
+                );
+
                 return CommandResponse.Success();
             }
 
